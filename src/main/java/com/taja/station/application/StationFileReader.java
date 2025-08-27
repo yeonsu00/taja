@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StationFileReader {
 
     private static final String SHEET_NAME = "station state";
@@ -61,6 +63,7 @@ public class StationFileReader {
             return stations;
 
         } catch (IOException | RuntimeException e) {
+            log.error(e.getMessage());
             throw new ReadFileException("엑셀 파일 처리 중 오류가 발생했습니다.");
         }
     }
