@@ -1,6 +1,7 @@
 package com.taja.station.infra;
 
 import com.taja.station.domain.Station;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,26 +19,32 @@ public class StationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long stationId;
 
+    @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(nullable = false, unique = true)
     private String number;
 
+    @Column(nullable = false)
     private String district;
 
+    @Column(nullable = false)
     private String address;
 
+    @Column(nullable = false)
     private double latitude;
 
+    @Column(nullable = false)
     private double longitude;
 
-    private int lcd;
+    private Integer lcd;
 
-    private int qr;
+    private Integer qr;
 
-    private String operationMethod;
+    private String operationMethod; // "LCD", "QR", "LCD/QR", "None"
 
     @Builder
-    public StationEntity(String name, String number, String district, String address, double latitude, double longitude, int lcd, int qr) {
+    public StationEntity(String name, String number, String district, String address, double latitude, double longitude, Integer lcd, Integer qr) {
         this.name = name;
         this.number = number;
         this.district = district;
@@ -49,12 +56,12 @@ public class StationEntity {
         this.operationMethod = getOperationMethod(lcd, qr);
     }
 
-    private String getOperationMethod(int lcd, int qr) {
-        if (lcd > 0 && qr > 0) {
+    private String getOperationMethod(Integer lcd, Integer qr) {
+        if (lcd != null && qr != null ) {
             return "LCD/QR";
-        } else if (lcd > 0) {
+        } else if (lcd != null) {
             return "LCD";
-        } else if (qr > 0) {
+        } else if (qr != null) {
             return "QR";
         }
         return "None";
