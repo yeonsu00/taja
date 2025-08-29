@@ -4,5 +4,5 @@ import com.taja.station.domain.Station;
 import java.util.List;
 
 public interface StationRepository {
-    int saveAll(List<Station> stations);
+    int upsert(List<Station> stations);
 }

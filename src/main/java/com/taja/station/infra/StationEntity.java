@@ -8,11 +8,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "station")
 @RequiredArgsConstructor
+@Getter
 public class StationEntity {
 
     @Id
@@ -68,5 +70,16 @@ public class StationEntity {
                 .qr(station.getQr())
                 .operationMethod(station.getOperationMethod())
                 .build();
+    }
+
+    public void update(Station station) {
+        this.name = station.getName();
+        this.district = station.getDistrict();
+        this.address = station.getAddress();
+        this.latitude = station.getLatitude();
+        this.longitude = station.getLongitude();
+        this.lcd = station.getLcd();
+        this.qr = station.getQr();
+        this.operationMethod = station.getOperationMethod();
     }
 }
