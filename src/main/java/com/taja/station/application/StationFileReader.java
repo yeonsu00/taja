@@ -35,7 +35,9 @@ public class StationFileReader {
 
             for (int i = START_ROW; i < sheet.getPhysicalNumberOfRows(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null) continue;
+                if (row == null) {
+                    continue;
+                }
 
                 try {
                     String latString = formatter.formatCellValue(row.getCell(4));
@@ -44,12 +46,25 @@ public class StationFileReader {
                     double latitude = latString.isEmpty() ? 0.0 : Double.parseDouble(latString);
                     double longitude = lonString.isEmpty() ? 0.0 : Double.parseDouble(lonString);
 
+                    String numberString = formatter.formatCellValue(row.getCell(0));
+                    Integer number = Integer.parseInt(numberString);
+
+                    String lcdString = formatter.formatCellValue(row.getCell(7));
+                    String qrString = formatter.formatCellValue(row.getCell(8));
+
+                    Integer lcd = getHoldNumber(lcdString);
+                    Integer qr = getHoldNumber(qrString);
+
                     Station station = Station.builder()
-                            .number(formatter.formatCellValue(row.getCell(0)))
+                            .number(number)
                             .name(formatter.formatCellValue(row.getCell(1)))
+                            .district(formatter.formatCellValue(row.getCell(2)))
                             .address(formatter.formatCellValue(row.getCell(3)))
                             .latitude(latitude)
                             .longitude(longitude)
+                            .lcd(lcd)
+                            .qr(qr)
+                            .operationMethod(formatter.formatCellValue(row.getCell(9)))
                             .build();
 
                     stations.add(station);
@@ -66,5 +81,14 @@ public class StationFileReader {
             log.error(e.getMessage());
             throw new ReadFileException("엑셀 파일 처리 중 오류가 발생했습니다.");
         }
+    }
+
+    private Integer getHoldNumber(String holdNumberString) {
+        Integer holdNumber = null;
+
+        if (!holdNumberString.isEmpty()) {
+            holdNumber = Integer.parseInt(holdNumberString);
+        }
+        return holdNumber;
     }
 }

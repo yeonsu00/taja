@@ -8,7 +8,7 @@ public class Station {
 
     private String name;
 
-    private String number;
+    private Integer number;
 
     private String district;
 
@@ -18,12 +18,15 @@ public class Station {
 
     private double longitude;
 
-    private int lcd;
+    private Integer lcd;
 
-    private int qr;
+    private Integer qr;
+
+    private String operationMethod;
 
     @Builder
-    public Station(String name, String number, String district, String address, double latitude, double longitude, int lcd, int qr) {
+    public Station(String name, Integer number, String district, String address, double latitude, double longitude,
+                   Integer lcd, Integer qr, String operationMethod) {
         this.name = name;
         this.number = number;
         this.district = district;
@@ -32,6 +35,7 @@ public class Station {
         this.longitude = longitude;
         this.lcd = lcd;
         this.qr = qr;
+        this.operationMethod = operationMethod;
     }
 
 }

@@ -19,11 +19,11 @@ public class StationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long stationId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String number;
+    private Integer number;
 
     @Column(nullable = false)
     private String district;
@@ -41,10 +41,10 @@ public class StationEntity {
 
     private Integer qr;
 
-    private String operationMethod; // "LCD", "QR", "LCD/QR", "None"
+    private String operationMethod; // "LCD", "QR", "LCD/QR"
 
     @Builder
-    public StationEntity(String name, String number, String district, String address, double latitude, double longitude, Integer lcd, Integer qr) {
+    public StationEntity(String name, Integer number, String district, String address, double latitude, double longitude, Integer lcd, Integer qr, String operationMethod) {
         this.name = name;
         this.number = number;
         this.district = district;
@@ -53,18 +53,7 @@ public class StationEntity {
         this.longitude = longitude;
         this.lcd = lcd;
         this.qr = qr;
-        this.operationMethod = getOperationMethod(lcd, qr);
-    }
-
-    private String getOperationMethod(Integer lcd, Integer qr) {
-        if (lcd != null && qr != null ) {
-            return "LCD/QR";
-        } else if (lcd != null) {
-            return "LCD";
-        } else if (qr != null) {
-            return "QR";
-        }
-        return "None";
+        this.operationMethod = operationMethod;
     }
 
     public static StationEntity fromStation(Station station) {
@@ -77,6 +66,7 @@ public class StationEntity {
                 .longitude(station.getLongitude())
                 .lcd(station.getLcd())
                 .qr(station.getQr())
+                .operationMethod(station.getOperationMethod())
                 .build();
     }
 }
