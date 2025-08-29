@@ -55,16 +55,21 @@ public class StationFileReader {
                     Integer lcd = getHoldNumber(lcdString);
                     Integer qr = getHoldNumber(qrString);
 
+                    String name = formatter.formatCellValue(row.getCell(1));
+                    String district = formatter.formatCellValue(row.getCell(2));
+                    String address = formatter.formatCellValue(row.getCell(3));
+                    String operationMethod = formatter.formatCellValue(row.getCell(9));
+
                     Station station = Station.builder()
                             .number(number)
-                            .name(formatter.formatCellValue(row.getCell(1)))
-                            .district(formatter.formatCellValue(row.getCell(2)))
-                            .address(formatter.formatCellValue(row.getCell(3)))
+                            .name(name.trim())
+                            .district(district.trim())
+                            .address(address.trim())
                             .latitude(latitude)
                             .longitude(longitude)
                             .lcd(lcd)
                             .qr(qr)
-                            .operationMethod(formatter.formatCellValue(row.getCell(9)))
+                            .operationMethod(operationMethod.trim())
                             .build();
 
                     stations.add(station);
