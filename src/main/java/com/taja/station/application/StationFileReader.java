@@ -25,66 +25,71 @@ public class StationFileReader {
     private static final int START_ROW = 5;
 
     public List<Station> readStationsFromFile(MultipartFile file) {
-        try {
-            InputStream inputStream = file.getInputStream();
-            Workbook workbook = new XSSFWorkbook(inputStream);
+        try (Workbook workbook = openWorkbook(file)) {
             Sheet sheet = workbook.getSheet(SHEET_NAME);
-
             DataFormatter formatter = new DataFormatter();
+
             List<Station> stations = new ArrayList<>();
 
-            for (int i = START_ROW; i < sheet.getPhysicalNumberOfRows(); i++) {
+            for (int i = START_ROW; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) {
                     continue;
                 }
 
-                try {
-                    String latString = formatter.formatCellValue(row.getCell(4));
-                    String lonString = formatter.formatCellValue(row.getCell(5));
+                Station station = createStationFromRow(row, formatter);
 
-                    double latitude = latString.isEmpty() ? 0.0 : Double.parseDouble(latString);
-                    double longitude = lonString.isEmpty() ? 0.0 : Double.parseDouble(lonString);
-
-                    String numberString = formatter.formatCellValue(row.getCell(0));
-                    Integer number = Integer.parseInt(numberString);
-
-                    String lcdString = formatter.formatCellValue(row.getCell(7));
-                    String qrString = formatter.formatCellValue(row.getCell(8));
-
-                    Integer lcd = getHoldNumber(lcdString);
-                    Integer qr = getHoldNumber(qrString);
-
-                    String name = formatter.formatCellValue(row.getCell(1));
-                    String district = formatter.formatCellValue(row.getCell(2));
-                    String address = formatter.formatCellValue(row.getCell(3));
-                    String operationMethod = formatter.formatCellValue(row.getCell(9));
-
-                    Station station = Station.builder()
-                            .number(number)
-                            .name(name.trim())
-                            .district(district.trim())
-                            .address(address.trim())
-                            .latitude(latitude)
-                            .longitude(longitude)
-                            .lcd(lcd)
-                            .qr(qr)
-                            .operationMethod(operationMethod.trim())
-                            .build();
-
+                if (station != null) {
                     stations.add(station);
-
-                } catch (NumberFormatException e) {
-                    throw new ReadFileException("엑셀 파일의 데이터 형식이 올바르지 않습니다.");
                 }
             }
-            workbook.close();
 
             return stations;
 
-        } catch (IOException | RuntimeException e) {
-            log.error(e.getMessage());
+        } catch (IOException e) {
+            log.error("파일을 읽는 중 I/O 오류가 발생했습니다.", e);
+            throw new ReadFileException("파일을 읽는 중 오류가 발생했습니다.");
+        } catch (RuntimeException e) {
+            log.error("엑셀 파일 처리 중 런타임 오류가 발생했습니다.", e);
             throw new ReadFileException("엑셀 파일 처리 중 오류가 발생했습니다.");
+        }
+    }
+
+    private Workbook openWorkbook(MultipartFile file) throws IOException {
+        InputStream inputStream = file.getInputStream();
+        return new XSSFWorkbook(inputStream);
+    }
+
+    private Station createStationFromRow(Row row, DataFormatter formatter) {
+        try {
+            Integer number = Integer.parseInt(formatter.formatCellValue(row.getCell(0)));
+            String name = formatter.formatCellValue(row.getCell(1)).trim();
+            String district = formatter.formatCellValue(row.getCell(2)).trim();
+            String address = formatter.formatCellValue(row.getCell(3)).trim();
+
+            String latString = formatter.formatCellValue(row.getCell(4));
+            double latitude = latString.isEmpty() ? 0.0 : Double.parseDouble(latString);
+
+            String lonString = formatter.formatCellValue(row.getCell(5));
+            double longitude = lonString.isEmpty() ? 0.0 : Double.parseDouble(lonString);
+
+            Integer lcd = getHoldNumber(formatter.formatCellValue(row.getCell(7)));
+            Integer qr = getHoldNumber(formatter.formatCellValue(row.getCell(8)));
+            String operationMethod = formatter.formatCellValue(row.getCell(9)).trim();
+
+            return Station.builder()
+                    .number(number)
+                    .name(name)
+                    .district(district)
+                    .address(address)
+                    .latitude(latitude)
+                    .longitude(longitude)
+                    .lcd(lcd)
+                    .qr(qr)
+                    .operationMethod(operationMethod)
+                    .build();
+        } catch (NumberFormatException e) {
+            throw new ReadFileException("엑셀 파일의 데이터 형식이 올바르지 않습니다.");
         }
     }
 
