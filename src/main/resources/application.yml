@@ -15,3 +15,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+bike:
+  api:
+    key: ${BIKE_API_KEY}
+    base-url: ${BIKE_API_BASE_URL}
+    path: ${BIKE_API_PATH}
