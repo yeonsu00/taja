@@ -34,14 +34,12 @@ public class StationStatusService {
             "ERROR-332", "ERROR-333", "ERROR-334", "ERROR-335", "ERROR-336", "INFO-200"
     );
 
-    public void loadStationStatuses() {
+    public void loadStationStatuses(LocalDateTime requestedAt) {
         Mono<List<StationDto>> loadedStationStatusesMono = fetchAllStationStatus();
 
         loadedStationStatusesMono.subscribe(
                 loadedStationStatuses -> {
                     log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStationStatuses.size());
-
-                    LocalDateTime requestedAt = LocalDateTime.now();
 
                     List<StationStatus> stationStatuses = loadedStationStatuses.stream()
                             .map(stationDto -> stationDto.toStationStatus(requestedAt))
@@ -52,8 +50,6 @@ public class StationStatusService {
                     log.error("대여소 정보 수집 중 오류 발생: {}", error.getMessage(), error);
                 }
         );
-
-
     }
 
     private Mono<List<StationDto>> fetchAllStationStatus() {
