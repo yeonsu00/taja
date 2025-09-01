@@ -14,8 +14,8 @@ public class StationStatusController {
 
     @PostMapping("/station-status/upload")
     public CommonApiResponse<String> readStationStatus() {
-        int count = stationStatusService.uploadStationStatus();
-        return CommonApiResponse.success(count + "개 대여소 실시간 상태가 등록되었습니다.");
+        stationStatusService.loadStationStatuses();
+        return CommonApiResponse.success("대여소 실시간 상태가 등록되었습니다.");
     }
 
 }
