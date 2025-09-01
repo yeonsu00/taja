@@ -1,4 +1,4 @@
-package com.taja.collector.application.dto;
+package com.taja.collector.infra.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
