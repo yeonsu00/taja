@@ -14,7 +14,7 @@ public class StationStatusScheduler {
 
     private final StationStatusService stationStatusService;
 
-    @Scheduled(cron = "0 0/10 * * * *")
+    @Scheduled(cron = "0 0/2 * * * *")
     public void scheduleStationStatusCollection() {
         log.info("===== 대여소 실시간 현황 수집 스케줄러 시작 =====");
 

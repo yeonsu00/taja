@@ -4,6 +4,7 @@ import com.taja.collector.infra.api.dto.StationDto;
 import com.taja.collector.domain.StationStatus;
 import com.taja.collector.infra.api.StationStatusApiClient;
 import com.taja.global.exception.StationStatusApiException;
+import com.taja.station.application.StationRedisRepository;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,8 +23,9 @@ public class StationStatusService {
 
     private final StationStatusApiClient stationStatusApiClient;
     private final StationStatusRepository stationStatusRepository;
+    private final StationRedisRepository stationRedisRepository;
 
-    private static final int TOTAL_COUNT = 3000;
+    private static final int TOTAL_COUNT = 2800;
     private static final int BATCH_SIZE = 200;
 
     private static final int MAX_RETRY_ATTEMPTS = 3;
@@ -39,17 +41,28 @@ public class StationStatusService {
 
         loadedStationStatusesMono.subscribe(
                 loadedStationStatuses -> {
-                    log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStationStatuses.size());
+                    log.info("총 {}개의 대여소 실시간 상태를 성공적으로 수집했습니다.", loadedStationStatuses.size());
 
                     List<StationStatus> stationStatuses = loadedStationStatuses.stream()
                             .map(stationDto -> stationDto.toStationStatus(requestedAt))
                             .toList();
-                    stationStatusRepository.saveAll(stationStatuses);
+                    int savedStationStatusCount = stationStatusRepository.saveAll(stationStatuses);
+                    log.info("{}개의 대여소 실시간 상태를 저장했습니다. ", savedStationStatusCount);
+
+                    updateBikeCountToRedis(stationStatuses);
+
                 },
-                error -> {
-                    log.error("대여소 정보 수집 중 오류 발생: {}", error.getMessage(), error);
-                }
+                error -> log.error("대여소 정보 수집 중 오류 발생: {}", error.getMessage(), error)
         );
+    }
+
+    private void updateBikeCountToRedis(List<StationStatus> stationStatuses) {
+        Flux.fromIterable(stationStatuses)
+                .flatMap(stationRedisRepository::updateBikeCountAndRequestedAt)
+                .filter(Boolean::booleanValue)
+                .collectList()
+                .doOnSuccess(list -> log.info("Redis 자전거 수 업데이트 완료! 총 {}개 업데이트됨.", list.size()))
+                .subscribe();
     }
 
     private Mono<List<StationDto>> fetchAllStationStatus() {
