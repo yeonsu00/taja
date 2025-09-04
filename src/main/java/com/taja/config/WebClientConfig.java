@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${bike.api.base-url}")
+    @Value("${api.base-url}")
     private String baseUrl;
 
     @Bean

@@ -21,10 +21,10 @@ public class StationStatusApiClient {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${bike.api.key}")
+    @Value("${api.key}")
     private String apiKey;
 
-    @Value("${bike.api.path}")
+    @Value("${api.bike.path}")
     private String apiPath;
 
     public Mono<List<StationDto>> fetchStationStatuses(int startIndex, int endIndex) {
