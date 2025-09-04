@@ -1,5 +1,6 @@
 package com.taja.station.domain;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -23,6 +24,10 @@ public class Station {
     private Integer qr;
 
     private String operationMethod;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     @Builder
     public Station(String name, Integer number, String district, String address, double latitude, double longitude,

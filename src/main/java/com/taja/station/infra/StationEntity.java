@@ -1,5 +1,6 @@
 package com.taja.station.infra;
 
+import com.taja.global.BaseEntity;
 import com.taja.station.domain.Station;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Table(name = "station")
 @RequiredArgsConstructor
 @Getter
-public class StationEntity {
+public class StationEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
