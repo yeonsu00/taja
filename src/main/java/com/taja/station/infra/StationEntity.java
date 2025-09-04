@@ -40,22 +40,27 @@ public class StationEntity extends BaseEntity {
     @Column(nullable = false)
     private double longitude;
 
-    private Integer lcd;
+    private Integer lcdHoldCount;
 
-    private Integer qr;
+    private Integer qrHoldCount;
 
-    private String operationMethod; // "LCD", "QR", "LCD/QR"
+    private Integer totalHoldCount;
+
+    private String operationMethod; // "LCD", "QR", "LCD/QR", "NEW"
 
     @Builder
-    public StationEntity(String name, Integer number, String district, String address, double latitude, double longitude, Integer lcd, Integer qr, String operationMethod) {
+    public StationEntity(String name, Integer number, String district, String address, double latitude,
+                         double longitude, Integer lcdHoldCount, Integer qrHoldCount, Integer totalHoldCount,
+                         String operationMethod) {
         this.name = name;
         this.number = number;
         this.district = district;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.lcd = lcd;
-        this.qr = qr;
+        this.lcdHoldCount = lcdHoldCount;
+        this.qrHoldCount = qrHoldCount;
+        this.totalHoldCount = totalHoldCount;
         this.operationMethod = operationMethod;
     }
 
@@ -67,8 +72,8 @@ public class StationEntity extends BaseEntity {
                 .address(station.getAddress())
                 .latitude(station.getLatitude())
                 .longitude(station.getLongitude())
-                .lcd(station.getLcd())
-                .qr(station.getQr())
+                .lcdHoldCount(station.getLcdHoldCount())
+                .qrHoldCount(station.getQrHoldCount())
                 .operationMethod(station.getOperationMethod())
                 .build();
     }
@@ -79,8 +84,8 @@ public class StationEntity extends BaseEntity {
         this.address = station.getAddress();
         this.latitude = station.getLatitude();
         this.longitude = station.getLongitude();
-        this.lcd = station.getLcd();
-        this.qr = station.getQr();
+        this.lcdHoldCount = station.getLcdHoldCount();
+        this.qrHoldCount = station.getQrHoldCount();
         this.operationMethod = station.getOperationMethod();
     }
 }

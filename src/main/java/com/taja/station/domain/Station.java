@@ -19,9 +19,11 @@ public class Station {
 
     private double longitude;
 
-    private Integer lcd;
+    private Integer lcdHoldCount;
 
-    private Integer qr;
+    private Integer qrHoldCount;
+
+    private Integer totalHoldCount;
 
     private String operationMethod;
 
@@ -31,15 +33,16 @@ public class Station {
 
     @Builder
     public Station(String name, Integer number, String district, String address, double latitude, double longitude,
-                   Integer lcd, Integer qr, String operationMethod) {
+                   Integer lcdHoldCount, Integer qrHoldCount, Integer totalHoldCount, String operationMethod) {
         this.name = name;
         this.number = number;
         this.district = district;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.lcd = lcd;
-        this.qr = qr;
+        this.lcdHoldCount = lcdHoldCount;
+        this.qrHoldCount = qrHoldCount;
+        this.totalHoldCount = totalHoldCount;
         this.operationMethod = operationMethod;
     }
 

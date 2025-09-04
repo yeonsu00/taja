@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -73,9 +74,11 @@ public class StationFileReader {
             String lonString = formatter.formatCellValue(row.getCell(5));
             double longitude = lonString.isEmpty() ? 0.0 : Double.parseDouble(lonString);
 
-            Integer lcd = getHoldNumber(formatter.formatCellValue(row.getCell(7)));
-            Integer qr = getHoldNumber(formatter.formatCellValue(row.getCell(8)));
+            Integer lcdHoldCount = getHoldNumber(formatter.formatCellValue(row.getCell(7)));
+            Integer qrHoldCount = getHoldNumber(formatter.formatCellValue(row.getCell(8)));
             String operationMethod = formatter.formatCellValue(row.getCell(9)).trim();
+
+            Integer totalHoldCount = calculateTotalHoldCount(lcdHoldCount, qrHoldCount);
 
             return Station.builder()
                     .number(number)
@@ -84,8 +87,9 @@ public class StationFileReader {
                     .address(address)
                     .latitude(latitude)
                     .longitude(longitude)
-                    .lcd(lcd)
-                    .qr(qr)
+                    .lcdHoldCount(lcdHoldCount)
+                    .qrHoldCount(qrHoldCount)
+                    .totalHoldCount(totalHoldCount)
                     .operationMethod(operationMethod)
                     .build();
         } catch (NumberFormatException e) {
@@ -100,5 +104,11 @@ public class StationFileReader {
             holdNumber = Integer.parseInt(holdNumberString);
         }
         return holdNumber;
+    }
+
+    private Integer calculateTotalHoldCount(Integer lcdHoldCount, Integer qrHoldCount) {
+        int lcdCount = Optional.ofNullable(lcdHoldCount).orElse(0);
+        int qrCount = Optional.ofNullable(qrHoldCount).orElse(0);
+        return lcdCount + qrCount;
     }
 }
