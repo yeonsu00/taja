@@ -1,9 +1,9 @@
 package com.taja.collector.application;
 
-import com.taja.collector.infra.api.dto.StationDto;
+import com.taja.collector.infra.api.dto.status.StationStatusDto;
 import com.taja.collector.domain.StationStatus;
-import com.taja.collector.infra.api.StationStatusApiClient;
-import com.taja.global.exception.StationStatusApiException;
+import com.taja.collector.infra.api.StationApiClient;
+import com.taja.global.exception.ApiException;
 import com.taja.station.application.StationRedisRepository;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ import reactor.util.retry.Retry;
 @Slf4j
 public class StationStatusService {
 
-    private final StationStatusApiClient stationStatusApiClient;
+    private final StationApiClient stationApiClient;
     private final StationStatusRepository stationStatusRepository;
     private final StationRedisRepository stationRedisRepository;
 
@@ -37,14 +37,14 @@ public class StationStatusService {
     );
 
     public void loadStationStatuses(LocalDateTime requestedAt) {
-        Mono<List<StationDto>> loadedStationStatusesMono = fetchAllStationStatus();
+        Mono<List<StationStatusDto>> loadedStationStatusesMono = fetchAllStationStatus();
 
         loadedStationStatusesMono.subscribe(
                 loadedStationStatuses -> {
                     log.info("총 {}개의 대여소 실시간 상태를 성공적으로 수집했습니다.", loadedStationStatuses.size());
 
                     List<StationStatus> stationStatuses = loadedStationStatuses.stream()
-                            .map(stationDto -> stationDto.toStationStatus(requestedAt))
+                            .map(stationStatusDto -> stationStatusDto.toStationStatus(requestedAt))
                             .toList();
                     int savedStationStatusCount = stationStatusRepository.saveAll(stationStatuses);
                     log.info("{}개의 대여소 실시간 상태를 저장했습니다. ", savedStationStatusCount);
@@ -65,7 +65,7 @@ public class StationStatusService {
                 .subscribe();
     }
 
-    private Mono<List<StationDto>> fetchAllStationStatus() {
+    private Mono<List<StationStatusDto>> fetchAllStationStatus() {
         int pageCount = getPageCount();
 
         return Flux.range(0, pageCount)
@@ -73,7 +73,7 @@ public class StationStatusService {
                     int startIndex = 1 + (page * BATCH_SIZE);
                     int endIndex = startIndex + BATCH_SIZE - 1;
 
-                    return stationStatusApiClient.fetchStationStatuses(startIndex, endIndex)
+                    return stationApiClient.fetchStationStatuses(startIndex, endIndex)
                             .doOnSuccess(stationStatuses -> {
                                 log.info("✅ API 요청 성공 ({}-{}) | 수집된 데이터 수: {}",
                                         startIndex, endIndex, stationStatuses.size());
@@ -99,15 +99,15 @@ public class StationStatusService {
     }
 
     private boolean isRetryableError(Throwable throwable) {
-        if (throwable instanceof StationStatusApiException apiException) {
+        if (throwable instanceof ApiException apiException) {
             return !NON_RETRYABLE_ERROR_CODES.contains(apiException.getCode());
         }
         return true;
     }
 
     private String getErrorCode(Throwable error) {
-        return (error instanceof StationStatusApiException)
-                ? ((StationStatusApiException) error).getCode() : "UNKNOWN";
+        return (error instanceof ApiException)
+                ? ((ApiException) error).getCode() : "UNKNOWN";
     }
 
     private String getErrorMessage(Throwable error) {

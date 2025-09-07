@@ -1,10 +1,10 @@
-package com.taja.collector.infra.api.dto;
+package com.taja.collector.infra.api.dto.status;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taja.collector.domain.StationStatus;
 import java.time.LocalDateTime;
 
-public record StationDto(
+public record StationStatusDto(
         @JsonProperty("rackTotCnt") String rackTotalCount,
         String stationName,
         @JsonProperty("parkingBikeTotCnt") String parkingBikeTotalCount,
