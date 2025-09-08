@@ -1,10 +1,9 @@
 package com.taja.station.infra;
 
-import com.taja.collector.domain.StationStatus;
+import com.taja.status.domain.StationStatus;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.station.domain.Station;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -16,7 +16,7 @@ public class StationController {
 
     @PostMapping("/stations/upload")
     public CommonApiResponse<String> readStationFile(@RequestParam("file") MultipartFile file) {
-        int count = stationService.uploadStationData(file);
+        int count = stationService.uploadStations(file);
         return CommonApiResponse.success(count + "개 대여소가 등록 및 수정되었습니다.");
     }
 }

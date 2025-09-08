@@ -1,6 +1,6 @@
-package com.taja.collector.application;
+package com.taja.status.application;
 
-import com.taja.collector.domain.StationStatus;
+import com.taja.status.domain.StationStatus;
 import java.util.List;
 
 public interface StationStatusRepository {

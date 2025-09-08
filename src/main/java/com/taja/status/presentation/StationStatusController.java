@@ -1,6 +1,6 @@
-package com.taja.collector.presentation;
+package com.taja.status.presentation;
 
-import com.taja.collector.application.StationStatusService;
+import com.taja.status.application.StationStatusService;
 import com.taja.global.response.CommonApiResponse;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;

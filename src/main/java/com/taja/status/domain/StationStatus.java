@@ -1,4 +1,4 @@
-package com.taja.collector.domain;
+package com.taja.status.domain;
 
 import java.time.LocalDateTime;
 import lombok.Builder;

@@ -1,6 +1,6 @@
-package com.taja.collector.infra;
+package com.taja.status.infra;
 
-import com.taja.collector.domain.StationStatus;
+import com.taja.status.domain.StationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

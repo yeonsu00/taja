@@ -1,6 +1,6 @@
-package com.taja.collector.scheduler;
+package com.taja.status.scheduler;
 
-import com.taja.collector.application.StationStatusService;
+import com.taja.status.application.StationStatusService;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

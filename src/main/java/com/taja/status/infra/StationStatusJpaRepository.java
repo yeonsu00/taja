@@ -1,4 +1,4 @@
-package com.taja.collector.infra;
+package com.taja.status.infra;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,7 +1,7 @@
-package com.taja.collector.infra;
+package com.taja.status.infra;
 
-import com.taja.collector.application.StationStatusRepository;
-import com.taja.collector.domain.StationStatus;
+import com.taja.status.application.StationStatusRepository;
+import com.taja.status.domain.StationStatus;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

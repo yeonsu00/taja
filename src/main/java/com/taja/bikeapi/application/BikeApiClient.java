@@ -1,12 +1,12 @@
-package com.taja.collector.infra.api;
+package com.taja.bikeapi.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taja.collector.infra.api.dto.station.StationApiResponseDto;
-import com.taja.collector.infra.api.dto.station.StationDto;
-import com.taja.collector.infra.api.dto.status.BikeApiResponseDto;
-import com.taja.collector.infra.api.dto.status.ResultDto;
-import com.taja.collector.infra.api.dto.status.StationStatusDto;
+import com.taja.bikeapi.application.dto.station.StationApiResponseDto;
+import com.taja.bikeapi.application.dto.station.StationDto;
+import com.taja.bikeapi.application.dto.status.BikeApiResponseDto;
+import com.taja.bikeapi.application.dto.status.ResultDto;
+import com.taja.bikeapi.application.dto.status.StationStatusDto;
 import com.taja.global.exception.ApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
-public class StationApiClient {
+public class BikeApiClient {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;

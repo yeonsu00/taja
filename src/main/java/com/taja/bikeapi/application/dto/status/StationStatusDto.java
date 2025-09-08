@@ -1,7 +1,7 @@
-package com.taja.collector.infra.api.dto.status;
+package com.taja.bikeapi.application.dto.status;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.taja.collector.domain.StationStatus;
+import com.taja.status.domain.StationStatus;
 import java.time.LocalDateTime;
 
 public record StationStatusDto(
