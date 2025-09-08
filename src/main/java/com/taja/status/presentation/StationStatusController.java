@@ -1,6 +1,6 @@
 package com.taja.status.presentation;
 
-import com.taja.status.application.StationStatusService;
+import com.taja.status.application.StationStatusApiService;
 import com.taja.global.response.CommonApiResponse;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class StationStatusController {
 
-    private final StationStatusService stationStatusService;
+    private final StationStatusApiService stationStatusApiService;
 
     @PostMapping("/station-status/upload")
     public CommonApiResponse<String> readStationStatus() {
         LocalDateTime now = LocalDateTime.now();
-        stationStatusService.loadStationStatuses(now);
+        stationStatusApiService.loadStationStatuses(now);
         return CommonApiResponse.success("대여소 실시간 상태가 등록되었습니다.");
     }
 

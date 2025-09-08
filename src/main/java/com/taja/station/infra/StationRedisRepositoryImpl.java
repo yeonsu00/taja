@@ -4,53 +4,56 @@ import com.taja.status.domain.StationStatus;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.station.domain.Station;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Mono;
 
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class StationRedisRepositoryImpl implements StationRedisRepository {
 
-    private final ReactiveRedisTemplate<String, Object> reactiveRedisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public Mono<Boolean> saveStation(Station station, LocalDateTime savedAt) {
+    public boolean saveStation(Station station, LocalDateTime requestedAt) {
         String key = "station:" + station.getNumber();
-        Map<String, Object> values = Map.of(
-                "latitude", station.getLatitude(),
-                "longitude", station.getLongitude(),
-                "bikeCount", 0,
-                "requestedAt", savedAt.withSecond(0).withNano(0).toString()
-        );
-        return reactiveRedisTemplate.opsForHash()
-                .putAll(key, values)
-                .doOnError(e -> log.error("Redis 저장 실패: {}", key, e));
+        Map<String, Object> values = new HashMap<>();
+        values.put("latitude", station.getLatitude());
+        values.put("longitude", station.getLongitude());
+        values.put("bikeCount", 0);
+        values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+
+        try {
+            redisTemplate.opsForHash().putAll(key, values);
+            return true;
+        } catch (Exception e) {
+            log.error("Redis 저장 실패: {}", key, e);
+            return false;
+        }
     }
 
     @Override
-    public Mono<Boolean> updateBikeCountAndRequestedAt(StationStatus status) {
+    public boolean updateBikeCountAndRequestedAt(StationStatus status) {
         String key = "station:" + status.getStationNumber();
+        if (!redisTemplate.hasKey(key)) {
+            log.warn("해당 key가 존재하지 않음: {}", key);
+            return false;
+        }
 
-        return reactiveRedisTemplate.hasKey(key)
-                .flatMap(exists -> {
-                    if (!exists) {
-                        log.warn("해당 key가 존재하지 않음: {}", key);
-                        return Mono.just(false);
-                    }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("bikeCount", status.getParkingBikeTotalCount());
+        updates.put("requestedAt", status.getRequestedAt().toString());
 
-                    Map<String, Object> updates = Map.of(
-                            "bikeCount", status.getParkingBikeTotalCount(),
-                            "requestedAt", status.getRequestedAt().toString()
-                    );
-
-                    return reactiveRedisTemplate.opsForHash()
-                            .putAll(key, updates)
-                            .doOnError(e -> log.error("Redis 업데이트 실패: {}", key, e));
-                });
+        try {
+            redisTemplate.opsForHash().putAll(key, updates);
+            return true;
+        } catch (Exception e) {
+            log.error("Redis 업데이트 실패: {}", key, e);
+            return false;
+        }
     }
 }

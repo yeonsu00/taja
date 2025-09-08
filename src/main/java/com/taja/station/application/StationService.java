@@ -1,7 +1,5 @@
 package com.taja.station.application;
 
-import com.taja.bikeapi.application.BikeApiBatchFetcher;
-import com.taja.bikeapi.application.BikeApiClient;
 import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import java.time.LocalDateTime;
@@ -12,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
@@ -22,49 +19,41 @@ public class StationService {
     private final StationFileReader stationFileReader;
     private final StationRepository stationRepository;
     private final StationRedisRepository stationRedisRepository;
-    private final BikeApiClient bikeApiClient;
-    private final BikeApiBatchFetcher bikeApiBatchFetcher;
-
-    private static final int TOTAL_COUNT = 3500;
-    private static final int BATCH_SIZE = 500;
 
     @Transactional
-    public int uploadStations(MultipartFile file) {
+    public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
         List<Station> readStations = stationFileReader.readStationsFromFile(file);
-        int savedCount = stationRepository.upsert(readStations);
+        int savedStationCount = stationRepository.upsert(readStations);
 
-        saveStationsToRedis(readStations);
+        saveStationsToRedis(readStations, requestedAt);
 
-        return savedCount;
+        return savedStationCount;
     }
 
     @Transactional
-    public void loadStations() {
-        bikeApiBatchFetcher.fetchAll(TOTAL_COUNT, BATCH_SIZE, bikeApiClient::fetchStations)
-                .subscribe(loadedStations -> {
-                    log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStations.size());
+    public void saveStations(List<StationDto> loadedStations, LocalDateTime requestedAt) {
+        log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStations.size());
 
-                    List<Station> stations = loadedStations.stream()
-                            .map(StationDto::toStation)
-                            .flatMap(Optional::stream)
-                            .toList();
+        List<Station> stations = loadedStations.stream()
+                .map(StationDto::toStation)
+                .flatMap(Optional::stream)
+                .toList();
 
-                    int savedStationCount = stationRepository.upsert(stations);
-                    log.info("{}개의 대여소 실시간 상태를 저장했습니다. ", savedStationCount);
+        int savedStationCount = stationRepository.upsert(stations);
+        log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStationCount);
 
-                    saveStationsToRedis(stations);
-                });
+        saveStationsToRedis(stations, requestedAt);
     }
 
-    private void saveStationsToRedis(List<Station> readStations) {
-        LocalDateTime redisSaveTime = LocalDateTime.now();
+    private void saveStationsToRedis(List<Station> readStations, LocalDateTime requestedAt) {
+        int redisUpdatedCount = 0;
 
-        Flux.fromIterable(readStations)
-                .flatMap(station -> stationRedisRepository.saveStation(station, redisSaveTime)
-                        .doOnError(e -> log.error("Redis 저장 실패: {}", station.getNumber(), e))
-                )
-                .collectList()
-                .doOnSuccess(list -> log.info("Redis 저장 완료! 총 {}개 저장됨.", list.size()))
-                .subscribe();
+        for (Station station : readStations) {
+            if (stationRedisRepository.saveStation(station, requestedAt)) {
+                redisUpdatedCount++;
+            }
+        }
+
+        log.info("Redis 대여소 정보 총 {}개 업데이트됨.", redisUpdatedCount);
     }
 }
