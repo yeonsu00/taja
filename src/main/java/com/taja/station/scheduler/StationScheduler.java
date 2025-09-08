@@ -14,7 +14,7 @@ public class StationScheduler {
 
     private final StationApiService stationApiService;
 
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(cron = "0 0 3 1 * *")
     public void scheduleStationCollection() {
         LocalDateTime scheduledTime = LocalDateTime.now();
         log.info("===== 대여소 정보 수집 스케줄러 시작 : {} =====", scheduledTime);
