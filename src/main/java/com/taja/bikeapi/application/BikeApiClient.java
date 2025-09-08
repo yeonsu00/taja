@@ -26,14 +26,14 @@ public class BikeApiClient {
     @Value("${api.key}")
     private String apiKey;
 
-    @Value("${api.bike.path}")
-    private String apiBikePath;
+    @Value("${api.status.path}")
+    private String apiStatusPath;
 
     @Value("${api.station.path}")
     private String apiStationPath;
 
     public Mono<List<StationStatusDto>> fetchStationStatuses(int startIndex, int endIndex) {
-        String path = getPath(apiBikePath, startIndex, endIndex);
+        String path = getPath(apiStatusPath, startIndex, endIndex);
 
         return webClient.get()
                 .uri(path)

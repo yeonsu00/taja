@@ -24,7 +24,7 @@ spring:
 api:
   key: ${API_KEY}
   base-url: ${API_BASE_URL}
-  bike:
-    path: ${BIKE_API_PATH}
+  status:
+    path: ${STATUS_API_PATH}
   station:
     path: ${STATION_API_PATH}
