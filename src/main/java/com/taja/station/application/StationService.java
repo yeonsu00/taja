@@ -45,6 +45,11 @@ public class StationService {
         saveStationsToRedis(stations, requestedAt);
     }
 
+    @Transactional(readOnly = true)
+    public void findNearbyStations(double latitude, double longitude) {
+//        stationRedisRepository.findNearbyStations(latitude, longitude);
+    }
+
     private void saveStationsToRedis(List<Station> readStations, LocalDateTime requestedAt) {
         int redisUpdatedCount = 0;
 
