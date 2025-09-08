@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,18 +21,25 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
     @Override
     public boolean saveStation(Station station, LocalDateTime requestedAt) {
-        String key = "station:" + station.getNumber();
-        Map<String, Object> values = new HashMap<>();
-        values.put("latitude", station.getLatitude());
-        values.put("longitude", station.getLongitude());
-        values.put("bikeCount", 0);
-        values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+        String hashKey = "stations:" + station.getNumber();
+        String geoKey = "locations";
 
         try {
-            redisTemplate.opsForHash().putAll(key, values);
+            redisTemplate.opsForGeo().add(
+                    geoKey,
+                    new Point(station.getLongitude(), station.getLatitude()),
+                    String.valueOf(station.getNumber())
+            );
+
+            Map<String, Object> values = new HashMap<>();
+            values.put("bikeCount", 0);
+            values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+
+            redisTemplate.opsForHash().putAll(hashKey, values);
+
             return true;
         } catch (Exception e) {
-            log.error("Redis 저장 실패: {}", key, e);
+            log.error("Redis 저장 실패: station={}", station.getNumber(), e);
             return false;
         }
     }
