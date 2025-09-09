@@ -2,6 +2,7 @@ package com.taja.global.exception;
 
 import com.taja.global.response.CommonApiResponse;
 import com.taja.global.response.ResponseCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,14 +11,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ReadFileException.class)
-    public CommonApiResponse<?> handleReadFileException(ReadFileException ex) {
-        return CommonApiResponse.failure(ResponseCode.READ_FILE_ERROR, ex.getMessage());
+    public ResponseEntity<CommonApiResponse<?>>  handleReadFileException(ReadFileException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.READ_FILE_ERROR, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.READ_FILE_ERROR.getHttpStatus()).body(body);
     }
 
     @ExceptionHandler(BindException.class)
-    public CommonApiResponse<?> handleBindException(BindException ex) {
+    public ResponseEntity<CommonApiResponse<?>> handleBindException(BindException ex) {
         String message = ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
-        return CommonApiResponse.failure(ResponseCode.INVALID_REQUEST, message);
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INVALID_REQUEST, message);
+
+        return ResponseEntity.status(ResponseCode.INVALID_REQUEST.getHttpStatus()).body(body);
     }
 
 }
