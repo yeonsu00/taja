@@ -3,8 +3,10 @@ package com.taja.station.presentation;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
+import com.taja.station.presentation.response.NearbyStationResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +31,14 @@ public class StationController {
     }
 
     @GetMapping("/nearby")
-    public void findNearbyStations(@Valid @RequestBody NearbyStationRequest nearbyStationRequest) {
+    public CommonApiResponse<List<NearbyStationResponse>> findNearbyStations(@Valid @RequestBody NearbyStationRequest nearbyStationRequest) {
+        List<NearbyStationResponse> nearbyStations = stationService.findNearbyStations(
+                nearbyStationRequest.latitude(),
+                nearbyStationRequest.longitude(),
+                nearbyStationRequest.latDelta(),
+                nearbyStationRequest.lonDelta()
+        );
 
+        return CommonApiResponse.success(nearbyStations, "근처 대여소 조회에 성공했습니다.");
     }
 }

@@ -1,15 +1,24 @@
 package com.taja.station.infra;
 
-import com.taja.status.domain.StationStatus;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.station.domain.Station;
+import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.status.domain.StationStatus;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -19,14 +28,16 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private static final String STATION_KEY_PREFIX = "stations:";
+    private static final String GEO_KEY = "locations";
+
     @Override
     public boolean saveStation(Station station, LocalDateTime requestedAt) {
-        String hashKey = "stations:" + station.getNumber();
-        String geoKey = "locations";
+        String hashKey = STATION_KEY_PREFIX + station.getNumber();
 
         try {
             redisTemplate.opsForGeo().add(
-                    geoKey,
+                    GEO_KEY,
                     new Point(station.getLongitude(), station.getLatitude()),
                     String.valueOf(station.getNumber())
             );
@@ -46,7 +57,8 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
     @Override
     public boolean updateBikeCountAndRequestedAt(StationStatus status) {
-        String key = "station:" + status.getStationNumber();
+        String key = STATION_KEY_PREFIX + status.getStationNumber();
+
         if (!redisTemplate.hasKey(key)) {
             log.warn("해당 key가 존재하지 않음: {}", key);
             return false;
@@ -63,5 +75,47 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             log.error("Redis 업데이트 실패: {}", key, e);
             return false;
         }
+    }
+
+    @Override
+    public List<NearbyStationResponse> findNearbyStations(double centerLat, double centerLon,
+                                                          double height, double width) {
+        Point center = new Point(centerLon, centerLat);
+
+        GeoShape shape = GeoShape.byBox(
+                width, height, DistanceUnit.KILOMETERS
+        );
+
+        GeoResults<GeoLocation<Object>> results =
+                redisTemplate.opsForGeo().search(
+                        GEO_KEY,
+                        GeoReference.fromCoordinate(center),
+                        shape,
+                        GeoSearchCommandArgs.newGeoSearchArgs().includeCoordinates()
+                );
+
+        if (results == null) {
+            return List.of();
+        }
+
+        return results.getContent().stream()
+                .map(r -> {
+                    String member = r.getContent().getName().toString();
+                    Point point = r.getContent().getPoint();
+                    Integer number = Integer.parseInt(member);
+
+                    String hashKey = STATION_KEY_PREFIX + number;
+                    Object bikeCount = redisTemplate.opsForHash().get(hashKey, "bikeCount");
+                    Object requestedAt = redisTemplate.opsForHash().get(hashKey, "requestedAt");
+
+                    return new NearbyStationResponse(
+                            number,
+                            point.getY(), // latitude
+                            point.getX(), // longitude
+                            bikeCount != null ? Integer.parseInt(bikeCount.toString()) : 0,
+                            requestedAt != null ? LocalDateTime.parse(requestedAt.toString()) : null
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }
