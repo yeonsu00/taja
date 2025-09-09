@@ -2,6 +2,7 @@ package com.taja.station.application;
 
 import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
+import com.taja.station.presentation.response.NearbyStationResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,15 @@ public class StationService {
         log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStationCount);
 
         saveStationsToRedis(stations, requestedAt);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NearbyStationResponse> findNearbyStations(double centerLat, double centerLon,
+                                                          double latDelta, double lonDelta) {
+        double height = latDelta * 2;
+        double width = lonDelta * 2;
+
+        return stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
     }
 
     private void saveStationsToRedis(List<Station> readStations, LocalDateTime requestedAt) {

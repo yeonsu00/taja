@@ -9,6 +9,7 @@ public enum ResponseCode {
     OK(HttpStatus.OK, "SUCCESS"),
 
     READ_FILE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "READ_FILE_ERROR"),
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "INVALID_REQUEST"),
     ;
 
     private final HttpStatus httpStatus;
