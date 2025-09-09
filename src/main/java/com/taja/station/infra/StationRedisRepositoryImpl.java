@@ -5,12 +5,15 @@ import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.NearbyStationResponse;
 import com.taja.status.domain.StationStatus;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
@@ -99,23 +102,29 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
         }
 
         return results.getContent().stream()
-                .map(r -> {
-                    String member = r.getContent().getName().toString();
-                    Point point = r.getContent().getPoint();
-                    Integer number = Integer.parseInt(member);
-
-                    String hashKey = STATION_KEY_PREFIX + number;
-                    Object bikeCount = redisTemplate.opsForHash().get(hashKey, "bikeCount");
-                    Object requestedAt = redisTemplate.opsForHash().get(hashKey, "requestedAt");
-
-                    return new NearbyStationResponse(
-                            number,
-                            point.getY(), // latitude
-                            point.getX(), // longitude
-                            bikeCount != null ? Integer.parseInt(bikeCount.toString()) : 0,
-                            requestedAt != null ? LocalDateTime.parse(requestedAt.toString()) : null
-                    );
-                })
+                .map(this::toNearbyStationResponse)
+                .flatMap(Optional::stream)
                 .collect(Collectors.toList());
+    }
+
+    private Optional<NearbyStationResponse> toNearbyStationResponse(GeoResult<GeoLocation<Object>> result) {
+        try {
+            String member = result.getContent().getName().toString();
+            Point point = result.getContent().getPoint();
+            Integer number = Integer.parseInt(member);
+
+            String hashKey = STATION_KEY_PREFIX + number;
+            Object bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
+            Object requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
+
+            int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
+            LocalDateTime requestedAt = requestedAtObj != null ? LocalDateTime.parse(requestedAtObj.toString()) : null;
+
+            return Optional.of(new NearbyStationResponse(number, point.getY(), point.getX(), bikeCount, requestedAt));
+
+        } catch (NumberFormatException | DateTimeParseException e) {
+            log.warn("대여소 정보 파싱 실패: number={}, error={}", result.getContent().getName(), e.getMessage());
+            return Optional.empty();
+        }
     }
 }
