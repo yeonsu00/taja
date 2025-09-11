@@ -1,9 +1,12 @@
 package com.taja.station.infra;
 
 import com.taja.global.BaseEntity;
+import com.taja.station.domain.OperationMode;
 import com.taja.station.domain.Station;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -46,12 +49,14 @@ public class StationEntity extends BaseEntity {
 
     private Integer totalHoldCount;
 
-    private String operationMethod; // "LCD", "QR", "LCD/QR", "NEW"
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private OperationMode operationMode;
 
     @Builder
     public StationEntity(String name, Integer number, String district, String address, double latitude,
                          double longitude, Integer lcdHoldCount, Integer qrHoldCount, Integer totalHoldCount,
-                         String operationMethod) {
+                         OperationMode operationMode) {
         this.name = name;
         this.number = number;
         this.district = district;
@@ -61,7 +66,7 @@ public class StationEntity extends BaseEntity {
         this.lcdHoldCount = lcdHoldCount;
         this.qrHoldCount = qrHoldCount;
         this.totalHoldCount = totalHoldCount;
-        this.operationMethod = operationMethod;
+        this.operationMode = operationMode;
     }
 
     public static StationEntity fromStation(Station station) {
@@ -74,7 +79,7 @@ public class StationEntity extends BaseEntity {
                 .longitude(station.getLongitude())
                 .lcdHoldCount(station.getLcdHoldCount())
                 .qrHoldCount(station.getQrHoldCount())
-                .operationMethod(station.getOperationMethod())
+                .operationMode(station.getOperationMode())
                 .build();
     }
 
@@ -86,7 +91,7 @@ public class StationEntity extends BaseEntity {
         this.longitude = station.getLongitude();
         this.lcdHoldCount = station.getLcdHoldCount();
         this.qrHoldCount = station.getQrHoldCount();
-        this.operationMethod = station.getOperationMethod();
+        this.operationMode = station.getOperationMode();
     }
 
     public Station toStation() {
@@ -101,7 +106,7 @@ public class StationEntity extends BaseEntity {
                 .lcdHoldCount(this.lcdHoldCount)
                 .qrHoldCount(this.qrHoldCount)
                 .totalHoldCount(this.totalHoldCount)
-                .operationMethod(this.operationMethod)
+                .operationMode(this.operationMode)
                 .build();
     }
 }

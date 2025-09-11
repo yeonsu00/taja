@@ -1,6 +1,7 @@
 package com.taja.bikeapi.application.dto.station;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taja.station.domain.OperationMode;
 import com.taja.station.domain.Station;
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ public record StationDto(
                     .latitude(lat)
                     .longitude(lon)
                     .totalHoldCount(holdCount)
-                    .operationMethod("NEW")
+                    .operationMode(OperationMode.NEW)
                     .build();
 
             return Optional.of(station);

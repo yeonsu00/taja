@@ -27,7 +27,7 @@ public class Station {
 
     private Integer totalHoldCount;
 
-    private String operationMethod;
+    private OperationMode operationMode;
 
     private LocalDateTime createdAt;
 
@@ -35,7 +35,7 @@ public class Station {
 
     @Builder
     public Station(Long stationId, String name, Integer number, String district, String address, double latitude, double longitude,
-                   Integer lcdHoldCount, Integer qrHoldCount, Integer totalHoldCount, String operationMethod) {
+                   Integer lcdHoldCount, Integer qrHoldCount, Integer totalHoldCount, OperationMode operationMode) {
         this.stationId = stationId;
         this.name = name;
         this.number = number;
@@ -46,7 +46,7 @@ public class Station {
         this.lcdHoldCount = lcdHoldCount;
         this.qrHoldCount = qrHoldCount;
         this.totalHoldCount = totalHoldCount;
-        this.operationMethod = operationMethod;
+        this.operationMode = operationMode;
     }
 
     public int calculateDistanceTo(double centerLat, double centerLon) {
