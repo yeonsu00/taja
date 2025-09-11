@@ -3,7 +3,9 @@ package com.taja.station.presentation;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
+import com.taja.station.presentation.request.SearchStationRequest;
 import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.SearchStationResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +32,9 @@ public class StationController {
         return CommonApiResponse.success(count + "개 대여소가 등록 및 수정되었습니다.");
     }
 
-    @GetMapping("/nearby")
-    public CommonApiResponse<List<NearbyStationResponse>> findNearbyStations(@Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
+    @GetMapping("/map/nearby")
+    public CommonApiResponse<List<NearbyStationResponse>> findNearbyStations(
+            @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
         List<NearbyStationResponse> nearbyStations = stationService.findNearbyStations(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
@@ -41,4 +44,17 @@ public class StationController {
 
         return CommonApiResponse.success(nearbyStations, "근처 대여소 조회에 성공했습니다.");
     }
+
+    @GetMapping("/map/search")
+    public CommonApiResponse<List<SearchStationResponse>> searchStation(
+            @Valid @ModelAttribute SearchStationRequest searchStationRequest) {
+        double centerLat = searchStationRequest.lat();
+        double centerLon = searchStationRequest.lon();
+
+        List<SearchStationResponse> searchedStations = stationService.searchStationsByName(
+                searchStationRequest.keyword(), centerLat, centerLon);
+
+        return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
+    }
+
 }

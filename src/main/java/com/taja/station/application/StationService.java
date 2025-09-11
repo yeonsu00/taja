@@ -3,7 +3,9 @@ package com.taja.station.application;
 import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.SearchStationResponse;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -65,5 +67,23 @@ public class StationService {
         }
 
         log.info("Redis 대여소 정보 총 {}개 업데이트됨.", redisUpdatedCount);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SearchStationResponse> searchStationsByName(String keyword, double centerLat, double centerLon) {
+        List<Station> searchedStations = stationRepository.findByNameContaining(keyword);
+
+        return searchedStations.stream()
+                .map(station -> new SearchStationResponse(
+                        station.getStationId(),
+                        station.getNumber(),
+                        station.getName(),
+                        station.getLatitude(),
+                        station.getLongitude(),
+                        station.getAddress(),
+                        station.calculateDistanceTo(centerLat, centerLon)
+                ))
+                .sorted(Comparator.comparingDouble(SearchStationResponse::distance))
+                .toList();
     }
 }

@@ -36,4 +36,12 @@ public class StationRepositoryImpl implements StationRepository {
 
         return stationJpaRepository.saveAll(stationsToSave).size();
     }
+
+    @Override
+    public List<Station> findByNameContaining(String keyword) {
+        List<StationEntity> searchedStations = stationJpaRepository.findByNameContaining(keyword);
+        return searchedStations.stream()
+                .map(StationEntity::toStation)
+                .collect(Collectors.toList());
+    }
 }

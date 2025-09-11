@@ -88,4 +88,20 @@ public class StationEntity extends BaseEntity {
         this.qrHoldCount = station.getQrHoldCount();
         this.operationMethod = station.getOperationMethod();
     }
+
+    public Station toStation() {
+        return Station.builder()
+                .stationId(this.stationId)
+                .name(this.name)
+                .number(this.number)
+                .district(this.district)
+                .address(this.address)
+                .latitude(this.latitude)
+                .longitude(this.longitude)
+                .lcdHoldCount(this.lcdHoldCount)
+                .qrHoldCount(this.qrHoldCount)
+                .totalHoldCount(this.totalHoldCount)
+                .operationMethod(this.operationMethod)
+                .build();
+    }
 }

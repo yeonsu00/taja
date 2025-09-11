@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface StationRepository {
     int upsert(List<Station> stations);
+
+    List<Station> findByNameContaining(String keyword);
 }
