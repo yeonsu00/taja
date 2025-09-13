@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "station")
+@Table(name = "stations")
 @RequiredArgsConstructor
 @Getter
 public class StationEntity extends BaseEntity {
