@@ -52,4 +52,12 @@ public class StationRepositoryImpl implements StationRepository {
                 .orElseThrow(() -> new StationNotFoundException(stationNumber + " 대여소를 찾을 수 없습니다."));
         return stationEntity.toStation();
     }
+
+    @Override
+    public List<Station> findByNumbers(List<Integer> nearbyStationsNumber) {
+        List<StationEntity> stations = stationJpaRepository.findAllByNumberIn(nearbyStationsNumber);
+        return stations.stream()
+                .map(StationEntity::toStation)
+                .collect(Collectors.toList());
+    }
 }

@@ -9,4 +9,6 @@ public interface StationRepository {
     List<Station> findByNameContaining(String keyword);
 
     Station findStationByNumber(int stationNumber);
+
+    List<Station> findByNumbers(List<Integer> nearbyStationsNumber);
 }

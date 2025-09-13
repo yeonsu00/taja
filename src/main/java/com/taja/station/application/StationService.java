@@ -3,7 +3,7 @@ package com.taja.station.application;
 import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.NearbyStationResponse;
-import com.taja.station.presentation.response.SearchStationResponse;
+import com.taja.station.presentation.response.StationSimpleResponse;
 import com.taja.station.presentation.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -71,11 +71,11 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
-    public List<SearchStationResponse> searchStationsByName(String keyword, double centerLat, double centerLon) {
+    public List<StationSimpleResponse> searchStationsByName(String keyword, double centerLat, double centerLon) {
         List<Station> searchedStations = stationRepository.findByNameContaining(keyword);
 
         return searchedStations.stream()
-                .map(station -> new SearchStationResponse(
+                .map(station -> new StationSimpleResponse(
                         station.getStationId(),
                         station.getNumber(),
                         station.getName(),
@@ -84,7 +84,7 @@ public class StationService {
                         station.getAddress(),
                         station.calculateDistanceTo(centerLat, centerLon)
                 ))
-                .sorted(Comparator.comparingDouble(SearchStationResponse::distance))
+                .sorted(Comparator.comparingDouble(StationSimpleResponse::distance))
                 .toList();
     }
 
@@ -92,6 +92,14 @@ public class StationService {
     public StationDetailResponse findStationDetail(int stationNumber) {
         Station station = stationRepository.findStationByNumber(stationNumber);
 
-        return StationDetailResponse.fromStation(station);
+        List<Integer> nearbyStationsNumber =
+                NearbyStationResponse.extractAvailableNumbers(
+                        stationRedisRepository.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1),
+                        station.getNumber()
+                );
+
+        List<Station> nearbyStations = stationRepository.findByNumbers(nearbyStationsNumber);
+
+        return StationDetailResponse.fromStation(station, nearbyStations);
     }
 }

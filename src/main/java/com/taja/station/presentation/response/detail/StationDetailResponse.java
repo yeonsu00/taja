@@ -2,7 +2,9 @@ package com.taja.station.presentation.response.detail;
 
 import com.taja.station.domain.OperationMode;
 import com.taja.station.domain.Station;
+import com.taja.station.presentation.response.StationSimpleResponse;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public record StationDetailResponse(
@@ -14,11 +16,20 @@ public record StationDetailResponse(
         List<OperationModeResponse> operationMode,
         TodayAvailableBikeResponse todayAvailableBike,
         List<ChatRoomRecentMessageResponse> chatRoomRecentMessages,
-        List<NearbyAvailableStationResponse> nearbyAvailableStations
+        List<StationSimpleResponse> nearbyAvailableStations
 ) {
 
-    public static StationDetailResponse fromStation(Station station) {
+    public static StationDetailResponse fromStation(Station station, List<Station> nearbyStations) {
         List<OperationModeResponse> operationModes = getOperationModeResponses(station);
+
+        List<StationSimpleResponse> nearbyAvailableStations = nearbyStations.stream()
+                .map(nearbyStation -> StationSimpleResponse.fromStation(
+                        nearbyStation,
+                        station.getLatitude(),
+                        station.getLongitude()
+                ))
+                .sorted(Comparator.comparingInt(StationSimpleResponse::distance))
+                .toList();
 
         return new StationDetailResponse(
                 station.getStationId(),
@@ -29,7 +40,7 @@ public record StationDetailResponse(
                 operationModes,
                 null,
                 List.of(),
-                List.of()
+                nearbyAvailableStations
         );
     }
 
