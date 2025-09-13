@@ -1,6 +1,6 @@
 package com.taja.station.presentation.response;
 
-public record SearchStationResponse(
+public record StationSimpleResponse(
         Long stationId,
         Integer number,
         String name,

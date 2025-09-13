@@ -5,7 +5,7 @@ import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
 import com.taja.station.presentation.request.SearchStationRequest;
 import com.taja.station.presentation.response.NearbyStationResponse;
-import com.taja.station.presentation.response.SearchStationResponse;
+import com.taja.station.presentation.response.StationSimpleResponse;
 import com.taja.station.presentation.response.detail.StationDetailResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -48,12 +48,12 @@ public class StationController {
     }
 
     @GetMapping("/map/search")
-    public CommonApiResponse<List<SearchStationResponse>> searchStation(
+    public CommonApiResponse<List<StationSimpleResponse>> searchStation(
             @Valid @ModelAttribute SearchStationRequest searchStationRequest) {
         double centerLat = searchStationRequest.lat();
         double centerLon = searchStationRequest.lon();
 
-        List<SearchStationResponse> searchedStations = stationService.searchStationsByName(
+        List<StationSimpleResponse> searchedStations = stationService.searchStationsByName(
                 searchStationRequest.keyword(), centerLat, centerLon);
 
         return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
