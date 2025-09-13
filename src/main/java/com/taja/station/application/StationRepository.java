@@ -7,4 +7,6 @@ public interface StationRepository {
     int upsert(List<Station> stations);
 
     List<Station> findByNameContaining(String keyword);
+
+    Station findStationByNumber(int stationNumber);
 }

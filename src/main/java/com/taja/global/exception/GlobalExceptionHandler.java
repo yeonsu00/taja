@@ -25,4 +25,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ResponseCode.INVALID_REQUEST.getHttpStatus()).body(body);
     }
 
+    @ExceptionHandler(StationNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleStationNotFoundException(StationNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.STATION_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.STATION_NOT_FOUND.getHttpStatus()).body(body);
+    }
 }

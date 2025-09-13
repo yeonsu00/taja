@@ -10,6 +10,7 @@ public enum ResponseCode {
 
     READ_FILE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "READ_FILE_ERROR"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "INVALID_REQUEST"),
+    STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "STATION_NOT_FOUND"),
     ;
 
     private final HttpStatus httpStatus;

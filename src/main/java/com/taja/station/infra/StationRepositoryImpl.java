@@ -1,5 +1,6 @@
 package com.taja.station.infra;
 
+import com.taja.global.exception.StationNotFoundException;
 import com.taja.station.application.StationRepository;
 import com.taja.station.domain.Station;
 import java.util.List;
@@ -43,5 +44,12 @@ public class StationRepositoryImpl implements StationRepository {
         return searchedStations.stream()
                 .map(StationEntity::toStation)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Station findStationByNumber(int stationNumber) {
+        StationEntity stationEntity = stationJpaRepository.findByNumber(stationNumber)
+                .orElseThrow(() -> new StationNotFoundException(stationNumber + " 대여소를 찾을 수 없습니다."));
+        return stationEntity.toStation();
     }
 }

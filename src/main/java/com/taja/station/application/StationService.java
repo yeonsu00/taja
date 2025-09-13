@@ -4,6 +4,7 @@ import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.NearbyStationResponse;
 import com.taja.station.presentation.response.SearchStationResponse;
+import com.taja.station.presentation.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -85,5 +86,12 @@ public class StationService {
                 ))
                 .sorted(Comparator.comparingDouble(SearchStationResponse::distance))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public StationDetailResponse findStationDetail(int stationNumber) {
+        Station station = stationRepository.findStationByNumber(stationNumber);
+
+        return StationDetailResponse.fromStation(station);
     }
 }

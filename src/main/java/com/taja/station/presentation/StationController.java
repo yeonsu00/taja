@@ -6,12 +6,14 @@ import com.taja.station.presentation.request.NearbyStationRequest;
 import com.taja.station.presentation.request.SearchStationRequest;
 import com.taja.station.presentation.response.NearbyStationResponse;
 import com.taja.station.presentation.response.SearchStationResponse;
+import com.taja.station.presentation.response.detail.StationDetailResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,6 +57,12 @@ public class StationController {
                 searchStationRequest.keyword(), centerLat, centerLon);
 
         return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
+    }
+
+    @GetMapping("/{stationNumber}")
+    public CommonApiResponse<StationDetailResponse> findStationDetail(@PathVariable("stationNumber") int stationNumber) {
+        StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationNumber);
+        return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
     }
 
 }
