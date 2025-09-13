@@ -22,7 +22,7 @@ public record StationStatusDto(
         return StationStatus.builder()
                 .stationNumber(number)
                 .stationName(name)
-                .parkingBikeTotalCount(Integer.parseInt(parkingBikeTotalCount))
+                .parkingBikeCount(Integer.parseInt(parkingBikeTotalCount))
                 .requestedAt(requestedAt)
                 .build();
     }

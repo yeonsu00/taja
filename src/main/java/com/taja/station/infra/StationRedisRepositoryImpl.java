@@ -68,7 +68,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
         }
 
         Map<String, Object> updates = new HashMap<>();
-        updates.put("bikeCount", status.getParkingBikeTotalCount());
+        updates.put("bikeCount", status.getParkingBikeCount());
         updates.put("requestedAt", status.getRequestedAt().toString());
 
         try {

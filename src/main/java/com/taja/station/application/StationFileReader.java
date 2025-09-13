@@ -1,6 +1,7 @@
 package com.taja.station.application;
 
 import com.taja.global.exception.ReadFileException;
+import com.taja.station.domain.OperationMode;
 import com.taja.station.domain.Station;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,7 +77,7 @@ public class StationFileReader {
 
             Integer lcdHoldCount = getHoldNumber(formatter.formatCellValue(row.getCell(7)));
             Integer qrHoldCount = getHoldNumber(formatter.formatCellValue(row.getCell(8)));
-            String operationMethod = formatter.formatCellValue(row.getCell(9)).trim();
+            String operationMode = formatter.formatCellValue(row.getCell(9)).trim();
 
             Integer totalHoldCount = calculateTotalHoldCount(lcdHoldCount, qrHoldCount);
 
@@ -90,7 +91,7 @@ public class StationFileReader {
                     .lcdHoldCount(lcdHoldCount)
                     .qrHoldCount(qrHoldCount)
                     .totalHoldCount(totalHoldCount)
-                    .operationMethod(operationMethod)
+                    .operationMode(OperationMode.fromString(operationMode))
                     .build();
         } catch (NumberFormatException e) {
             throw new ReadFileException("엑셀 파일의 데이터 형식이 올바르지 않습니다.");

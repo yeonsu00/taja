@@ -3,7 +3,10 @@ package com.taja.station.application;
 import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.StationSimpleResponse;
+import com.taja.station.presentation.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -65,5 +68,38 @@ public class StationService {
         }
 
         log.info("Redis 대여소 정보 총 {}개 업데이트됨.", redisUpdatedCount);
+    }
+
+    @Transactional(readOnly = true)
+    public List<StationSimpleResponse> searchStationsByName(String keyword, double centerLat, double centerLon) {
+        List<Station> searchedStations = stationRepository.findByNameContaining(keyword);
+
+        return searchedStations.stream()
+                .map(station -> new StationSimpleResponse(
+                        station.getStationId(),
+                        station.getNumber(),
+                        station.getName(),
+                        station.getLatitude(),
+                        station.getLongitude(),
+                        station.getAddress(),
+                        station.calculateDistanceTo(centerLat, centerLon)
+                ))
+                .sorted(Comparator.comparingDouble(StationSimpleResponse::distance))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public StationDetailResponse findStationDetail(int stationNumber) {
+        Station station = stationRepository.findStationByNumber(stationNumber);
+
+        List<Integer> nearbyStationsNumber =
+                NearbyStationResponse.extractAvailableNumbers(
+                        stationRedisRepository.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1),
+                        station.getNumber()
+                );
+
+        List<Station> nearbyStations = stationRepository.findByNumbers(nearbyStationsNumber);
+
+        return StationDetailResponse.fromStation(station, nearbyStations);
     }
 }

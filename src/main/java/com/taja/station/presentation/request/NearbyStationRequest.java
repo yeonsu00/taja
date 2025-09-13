@@ -1,21 +1,21 @@
 package com.taja.station.presentation.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 
 public record NearbyStationRequest(
-        @Min(value = -90, message = "latitude는 -90 이상이어야 합니다.")
-        @Max(value = 90, message = "latitude는 90 이하이어야 합니다.")
+        @DecimalMin(value = "-90.0", message = "latitude는 -90 이상이어야 합니다.")
+        @DecimalMax(value = "90.0", message = "latitude는 90 이하이어야 합니다.")
         double latitude,
 
-        @Min(value = -180, message = "longitude는 -180 이상이어야 합니다.")
-        @Max(value = 180, message = "longitude는 180 이하이어야 합니다.")
+        @DecimalMin(value = "-180.0", message = "longitude는 -180 이상이어야 합니다.")
+        @DecimalMax(value = "180.0", message = "longitude는 180 이하이어야 합니다.")
         double longitude,
 
-        @Min(value = 0, message = "latDelta는 0 이상이어야 합니다.")
+        @DecimalMin(value = "0.0", message = "latDelta는 0 이상이어야 합니다.")
         double latDelta,
 
-        @Min(value = 0, message = "lonDelta는 0 이상이어야 합니다.")
+        @DecimalMin(value = "0.0", message = "lonDelta는 0 이상이어야 합니다.")
         double lonDelta
 ) {
 }

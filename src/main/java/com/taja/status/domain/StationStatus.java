@@ -13,17 +13,17 @@ public class StationStatus {
 
     private String stationName;
 
-    private Integer parkingBikeTotalCount;
+    private Integer parkingBikeCount;
 
     private LocalDateTime requestedAt;
 
     @Builder
-    public StationStatus(Long stationStatusId, Integer stationNumber, String stationName, Integer parkingBikeTotalCount,
+    public StationStatus(Long stationStatusId, Integer stationNumber, String stationName, Integer parkingBikeCount,
                          LocalDateTime requestedAt) {
         this.stationStatusId = stationStatusId;
         this.stationNumber = stationNumber;
         this.stationName = stationName;
-        this.parkingBikeTotalCount = parkingBikeTotalCount;
+        this.parkingBikeCount = parkingBikeCount;
         this.requestedAt = requestedAt;
     }
 }

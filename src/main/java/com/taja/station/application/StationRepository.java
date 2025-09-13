@@ -5,4 +5,10 @@ import java.util.List;
 
 public interface StationRepository {
     int upsert(List<Station> stations);
+
+    List<Station> findByNameContaining(String keyword);
+
+    Station findStationByNumber(int stationNumber);
+
+    List<Station> findByNumbers(List<Integer> nearbyStationsNumber);
 }
