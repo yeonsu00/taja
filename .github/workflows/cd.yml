@@ -79,6 +79,7 @@ jobs:
             # 4) Docker 실행 (환경변수 .env 주입)
             docker run -d \
               --name taja \
+              --add-host=host.docker.internal:host-gateway \
               --env-file .env \
               -p 8080:8080 \
               ${{ secrets.DOCKER_USERNAME }}/taja:latest
