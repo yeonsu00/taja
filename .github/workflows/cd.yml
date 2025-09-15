@@ -47,6 +47,7 @@ jobs:
           host: ${{ secrets.RPI_HOST }}
           username: ${{ secrets.RPI_USER }}
           key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
           script: |
             cd ~/taja || mkdir -p ~/taja && cd ~/taja
 
