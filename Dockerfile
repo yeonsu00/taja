@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 eclipse-temurin:21-jdk-lunar as builder
+FROM --platform=linux/arm64 eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 COPY gradlew ./
 COPY gradle gradle
