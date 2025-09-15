@@ -1,6 +1,7 @@
 FROM --platform=linux/arm64 eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 COPY gradlew ./
+RUN chmod +x gradlew
 COPY gradle gradle
 COPY build.gradle ./
 COPY settings.gradle ./
