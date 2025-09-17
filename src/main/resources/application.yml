@@ -28,3 +28,9 @@ api:
     path: ${STATUS_API_PATH}
   station:
     path: ${STATION_API_PATH}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration:
+    access-token: 1800000   # 30분
+    refresh-token: 604800000 # 7일
