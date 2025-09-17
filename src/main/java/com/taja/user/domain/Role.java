@@ -1,6 +1,6 @@
 package com.taja.user.domain;
 
 public enum Role {
-    USER,
+    MEMBER,
     ADMIN
 }
