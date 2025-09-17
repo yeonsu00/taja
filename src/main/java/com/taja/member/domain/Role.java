@@ -1,4 +1,4 @@
-package com.taja.user.domain;
+package com.taja.member.domain;
 
 public enum Role {
     MEMBER,

@@ -31,4 +31,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.STATION_NOT_FOUND.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleRefreshTokenException(TokenException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.REFRESH_TOKEN_ERROR, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.REFRESH_TOKEN_ERROR.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(MemberException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleUserNotFoundException(MemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.USER_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.USER_NOT_FOUND.getHttpStatus()).body(body);
+    }
 }

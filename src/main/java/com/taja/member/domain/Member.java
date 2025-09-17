@@ -1,4 +1,4 @@
-package com.taja.user.domain;
+package com.taja.member.domain;
 
 import java.time.LocalDateTime;
 import lombok.Builder;
@@ -33,12 +33,12 @@ public class Member {
         this.updatedAt = updatedAt;
     }
 
-    public static Member createMember(String name, String email, String password) {
+    public static Member of(String name, String email, String password) {
         return Member.builder()
                 .name(name)
                 .email(email)
                 .password(password)
-                .role(Role.USER)
+                .role(Role.MEMBER)
                 .build();
     }
 }

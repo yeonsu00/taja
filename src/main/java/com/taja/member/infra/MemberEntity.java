@@ -1,8 +1,8 @@
-package com.taja.user.infra;
+package com.taja.member.infra;
 
 import com.taja.global.BaseEntity;
-import com.taja.user.domain.Role;
-import com.taja.user.domain.Member;
+import com.taja.member.domain.Role;
+import com.taja.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,13 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "members")
 @RequiredArgsConstructor
-@Getter
 public class MemberEntity extends BaseEntity {
 
     @Id
