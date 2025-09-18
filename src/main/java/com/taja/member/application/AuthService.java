@@ -1,6 +1,7 @@
 package com.taja.member.application;
 
 import com.taja.global.exception.EmailException;
+import com.taja.global.exception.TokenException;
 import com.taja.jwt.JwtTokenProvider;
 import com.taja.member.application.dto.TokenDto;
 import com.taja.member.domain.EmailCode;
@@ -66,7 +67,7 @@ public class AuthService {
     @Transactional
     public TokenResponse reissue(String refreshTokenValue) {
         if (!jwtTokenProvider.validateToken(refreshTokenValue)) {
-            throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
+            throw new TokenException("Refresh Token이 유효하지 않습니다.");
         }
 
         RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue);
