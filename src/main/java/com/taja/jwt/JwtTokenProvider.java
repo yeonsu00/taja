@@ -1,5 +1,6 @@
 package com.taja.jwt;
 
+import com.taja.global.exception.TokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -94,7 +95,7 @@ public class JwtTokenProvider {
         } catch (IllegalArgumentException e) {
             log.info("JWT 토큰이 잘못되었습니다.");
         }
-        return false;
+        throw new TokenException("토큰이 유효하지 않습니다.");
     }
 
     private Claims parseClaims(String accessToken) {
