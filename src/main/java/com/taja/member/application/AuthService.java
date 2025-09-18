@@ -117,4 +117,9 @@ public class AuthService {
     public boolean checkNicknameDuplicate(String name) {
         return memberRepository.existsByName(name);
     }
+
+    @Transactional
+    public void deleteRefreshToken(String refreshToken) {
+        refreshTokenRepository.deleteByValue(refreshToken);
+    }
 }

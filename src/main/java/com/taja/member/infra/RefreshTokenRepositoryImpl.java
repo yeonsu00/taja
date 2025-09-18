@@ -24,4 +24,13 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
                 .orElseThrow(() -> new TokenException("리프레시 토큰을 찾을 수 없습니다."));
         return refreshTokenEntity.toRefreshToken();
     }
+
+    @Override
+    public void deleteByValue(String value) {
+        long deletedCount = refreshTokenJpaRepository.deleteByValue(value);
+
+        if (deletedCount == 0) {
+            throw new TokenException("삭제할 리프레시 토큰을 찾을 수 없습니다.");
+        }
+    }
 }

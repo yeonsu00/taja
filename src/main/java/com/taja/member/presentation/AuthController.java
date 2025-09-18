@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,6 +68,12 @@ public class AuthController {
             @Valid @RequestBody CheckDuplicateNameRequest checkDuplicateNameRequest) {
         boolean isDuplicate = authService.checkNicknameDuplicate(checkDuplicateNameRequest.name());
         return CommonApiResponse.success(new CheckDuplicateNameResponse(isDuplicate), "닉네임 중복 확인을 성공했습니다.");
+    }
+
+    @PostMapping("/logout")
+    public CommonApiResponse<String> logout(@CookieValue("refreshToken") String refreshToken) {
+        authService.deleteRefreshToken(refreshToken);
+        return CommonApiResponse.success("리프레시 토큰을 삭제했습니다.");
     }
 
 }

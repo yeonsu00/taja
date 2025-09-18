@@ -6,4 +6,6 @@ public interface RefreshTokenRepository {
     void save(RefreshToken refreshToken);
 
     RefreshToken findByValue(String value);
+
+    void deleteByValue(String value);
 }
