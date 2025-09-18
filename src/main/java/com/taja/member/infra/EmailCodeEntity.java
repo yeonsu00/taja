@@ -23,7 +23,7 @@ public class EmailCodeEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String code;
 
     @Column(nullable = false)
@@ -49,5 +49,11 @@ public class EmailCodeEntity {
                 .createdAt(emailCode.getCreatedAt())
                 .expiresAt(emailCode.getExpiresAt())
                 .build();
+    }
+
+    public void update(String code, LocalDateTime createdAt, LocalDateTime expiresAt) {
+        this.code = code;
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
     }
 }
