@@ -66,9 +66,7 @@ public class AuthService {
 
     @Transactional
     public TokenResponse reissue(String refreshTokenValue) {
-        if (!jwtTokenProvider.validateToken(refreshTokenValue)) {
-            throw new TokenException("Refresh Token이 유효하지 않습니다.");
-        }
+        jwtTokenProvider.validateToken(refreshTokenValue);
 
         RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue);
 

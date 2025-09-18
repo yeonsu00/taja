@@ -25,10 +25,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             throw new TokenException("액세스 토큰이 필요합니다.");
         }
 
-        if (jwtTokenProvider.validateToken(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+        jwtTokenProvider.validateToken(token);
+        Authentication authentication = jwtTokenProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         chain.doFilter(request, response);
     }
