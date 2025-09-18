@@ -14,7 +14,7 @@ public enum ResponseCode {
     REFRESH_TOKEN_ERROR(HttpStatus.NOT_FOUND, "REFRESH_TOKEN_ERROR"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"),
     EMAIL_ERROR(HttpStatus.BAD_REQUEST, "EMAIL_ERROR"),
-    DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "DUPLICATE_NAME")
+    DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "DUPLICATE_NAME"),
     ;
 
     private final HttpStatus httpStatus;

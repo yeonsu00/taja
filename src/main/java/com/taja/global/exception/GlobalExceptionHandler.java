@@ -55,8 +55,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateNameException.class)
     public ResponseEntity<CommonApiResponse<?>> handleDuplicateNameException(DuplicateNameException ex) {
-        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.EMAIL_ERROR, ex.getMessage());
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.DUPLICATE_NAME, ex.getMessage());
 
-        return ResponseEntity.status(ResponseCode.EMAIL_ERROR.getHttpStatus()).body(body);
+        return ResponseEntity.status(ResponseCode.DUPLICATE_NAME.getHttpStatus()).body(body);
     }
 }
