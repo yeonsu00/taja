@@ -1,5 +1,6 @@
 package com.taja.member.infra;
 
+import com.taja.global.exception.EmailException;
 import com.taja.member.application.EmailCodeRepository;
 import com.taja.member.domain.EmailCode;
 import java.util.Optional;
@@ -26,5 +27,17 @@ public class EmailCodeRepositoryImpl implements EmailCodeRepository {
                     emailCodeJpaRepository.save(newEmailCode);
                 }
         );
+    }
+
+    @Override
+    public EmailCode findEmailCode(String email, String code) {
+        EmailCodeEntity emailCodeEntity = emailCodeJpaRepository.findByEmailAndCode(email, code)
+                .orElseThrow(() -> new EmailException("이메일 인증 코드가 일치하지 않습니다."));
+        return emailCodeEntity.toEmailCode();
+    }
+
+    @Override
+    public void deleteEmailCodeById(Long emailCodeId) {
+        emailCodeJpaRepository.deleteById(emailCodeId);
     }
 }

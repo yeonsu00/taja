@@ -3,6 +3,7 @@ package com.taja.member.application;
 import com.taja.global.exception.EmailException;
 import com.taja.jwt.JwtTokenProvider;
 import com.taja.member.application.dto.TokenDto;
+import com.taja.member.domain.EmailCode;
 import com.taja.member.domain.EmailForm;
 import com.taja.member.domain.RefreshToken;
 import com.taja.member.domain.Member;
@@ -32,6 +33,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     private final EmailService emailService;
+    private final EmailCodeRepository emailCodeRepository;
 
     @Transactional
     public void signup(String name, String email, String password) {
@@ -98,4 +100,14 @@ public class AuthService {
         }
     }
 
+    @Transactional
+    public void verifyEmailCode(String email, String code) {
+        EmailCode emailCode = emailCodeRepository.findEmailCode(email, code);
+
+        if (!emailCode.isValid()) {
+            throw new EmailException("유효하지 않은 인증코드입니다.");
+        }
+
+        emailCodeRepository.deleteEmailCodeById(emailCode.getEmailCodeId());
+    }
 }

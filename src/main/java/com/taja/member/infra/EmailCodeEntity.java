@@ -56,4 +56,14 @@ public class EmailCodeEntity {
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
     }
+
+    public EmailCode toEmailCode() {
+        return EmailCode.builder()
+                .emailCodeId(this.emailCodeId)
+                .email(this.email)
+                .code(this.code)
+                .createdAt(this.createdAt)
+                .expiresAt(this.expiresAt)
+                .build();
+    }
 }

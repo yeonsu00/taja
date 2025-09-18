@@ -7,6 +7,7 @@ import com.taja.member.application.CookieService;
 import com.taja.member.presentation.request.EmailRequest;
 import com.taja.member.presentation.request.LoginRequest;
 import com.taja.member.presentation.request.SignUpRequest;
+import com.taja.member.presentation.request.VerifyEmailRequest;
 import com.taja.member.presentation.response.TokenResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -50,6 +51,12 @@ public class AuthController {
     public CommonApiResponse<String> sendEmail(@Valid @RequestBody EmailRequest emailRequest) {
         authService.sendCodeToEmail(emailRequest.email());
         return CommonApiResponse.success("이메일 인증 요청을 성공했습니다.");
+    }
+
+    @PostMapping("/email/verify")
+    public CommonApiResponse<String> validateEmailCode(@Valid @RequestBody VerifyEmailRequest verifyEmailRequest) {
+        authService.verifyEmailCode(verifyEmailRequest.email(), verifyEmailRequest.code());
+        return CommonApiResponse.success("이메일 인증을 성공했습니다.");
     }
 
 }

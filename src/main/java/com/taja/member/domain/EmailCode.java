@@ -34,4 +34,8 @@ public class EmailCode {
                 .expiresAt(expiresAt)
                 .build();
     }
+
+    public boolean isValid() {
+        return LocalDateTime.now().isBefore(this.expiresAt);
+    }
 }
