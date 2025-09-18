@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("stations")
+@RequestMapping("/stations")
 public class StationController {
 
     private final StationService stationService;

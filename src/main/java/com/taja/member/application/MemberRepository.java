@@ -6,4 +6,6 @@ public interface MemberRepository {
     Member findByEmail(String email);
 
     void save(Member member);
+
+    boolean existsByName(String name);
 }

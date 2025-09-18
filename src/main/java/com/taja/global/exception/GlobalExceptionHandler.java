@@ -52,4 +52,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.EMAIL_ERROR.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(DuplicateNameException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleDuplicateNameException(DuplicateNameException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.EMAIL_ERROR, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.EMAIL_ERROR.getHttpStatus()).body(body);
+    }
 }

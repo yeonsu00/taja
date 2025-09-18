@@ -4,10 +4,12 @@ import com.taja.global.response.CommonApiResponse;
 import com.taja.member.application.dto.TokenDto;
 import com.taja.member.application.AuthService;
 import com.taja.member.application.CookieService;
+import com.taja.member.presentation.request.CheckDuplicateNameRequest;
 import com.taja.member.presentation.request.EmailRequest;
 import com.taja.member.presentation.request.LoginRequest;
 import com.taja.member.presentation.request.SignUpRequest;
 import com.taja.member.presentation.request.VerifyEmailRequest;
+import com.taja.member.presentation.response.CheckDuplicateNameResponse;
 import com.taja.member.presentation.response.TokenResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -33,7 +35,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public CommonApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+    public CommonApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request,
+                                                  HttpServletResponse response) {
         TokenDto tokenDto = authService.login(request.email(), request.password());
         cookieService.addRefreshTokenCookie(response, tokenDto.refreshToken());
 
@@ -57,6 +60,13 @@ public class AuthController {
     public CommonApiResponse<String> validateEmailCode(@Valid @RequestBody VerifyEmailRequest verifyEmailRequest) {
         authService.verifyEmailCode(verifyEmailRequest.email(), verifyEmailRequest.code());
         return CommonApiResponse.success("이메일 인증을 성공했습니다.");
+    }
+
+    @PostMapping("/name/duplicate-check")
+    public CommonApiResponse<CheckDuplicateNameResponse> checkNicknameDuplicate(
+            @Valid @RequestBody CheckDuplicateNameRequest checkDuplicateNameRequest) {
+        boolean isDuplicate = authService.checkNicknameDuplicate(checkDuplicateNameRequest.name());
+        return CommonApiResponse.success(new CheckDuplicateNameResponse(isDuplicate), "닉네임 중복 확인을 성공했습니다.");
     }
 
 }

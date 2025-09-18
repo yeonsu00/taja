@@ -9,6 +9,8 @@ import com.taja.member.domain.RefreshToken;
 import com.taja.member.domain.Member;
 import com.taja.member.presentation.response.TokenResponse;
 import jakarta.mail.MessagingException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
@@ -109,5 +111,10 @@ public class AuthService {
         }
 
         emailCodeRepository.deleteEmailCodeById(emailCode.getEmailCodeId());
+    }
+
+    @Transactional
+    public boolean checkNicknameDuplicate(String name) {
+        return memberRepository.existsByName(name);
     }
 }
