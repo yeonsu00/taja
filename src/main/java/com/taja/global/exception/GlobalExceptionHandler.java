@@ -45,4 +45,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.USER_NOT_FOUND.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(EmailException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleEmailException(EmailException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.EMAIL_ERROR, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.EMAIL_ERROR.getHttpStatus()).body(body);
+    }
 }

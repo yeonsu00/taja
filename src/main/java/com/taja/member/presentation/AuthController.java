@@ -4,10 +4,12 @@ import com.taja.global.response.CommonApiResponse;
 import com.taja.member.application.dto.TokenDto;
 import com.taja.member.application.AuthService;
 import com.taja.member.application.CookieService;
+import com.taja.member.presentation.request.EmailRequest;
 import com.taja.member.presentation.request.LoginRequest;
 import com.taja.member.presentation.request.SignUpRequest;
 import com.taja.member.presentation.response.TokenResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +44,12 @@ public class AuthController {
     public CommonApiResponse<TokenResponse> reissueToken(@CookieValue("refreshToken") String refreshToken) {
         TokenResponse newTokenResponse = authService.reissue(refreshToken);
         return CommonApiResponse.success(newTokenResponse, "새로운 액세스 토큰이 발급되었습니다.");
+    }
+
+    @PostMapping("/email/send")
+    public CommonApiResponse<String> sendEmail(@Valid @RequestBody EmailRequest emailRequest) {
+        authService.sendCodeToEmail(emailRequest.email());
+        return CommonApiResponse.success("이메일 인증 요청을 성공했습니다.");
     }
 
 }

@@ -1,10 +1,14 @@
 package com.taja.member.application;
 
+import com.taja.global.exception.EmailException;
 import com.taja.jwt.JwtTokenProvider;
 import com.taja.member.application.dto.TokenDto;
+import com.taja.member.domain.EmailForm;
 import com.taja.member.domain.RefreshToken;
 import com.taja.member.domain.Member;
 import com.taja.member.presentation.response.TokenResponse;
+import jakarta.mail.MessagingException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    private final EmailService emailService;
 
     @Transactional
     public void signup(String name, String email, String password) {
@@ -65,8 +71,6 @@ public class AuthService {
 
         Member member = memberRepository.findByEmail(refreshToken.getKey());
 
-        // 4. 해당 사용자 정보로 Authentication 객체 생성
-        //    (이 부분은 CustomUserDetailsService를 직접 사용하거나, 아래처럼 수동으로 만들 수 있습니다)
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 new User(member.getEmail(), member.getPassword(), Collections.singleton(new SimpleGrantedAuthority(
                         member.getRole().name()))),
@@ -77,6 +81,21 @@ public class AuthService {
         String newAccessToken = jwtTokenProvider.generateAccessToken(authentication, (new Date()).getTime());
 
         return new TokenResponse(newAccessToken);
+    }
+
+    public void sendCodeToEmail(String email) {
+        String authCode = emailService.createCode();
+        EmailForm emailForm = EmailForm.EMAIL_AUTH;
+
+        String title = emailForm.getTitle();
+        String content = emailForm.getContent(authCode);
+
+        try {
+            LocalDateTime createdAt = emailService.sendEmail(email, title, content);
+            emailService.saveEmailCode(email, authCode, createdAt);
+        } catch (RuntimeException | MessagingException e) {
+            throw new EmailException("인증코드 요청에 실패했습니다.");
+        }
     }
 
 }
