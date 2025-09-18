@@ -26,13 +26,13 @@ public class AuthController {
     private final CookieService cookieService;
 
     @PostMapping("/signup")
-    public CommonApiResponse<String> signup(@RequestBody SignUpRequest request) {
+    public CommonApiResponse<String> signup(@Valid @RequestBody SignUpRequest request) {
         authService.signup(request.name(), request.email(), request.password());
         return CommonApiResponse.success("회원가입에 성공했습니다.");
     }
 
     @PostMapping("/login")
-    public CommonApiResponse<TokenResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public CommonApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         TokenDto tokenDto = authService.login(request.email(), request.password());
         cookieService.addRefreshTokenCookie(response, tokenDto.refreshToken());
 
