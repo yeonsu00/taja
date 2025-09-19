@@ -6,6 +6,7 @@ import com.taja.jwt.CustomUserDetails;
 import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
 import com.taja.station.presentation.request.SearchStationRequest;
+import com.taja.station.presentation.response.IsFavoriteStationResponse;
 import com.taja.station.presentation.response.NearbyStationResponse;
 import com.taja.station.presentation.response.StationSimpleResponse;
 import com.taja.station.presentation.response.detail.StationDetailResponse;
@@ -87,6 +88,17 @@ public class StationController {
         favoriteStationService.deleteMemberFavoriteStation(email, stationId);
 
         return CommonApiResponse.success("즐겨찾기 삭제에 성공했습니다.");
+    }
+
+    @GetMapping("/{stationId}/favorite")
+    public CommonApiResponse<IsFavoriteStationResponse> isFavoriteStation(@PathVariable("stationId") Long stationId,
+                                                                          @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+
+        boolean isFavorite = favoriteStationService.isFavoriteStation(email, stationId);
+        IsFavoriteStationResponse isFavoriteStationResponse = new IsFavoriteStationResponse(isFavorite);
+
+        return CommonApiResponse.success(isFavoriteStationResponse, "즐겨찾기 여부 조회에 성공했습니다.");
     }
 
 }

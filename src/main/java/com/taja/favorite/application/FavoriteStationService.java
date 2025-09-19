@@ -33,4 +33,12 @@ public class FavoriteStationService {
 
         favoriteStationRepository.deleteFavoriteStation(member, station);
     }
+
+    @Transactional
+    public boolean isFavoriteStation(String email, Long stationId) {
+        Member member = memberRepository.findByEmail(email);
+        Station station = stationRepository.findById(stationId);
+
+        return favoriteStationRepository.existsByMemberAndStation(member, station);
+    }
 }

@@ -8,4 +8,6 @@ public interface FavoriteStationRepository {
     void saveFavoriteStation(FavoriteStation favoriteStation);
 
     void deleteFavoriteStation(Member member, Station station);
+
+    boolean existsByMemberAndStation(Member member, Station station);
 }

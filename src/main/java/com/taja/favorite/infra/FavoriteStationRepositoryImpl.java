@@ -33,4 +33,11 @@ public class FavoriteStationRepositoryImpl implements FavoriteStationRepository 
             throw new FavoriteStationNotFoundException("즐겨찾기 대여소를 찾을 수 없습니다.");
         }
     }
+
+    @Override
+    public boolean existsByMemberAndStation(Member member, Station station) {
+        MemberEntity memberEntity = MemberEntity.fromMember(member);
+        StationEntity stationEntity = StationEntity.fromStation(station);
+        return favoriteStationJpaRepository.existsByMemberAndStation(memberEntity, stationEntity);
+    }
 }
