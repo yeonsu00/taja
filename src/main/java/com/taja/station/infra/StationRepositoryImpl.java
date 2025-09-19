@@ -28,7 +28,7 @@ public class StationRepositoryImpl implements StationRepository {
             StationEntity existingStation = existingStations.get(station.getNumber());
 
             if (existingStation == null) {
-                return StationEntity.fromStation(station);
+                return StationEntity.fromNewStation(station);
             } else {
                 existingStation.update(station);
                 return existingStation;
@@ -59,5 +59,12 @@ public class StationRepositoryImpl implements StationRepository {
         return stations.stream()
                 .map(StationEntity::toStation)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Station findById(Long stationId) {
+        StationEntity stationEntity = stationJpaRepository.findById(stationId)
+                .orElseThrow(() -> new StationNotFoundException(stationId + " 대여소를 찾을 수 없습니다."));
+        return stationEntity.toStation();
     }
 }

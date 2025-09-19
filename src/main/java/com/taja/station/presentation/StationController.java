@@ -1,6 +1,8 @@
 package com.taja.station.presentation;
 
+import com.taja.favorite.application.FavoriteStationService;
 import com.taja.global.response.CommonApiResponse;
+import com.taja.jwt.CustomUserDetails;
 import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
 import com.taja.station.presentation.request.SearchStationRequest;
@@ -11,6 +13,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class StationController {
 
     private final StationService stationService;
+    private final FavoriteStationService favoriteStationService;
 
     @PostMapping("/upload")
     public CommonApiResponse<String> readStationFile(@RequestParam("file") MultipartFile file) {
@@ -63,6 +67,14 @@ public class StationController {
     public CommonApiResponse<StationDetailResponse> findStationDetail(@PathVariable("stationNumber") int stationNumber) {
         StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationNumber);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
+    }
+
+    @PostMapping("/{stationId}/favorite")
+    public CommonApiResponse<String> addFavoriteStation(@PathVariable("stationId") Long stationId, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        favoriteStationService.addFavoriteStationToMember(email, stationId);
+
+        return CommonApiResponse.success("즐겨찾기 등록에 성공했습니다.");
     }
 
 }

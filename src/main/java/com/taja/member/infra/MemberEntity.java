@@ -1,5 +1,6 @@
 package com.taja.member.infra;
 
+import com.taja.favorite.infra.FavoriteStationEntity;
 import com.taja.global.BaseEntity;
 import com.taja.member.domain.Role;
 import com.taja.member.domain.Member;
@@ -7,10 +8,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +41,9 @@ public class MemberEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<FavoriteStationEntity> favorites = new ArrayList<>();
+
     @Builder
     private MemberEntity(Long memberId, String name, String email, String password, Role role) {
         this.memberId = memberId;
@@ -45,8 +53,18 @@ public class MemberEntity extends BaseEntity {
         this.role = role;
     }
 
+    public static MemberEntity fromNewMember(Member member) {
+        return MemberEntity.builder()
+                .name(member.getName())
+                .email(member.getEmail())
+                .password(member.getPassword())
+                .role(member.getRole())
+                .build();
+    }
+
     public static MemberEntity fromMember(Member member) {
         return MemberEntity.builder()
+                .memberId(member.getMemberId())
                 .name(member.getName())
                 .email(member.getEmail())
                 .password(member.getPassword())
