@@ -25,4 +25,12 @@ public class FavoriteStationService {
         FavoriteStation favoriteStation = FavoriteStation.of(member, station);
         favoriteStationRepository.saveFavoriteStation(favoriteStation);
     }
+
+    @Transactional
+    public void deleteMemberFavoriteStation(String email, Long stationId) {
+        Member member = memberRepository.findByEmail(email);
+        Station station = stationRepository.findById(stationId);
+
+        favoriteStationRepository.deleteFavoriteStation(member, station);
+    }
 }

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,17 +65,28 @@ public class StationController {
     }
 
     @GetMapping("/{stationNumber}")
-    public CommonApiResponse<StationDetailResponse> findStationDetail(@PathVariable("stationNumber") int stationNumber) {
+    public CommonApiResponse<StationDetailResponse> findStationDetail(
+            @PathVariable("stationNumber") int stationNumber) {
         StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationNumber);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
     }
 
     @PostMapping("/{stationId}/favorite")
-    public CommonApiResponse<String> addFavoriteStation(@PathVariable("stationId") Long stationId, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public CommonApiResponse<String> addFavoriteStation(@PathVariable("stationId") Long stationId,
+                                                        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         String email = customUserDetails.getUsername();
         favoriteStationService.addFavoriteStationToMember(email, stationId);
 
         return CommonApiResponse.success("즐겨찾기 등록에 성공했습니다.");
+    }
+
+    @DeleteMapping("/{stationId}/favorite")
+    public CommonApiResponse<String> deleteFavoriteStation(@PathVariable("stationId") Long stationId,
+                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        favoriteStationService.deleteMemberFavoriteStation(email, stationId);
+
+        return CommonApiResponse.success("즐겨찾기 삭제에 성공했습니다.");
     }
 
 }

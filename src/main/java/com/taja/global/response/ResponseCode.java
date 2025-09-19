@@ -16,6 +16,7 @@ public enum ResponseCode {
     EMAIL_ERROR(HttpStatus.BAD_REQUEST, "EMAIL_ERROR"),
     DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "DUPLICATE_NAME"),
     TOKEN_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_ERROR"),
+    FAVORITE_STATION_NOT_FOUND(HttpStatus.NOT_FOUND, "FAVORITE_STATION_NOT_FOUND")
     ;
 
     private final HttpStatus httpStatus;
