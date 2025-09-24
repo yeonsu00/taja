@@ -66,4 +66,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.FAVORITE_STATION_NOT_FOUND.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(DuplicateFavoriteStationException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleDuplicateFavoriteStationException(DuplicateFavoriteStationException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.DUPLICATE_FAVORITE_STATION, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.DUPLICATE_FAVORITE_STATION.getHttpStatus()).body(body);
+    }
 }
