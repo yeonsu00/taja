@@ -3,7 +3,7 @@ package com.taja.station.application;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,7 @@ class StationServiceTest {
         double lonDelta = 0.0;
 
         // when
-        List<NearbyStationResponse> result = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
+        List<MapStationResponse> result = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
 
 
         // then
@@ -73,16 +73,16 @@ class StationServiceTest {
 
         LocalDateTime requestedAt = LocalDateTime.now();
 
-        List<NearbyStationResponse> expectedResponse = List.of(
-                new NearbyStationResponse(1, 37.5660, 126.9775, 1, requestedAt),
-                new NearbyStationResponse(2, 37.5670, 126.9785, 2, requestedAt)
+        List<MapStationResponse> expectedResponse = List.of(
+                new MapStationResponse(1, 37.5660, 126.9775, 1, requestedAt),
+                new MapStationResponse(2, 37.5670, 126.9785, 2, requestedAt)
         );
 
         when(stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width))
                 .thenReturn(expectedResponse);
 
         // when
-        List<NearbyStationResponse> actualResponse = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
+        List<MapStationResponse> actualResponse = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
 
         // then
         assertThat(actualResponse).hasSize(2);

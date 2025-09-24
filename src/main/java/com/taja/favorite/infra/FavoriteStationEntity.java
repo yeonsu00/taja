@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+    import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -49,5 +50,15 @@ public class FavoriteStationEntity {
                 .member(MemberEntity.fromMember(favoriteStation.getMember()))
                 .station(StationEntity.fromStation(favoriteStation.getStation()))
                 .build();
+    }
+
+    public static List<StationEntity> toStationEntities(List<FavoriteStationEntity> favoriteStationEntities) {
+        return favoriteStationEntities.stream()
+                .map(FavoriteStationEntity::getStationEntity)
+                .toList();
+    }
+
+    private StationEntity getStationEntity() {
+        return this.station;
     }
 }

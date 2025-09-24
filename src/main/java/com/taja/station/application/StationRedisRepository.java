@@ -1,6 +1,6 @@
 package com.taja.station.application;
 
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.status.domain.StationStatus;
 import com.taja.station.domain.Station;
 import java.time.LocalDateTime;
@@ -11,5 +11,7 @@ public interface StationRedisRepository {
 
     boolean updateBikeCountAndRequestedAt(StationStatus stationStatus);
 
-    List<NearbyStationResponse> findNearbyStations(double centerLat, double centerLon, double height, double width);
+    List<MapStationResponse> findNearbyStations(double centerLat, double centerLon, double height, double width);
+
+    List<MapStationResponse> findStationStatus(List<Station> favoriteStations);
 }

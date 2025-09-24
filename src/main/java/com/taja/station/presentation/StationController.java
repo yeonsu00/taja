@@ -7,7 +7,7 @@ import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
 import com.taja.station.presentation.request.SearchStationRequest;
 import com.taja.station.presentation.response.IsFavoriteStationResponse;
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.station.presentation.response.StationSimpleResponse;
 import com.taja.station.presentation.response.detail.StationDetailResponse;
 import jakarta.validation.Valid;
@@ -41,9 +41,9 @@ public class StationController {
     }
 
     @GetMapping("/map/nearby")
-    public CommonApiResponse<List<NearbyStationResponse>> findNearbyStations(
+    public CommonApiResponse<List<MapStationResponse>> findNearbyStations(
             @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
-        List<NearbyStationResponse> nearbyStations = stationService.findNearbyStations(
+        List<MapStationResponse> nearbyStations = stationService.findNearbyStations(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
@@ -99,6 +99,14 @@ public class StationController {
         IsFavoriteStationResponse isFavoriteStationResponse = new IsFavoriteStationResponse(isFavorite);
 
         return CommonApiResponse.success(isFavoriteStationResponse, "즐겨찾기 여부 조회에 성공했습니다.");
+    }
+
+    @GetMapping("/map/favorite")
+    public CommonApiResponse<List<MapStationResponse>> findFavoriteStations(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        List<MapStationResponse> favoriteStations = favoriteStationService.findFavoriteStationsByMemberEmail(email);
+        return CommonApiResponse.success(favoriteStations, "즐겨찾기 대여소 조회에 성공했습니다.");
     }
 
 }

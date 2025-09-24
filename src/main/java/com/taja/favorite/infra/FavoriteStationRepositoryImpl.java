@@ -7,7 +7,9 @@ import com.taja.global.exception.FavoriteStationNotFoundException;
 import com.taja.member.domain.Member;
 import com.taja.member.infra.MemberEntity;
 import com.taja.station.domain.Station;
+import com.taja.station.infra.FavoriteStationQueryRepository;
 import com.taja.station.infra.StationEntity;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Repository;
 public class FavoriteStationRepositoryImpl implements FavoriteStationRepository {
 
     private final FavoriteStationJpaRepository favoriteStationJpaRepository;
+    private final FavoriteStationQueryRepository favoriteStationQueryRepository;
 
     @Override
     public void saveFavoriteStation(FavoriteStation favoriteStation) {
@@ -45,5 +48,13 @@ public class FavoriteStationRepositoryImpl implements FavoriteStationRepository 
         MemberEntity memberEntity = MemberEntity.fromMember(member);
         StationEntity stationEntity = StationEntity.fromStation(station);
         return favoriteStationJpaRepository.existsByMemberAndStation(memberEntity, stationEntity);
+    }
+
+    @Override
+    public List<Station> findFavoriteStationsByMemberEmail(String email) {
+        List<StationEntity> stationEntities = favoriteStationQueryRepository.findFavoriteStationsByMemberEmail(email);
+        return stationEntities.stream()
+                .map(StationEntity::toStation)
+                .toList();
     }
 }
