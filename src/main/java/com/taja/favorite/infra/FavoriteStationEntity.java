@@ -11,11 +11,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "favorite_stations")
+@Table(
+        name = "favorite_stations",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_member_station", columnNames = {"member_id", "station_id"})
+        }
+)
 @RequiredArgsConstructor
 public class FavoriteStationEntity {
 
