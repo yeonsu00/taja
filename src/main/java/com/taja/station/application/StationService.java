@@ -46,7 +46,7 @@ public class StationService {
         List<Station> savedStations = stationRepository.upsert(stations);
         log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStations.size());
 
-        saveStationsToRedis(stations, requestedAt);
+        saveStationsToRedis(savedStations, requestedAt);
     }
 
     @Transactional(readOnly = true)
