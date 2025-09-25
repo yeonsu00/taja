@@ -3,7 +3,7 @@ package com.taja.station.presentation.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record NearbyStationResponse(
+public record MapStationResponse(
         Integer number,
         double latitude,
         double longitude,
@@ -15,11 +15,11 @@ public record NearbyStationResponse(
         return bikeCount > 0;
     }
 
-    public static List<Integer> extractAvailableNumbers(List<NearbyStationResponse> nearbyStations,
+    public static List<Integer> extractAvailableNumbers(List<MapStationResponse> nearbyStations,
                                                         int originStationNumber) {
         return nearbyStations.stream()
-                .filter(NearbyStationResponse::isAvailable)
-                .map(NearbyStationResponse::number)
+                .filter(MapStationResponse::isAvailable)
+                .map(MapStationResponse::number)
                 .filter(num -> !num.equals(originStationNumber))
                 .toList();
     }

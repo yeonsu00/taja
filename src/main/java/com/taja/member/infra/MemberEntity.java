@@ -45,8 +45,18 @@ public class MemberEntity extends BaseEntity {
         this.role = role;
     }
 
+    public static MemberEntity fromNewMember(Member member) {
+        return MemberEntity.builder()
+                .name(member.getName())
+                .email(member.getEmail())
+                .password(member.getPassword())
+                .role(member.getRole())
+                .build();
+    }
+
     public static MemberEntity fromMember(Member member) {
         return MemberEntity.builder()
+                .memberId(member.getMemberId())
                 .name(member.getName())
                 .email(member.getEmail())
                 .password(member.getPassword())

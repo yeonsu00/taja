@@ -2,7 +2,7 @@ package com.taja.station.application;
 
 import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.station.presentation.response.StationSimpleResponse;
 import com.taja.station.presentation.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
@@ -50,8 +50,8 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NearbyStationResponse> findNearbyStations(double centerLat, double centerLon,
-                                                          double latDelta, double lonDelta) {
+    public List<MapStationResponse> findNearbyStations(double centerLat, double centerLon,
+                                                       double latDelta, double lonDelta) {
         double height = latDelta * 2;
         double width = lonDelta * 2;
 
@@ -93,7 +93,7 @@ public class StationService {
         Station station = stationRepository.findStationByNumber(stationNumber);
 
         List<Integer> nearbyStationsNumber =
-                NearbyStationResponse.extractAvailableNumbers(
+                MapStationResponse.extractAvailableNumbers(
                         stationRedisRepository.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1),
                         station.getNumber()
                 );

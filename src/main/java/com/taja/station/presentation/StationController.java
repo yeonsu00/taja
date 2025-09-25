@@ -1,16 +1,21 @@
 package com.taja.station.presentation;
 
+import com.taja.favorite.application.FavoriteStationService;
 import com.taja.global.response.CommonApiResponse;
+import com.taja.jwt.CustomUserDetails;
 import com.taja.station.application.StationService;
 import com.taja.station.presentation.request.NearbyStationRequest;
 import com.taja.station.presentation.request.SearchStationRequest;
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.IsFavoriteStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.station.presentation.response.StationSimpleResponse;
 import com.taja.station.presentation.response.detail.StationDetailResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class StationController {
 
     private final StationService stationService;
+    private final FavoriteStationService favoriteStationService;
 
     @PostMapping("/upload")
     public CommonApiResponse<String> readStationFile(@RequestParam("file") MultipartFile file) {
@@ -35,9 +41,9 @@ public class StationController {
     }
 
     @GetMapping("/map/nearby")
-    public CommonApiResponse<List<NearbyStationResponse>> findNearbyStations(
+    public CommonApiResponse<List<MapStationResponse>> findNearbyStations(
             @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
-        List<NearbyStationResponse> nearbyStations = stationService.findNearbyStations(
+        List<MapStationResponse> nearbyStations = stationService.findNearbyStations(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
@@ -60,9 +66,47 @@ public class StationController {
     }
 
     @GetMapping("/{stationNumber}")
-    public CommonApiResponse<StationDetailResponse> findStationDetail(@PathVariable("stationNumber") int stationNumber) {
+    public CommonApiResponse<StationDetailResponse> findStationDetail(
+            @PathVariable("stationNumber") int stationNumber) {
         StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationNumber);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
+    }
+
+    @PostMapping("/{stationId}/favorite")
+    public CommonApiResponse<String> addFavoriteStation(@PathVariable("stationId") Long stationId,
+                                                        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        favoriteStationService.addFavoriteStationToMember(email, stationId);
+
+        return CommonApiResponse.success("즐겨찾기 등록에 성공했습니다.");
+    }
+
+    @DeleteMapping("/{stationId}/favorite")
+    public CommonApiResponse<String> deleteFavoriteStation(@PathVariable("stationId") Long stationId,
+                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        favoriteStationService.deleteMemberFavoriteStation(email, stationId);
+
+        return CommonApiResponse.success("즐겨찾기 삭제에 성공했습니다.");
+    }
+
+    @GetMapping("/{stationId}/favorite")
+    public CommonApiResponse<IsFavoriteStationResponse> isFavoriteStation(@PathVariable("stationId") Long stationId,
+                                                                          @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+
+        boolean isFavorite = favoriteStationService.isFavoriteStation(email, stationId);
+        IsFavoriteStationResponse isFavoriteStationResponse = new IsFavoriteStationResponse(isFavorite);
+
+        return CommonApiResponse.success(isFavoriteStationResponse, "즐겨찾기 여부 조회에 성공했습니다.");
+    }
+
+    @GetMapping("/map/favorite")
+    public CommonApiResponse<List<MapStationResponse>> findFavoriteStations(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        List<MapStationResponse> favoriteStations = favoriteStationService.findFavoriteStationsByMemberEmail(email);
+        return CommonApiResponse.success(favoriteStations, "즐겨찾기 대여소 조회에 성공했습니다.");
     }
 
 }

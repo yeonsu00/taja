@@ -2,7 +2,7 @@ package com.taja.station.infra;
 
 import com.taja.station.application.StationRedisRepository;
 import com.taja.station.domain.Station;
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.status.domain.StationStatus;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -81,8 +81,8 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     }
 
     @Override
-    public List<NearbyStationResponse> findNearbyStations(double centerLat, double centerLon,
-                                                          double height, double width) {
+    public List<MapStationResponse> findNearbyStations(double centerLat, double centerLon,
+                                                       double height, double width) {
         Point center = new Point(centerLon, centerLat);
 
         GeoShape shape = GeoShape.byBox(
@@ -107,7 +107,37 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 .collect(Collectors.toList());
     }
 
-    private Optional<NearbyStationResponse> toNearbyStationResponse(GeoResult<GeoLocation<Object>> result) {
+    @Override
+    public List<MapStationResponse> findStationStatus(List<Station> favoriteStations) {
+        return favoriteStations.stream()
+                .map(station -> {
+                    String hashKey = "stations:" + station.getNumber();
+
+                    Object bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
+                    Object requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
+
+                    int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
+                    LocalDateTime requestedAt = null;
+                    if (requestedAtObj != null) {
+                        try {
+                            requestedAt = LocalDateTime.parse(requestedAtObj.toString());
+                        } catch (DateTimeParseException e) {
+                            log.warn("Redis requestedAt 파싱 실패: station={}, value={}", station.getNumber(), requestedAtObj);
+                        }
+                    }
+
+                    return new MapStationResponse(
+                            station.getNumber(),
+                            station.getLatitude(),
+                            station.getLongitude(),
+                            bikeCount,
+                            requestedAt
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Optional<MapStationResponse> toNearbyStationResponse(GeoResult<GeoLocation<Object>> result) {
         try {
             String member = result.getContent().getName().toString();
             Point point = result.getContent().getPoint();
@@ -120,7 +150,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
             LocalDateTime requestedAt = requestedAtObj != null ? LocalDateTime.parse(requestedAtObj.toString()) : null;
 
-            return Optional.of(new NearbyStationResponse(number, point.getY(), point.getX(), bikeCount, requestedAt));
+            return Optional.of(new MapStationResponse(number, point.getY(), point.getX(), bikeCount, requestedAt));
 
         } catch (NumberFormatException | DateTimeParseException e) {
             log.warn("대여소 정보 파싱 실패: number={}, error={}", result.getContent().getName(), e.getMessage());
