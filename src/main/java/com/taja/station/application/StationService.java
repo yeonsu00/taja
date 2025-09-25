@@ -27,11 +27,11 @@ public class StationService {
     @Transactional
     public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
         List<Station> readStations = stationFileReader.readStationsFromFile(file);
-        int savedStationCount = stationRepository.upsert(readStations);
+        List<Station> savedStations = stationRepository.upsert(readStations);
 
-        saveStationsToRedis(readStations, requestedAt);
+        saveStationsToRedis(savedStations, requestedAt);
 
-        return savedStationCount;
+        return savedStations.size();
     }
 
     @Transactional
@@ -43,8 +43,8 @@ public class StationService {
                 .flatMap(Optional::stream)
                 .toList();
 
-        int savedStationCount = stationRepository.upsert(stations);
-        log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStationCount);
+        List<Station> savedStations = stationRepository.upsert(stations);
+        log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStations.size());
 
         saveStationsToRedis(stations, requestedAt);
     }

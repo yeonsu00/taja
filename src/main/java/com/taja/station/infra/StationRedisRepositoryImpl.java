@@ -46,6 +46,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             );
 
             Map<String, Object> values = new HashMap<>();
+            values.put("stationId", station.getStationId());
             values.put("bikeCount", 0);
             values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
 

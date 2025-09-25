@@ -16,7 +16,7 @@ public class StationRepositoryImpl implements StationRepository {
     private final StationJpaRepository stationJpaRepository;
 
     @Override
-    public int upsert(List<Station> stations) {
+    public List<Station> upsert(List<Station> stations) {
         List<Integer> numbers = stations.stream()
                 .map(Station::getNumber)
                 .toList();
@@ -35,7 +35,11 @@ public class StationRepositoryImpl implements StationRepository {
             }
         }).toList();
 
-        return stationJpaRepository.saveAll(stationsToSave).size();
+        List<StationEntity> savedStationEntities = stationJpaRepository.saveAll(stationsToSave);
+        return savedStationEntities
+                .stream()
+                .map(StationEntity::toStation)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -49,7 +53,7 @@ public class StationRepositoryImpl implements StationRepository {
     @Override
     public Station findStationByNumber(int stationNumber) {
         StationEntity stationEntity = stationJpaRepository.findByNumber(stationNumber)
-                .orElseThrow( () -> new StationNotFoundException(stationNumber + " 대여소를 찾을 수 없습니다."));
+                .orElseThrow(() -> new StationNotFoundException(stationNumber + " 대여소를 찾을 수 없습니다."));
         return stationEntity.toStation();
     }
 
