@@ -1,6 +1,5 @@
 package com.taja.station.application;
 
-import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.station.presentation.response.StationSimpleResponse;
@@ -8,7 +7,6 @@ import com.taja.station.presentation.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,15 +33,10 @@ public class StationService {
     }
 
     @Transactional
-    public void saveStations(List<StationDto> loadedStations, LocalDateTime requestedAt) {
+    public void saveStations(List<Station> loadedStations, LocalDateTime requestedAt) {
         log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStations.size());
 
-        List<Station> stations = loadedStations.stream()
-                .map(StationDto::toStation)
-                .flatMap(Optional::stream)
-                .toList();
-
-        List<Station> savedStations = stationRepository.upsert(stations);
+        List<Station> savedStations = stationRepository.upsert(loadedStations);
         log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStations.size());
 
         saveStationsToRedis(savedStations, requestedAt);

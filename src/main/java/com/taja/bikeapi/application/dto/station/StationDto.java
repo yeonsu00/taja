@@ -3,7 +3,9 @@ package com.taja.bikeapi.application.dto.station;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taja.station.domain.OperationMode;
 import com.taja.station.domain.Station;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public record StationDto(
         @JsonProperty("STA_LOC") String location,
@@ -21,7 +23,7 @@ public record StationDto(
         @JsonProperty("RNUM") String rowNumber
 ) {
 
-    public Optional<Station> toStation() {
+    private Optional<Station> toStation() {
         if (rentName == null || rentNumber == null || location == null
                 || address1 == null || latitude == null || longitude == null || holdNumber == null) {
             return Optional.empty();
@@ -50,6 +52,13 @@ public record StationDto(
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
+    }
+
+    public static List<Station> toStations(List<StationDto> stationDtos) {
+        return stationDtos.stream()
+                .map(StationDto::toStation)
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
 }
