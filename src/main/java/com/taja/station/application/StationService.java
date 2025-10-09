@@ -27,7 +27,7 @@ public class StationService {
         List<Station> readStations = stationFileReader.readStationsFromFile(file);
         List<Station> savedStations = stationRepository.upsert(readStations);
 
-        saveStationsToRedis(savedStations, requestedAt);
+        stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
 
         return savedStations.size();
     }
@@ -39,7 +39,7 @@ public class StationService {
         List<Station> savedStations = stationRepository.upsert(loadedStations);
         log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStations.size());
 
-        saveStationsToRedis(savedStations, requestedAt);
+        stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
     }
 
     @Transactional(readOnly = true)
@@ -49,18 +49,6 @@ public class StationService {
         double width = lonDelta * 2;
 
         return stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
-    }
-
-    private void saveStationsToRedis(List<Station> readStations, LocalDateTime requestedAt) {
-        int redisUpdatedCount = 0;
-
-        for (Station station : readStations) {
-            if (stationRedisRepository.saveStation(station, requestedAt)) {
-                redisUpdatedCount++;
-            }
-        }
-
-        log.info("Redis 대여소 정보 총 {}개 업데이트됨.", redisUpdatedCount);
     }
 
     @Transactional(readOnly = true)

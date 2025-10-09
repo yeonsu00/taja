@@ -11,15 +11,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.stereotype.Repository;
@@ -56,6 +60,37 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
         } catch (Exception e) {
             log.error("Redis 저장 실패: station={}", station.getNumber(), e);
             return false;
+        }
+    }
+
+    @Override
+    public void saveStationsWithPipeline(List<Station> stations, LocalDateTime requestedAt) {
+       try {
+            redisTemplate.executePipelined(new SessionCallback<Object>() {
+                @Override
+                @SuppressWarnings({"unchecked"})
+                public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+                    for (Station station : stations) {
+                        String hashKey = STATION_KEY_PREFIX + station.getNumber();
+                        Map<String, Object> values = new HashMap<>();
+                        values.put("stationId", station.getStationId());
+                        values.put("bikeCount", 0);
+                        values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+                        operations.opsForHash().putAll((K) hashKey, values);
+
+                        operations.opsForGeo().add(
+                                (K) GEO_KEY,
+                                new Point(station.getLongitude(), station.getLatitude()),
+                                (V) station.getNumber().toString()
+                        );
+                    }
+                    return null;
+                }
+            });
+
+           log.info("{}개의 대여소 정보를 Redis에 저장했습니다. ", stations.size());
+        } catch (Exception e) {
+            log.error("Redis 파이프라인 저장 실패: 총 {}개 중 작업 실패", stations.size(), e);
         }
     }
 
@@ -123,7 +158,8 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                         try {
                             requestedAt = LocalDateTime.parse(requestedAtObj.toString());
                         } catch (DateTimeParseException e) {
-                            log.warn("Redis requestedAt 파싱 실패: station={}, value={}", station.getNumber(), requestedAtObj);
+                            log.warn("Redis requestedAt 파싱 실패: station={}, value={}", station.getNumber(),
+                                    requestedAtObj);
                         }
                     }
 
