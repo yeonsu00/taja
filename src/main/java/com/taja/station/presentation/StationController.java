@@ -65,10 +65,10 @@ public class StationController {
         return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
     }
 
-    @GetMapping("/{stationNumber}")
+    @GetMapping("/{stationId}")
     public CommonApiResponse<StationDetailResponse> findStationDetail(
-            @PathVariable("stationNumber") int stationNumber) {
-        StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationNumber);
+            @PathVariable("stationId") Long stationId) {
+        StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationId);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
     }
 

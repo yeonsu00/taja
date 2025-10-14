@@ -70,8 +70,8 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
-    public StationDetailResponse findStationDetail(int stationNumber) {
-        Station station = stationRepository.findStationByNumber(stationNumber);
+    public StationDetailResponse findStationDetail(Long stationId) {
+        Station station = stationRepository.findStationById(stationId);
 
         List<Integer> nearbyStationsNumber =
                 MapStationResponse.extractAvailableNumbers(

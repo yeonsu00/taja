@@ -51,9 +51,9 @@ public class StationRepositoryImpl implements StationRepository {
     }
 
     @Override
-    public Station findStationByNumber(int stationNumber) {
-        StationEntity stationEntity = stationJpaRepository.findByNumber(stationNumber)
-                .orElseThrow(() -> new StationNotFoundException(stationNumber + " 대여소를 찾을 수 없습니다."));
+    public Station findStationById(Long stationId) {
+        StationEntity stationEntity = stationJpaRepository.findById(stationId)
+                .orElseThrow(() -> new StationNotFoundException("ID : " + stationId + " 대여소를 찾을 수 없습니다."));
         return stationEntity.toStation();
     }
 
