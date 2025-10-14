@@ -45,4 +45,8 @@ public class RefreshTokenEntity {
                 .value(value)
                 .build();
     }
+
+    public void updateValue(String value) {
+        this.value = value;
+    }
 }

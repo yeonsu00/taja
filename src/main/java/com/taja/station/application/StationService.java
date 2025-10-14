@@ -1,6 +1,5 @@
 package com.taja.station.application;
 
-import com.taja.bikeapi.application.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.station.presentation.response.StationSimpleResponse;
@@ -8,7 +7,6 @@ import com.taja.station.presentation.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,26 +25,21 @@ public class StationService {
     @Transactional
     public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
         List<Station> readStations = stationFileReader.readStationsFromFile(file);
-        int savedStationCount = stationRepository.upsert(readStations);
+        List<Station> savedStations = stationRepository.upsert(readStations);
 
-        saveStationsToRedis(readStations, requestedAt);
+        stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
 
-        return savedStationCount;
+        return savedStations.size();
     }
 
     @Transactional
-    public void saveStations(List<StationDto> loadedStations, LocalDateTime requestedAt) {
+    public void saveStations(List<Station> loadedStations, LocalDateTime requestedAt) {
         log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStations.size());
 
-        List<Station> stations = loadedStations.stream()
-                .map(StationDto::toStation)
-                .flatMap(Optional::stream)
-                .toList();
+        List<Station> savedStations = stationRepository.upsert(loadedStations);
+        log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStations.size());
 
-        int savedStationCount = stationRepository.upsert(stations);
-        log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStationCount);
-
-        saveStationsToRedis(stations, requestedAt);
+        stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
     }
 
     @Transactional(readOnly = true)
@@ -56,18 +49,6 @@ public class StationService {
         double width = lonDelta * 2;
 
         return stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
-    }
-
-    private void saveStationsToRedis(List<Station> readStations, LocalDateTime requestedAt) {
-        int redisUpdatedCount = 0;
-
-        for (Station station : readStations) {
-            if (stationRedisRepository.saveStation(station, requestedAt)) {
-                redisUpdatedCount++;
-            }
-        }
-
-        log.info("Redis 대여소 정보 총 {}개 업데이트됨.", redisUpdatedCount);
     }
 
     @Transactional(readOnly = true)
@@ -89,8 +70,8 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
-    public StationDetailResponse findStationDetail(int stationNumber) {
-        Station station = stationRepository.findStationByNumber(stationNumber);
+    public StationDetailResponse findStationDetail(Long stationId) {
+        Station station = stationRepository.findStationById(stationId);
 
         List<Integer> nearbyStationsNumber =
                 MapStationResponse.extractAvailableNumbers(

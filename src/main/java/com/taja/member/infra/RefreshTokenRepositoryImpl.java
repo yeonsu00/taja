@@ -15,7 +15,13 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
     @Override
     public void save(RefreshToken refreshToken) {
         RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.fromRefreshToken(refreshToken);
-        refreshTokenJpaRepository.save(refreshTokenEntity);
+
+        refreshTokenJpaRepository.findByKey(refreshToken.getKey())
+                .ifPresentOrElse(existing -> {
+                    existing.updateValue(refreshToken.getValue());
+                }, () -> {
+                    refreshTokenJpaRepository.save(refreshTokenEntity);
+                });
     }
 
     @Override

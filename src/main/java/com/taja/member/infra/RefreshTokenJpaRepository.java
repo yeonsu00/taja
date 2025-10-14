@@ -7,4 +7,6 @@ public interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenEnt
     Optional<RefreshTokenEntity> findByValue(String value);
 
     long deleteByValue(String value);
+
+    Optional<RefreshTokenEntity> findByKey(String key);
 }

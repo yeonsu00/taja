@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record MapStationResponse(
+        Long stationId,
         Integer number,
         double latitude,
         double longitude,

@@ -2,13 +2,16 @@ package com.taja.station.application;
 
 import com.taja.bikeapi.application.BikeApiBatchFetcher;
 import com.taja.bikeapi.application.BikeApiClient;
+import com.taja.bikeapi.application.dto.station.StationDto;
+import com.taja.station.domain.Station;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
-
 public class StationApiService {
 
     private final BikeApiClient bikeApiClient;
@@ -20,6 +23,12 @@ public class StationApiService {
 
     public void loadStations(LocalDateTime requestedAt) {
         bikeApiBatchFetcher.fetchAll(TOTAL_COUNT, BATCH_SIZE, bikeApiClient::fetchStations)
-                .subscribe(loadedStations -> stationService.saveStations(loadedStations, requestedAt));
+                .publishOn(Schedulers.boundedElastic())
+                .subscribe(
+                        loadedStations -> {
+                            List<Station> stations = StationDto.toStations(loadedStations);
+                            stationService.saveStations(stations, requestedAt);
+                        }
+                );
     }
 }

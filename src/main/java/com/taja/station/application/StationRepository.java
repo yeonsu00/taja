@@ -4,11 +4,11 @@ import com.taja.station.domain.Station;
 import java.util.List;
 
 public interface StationRepository {
-    int upsert(List<Station> stations);
+    List<Station> upsert(List<Station> stations);
 
     List<Station> findByNameContaining(String keyword);
 
-    Station findStationByNumber(int stationNumber);
+    Station findStationById(Long stationId);
 
     List<Station> findByNumbers(List<Integer> nearbyStationsNumber);
 

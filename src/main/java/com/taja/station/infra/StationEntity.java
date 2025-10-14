@@ -14,11 +14,13 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Entity
 @Table(name = "stations")
 @RequiredArgsConstructor
 @Getter
+@Slf4j
 public class StationEntity extends BaseEntity {
 
     @Id
@@ -80,6 +82,7 @@ public class StationEntity extends BaseEntity {
                 .longitude(station.getLongitude())
                 .lcdHoldCount(station.getLcdHoldCount())
                 .qrHoldCount(station.getQrHoldCount())
+                .totalHoldCount(station.getTotalHoldCount())
                 .operationMode(station.getOperationMode())
                 .build();
     }
@@ -107,6 +110,7 @@ public class StationEntity extends BaseEntity {
         this.longitude = station.getLongitude();
         this.lcdHoldCount = station.getLcdHoldCount();
         this.qrHoldCount = station.getQrHoldCount();
+        this.totalHoldCount = station.getTotalHoldCount();
         this.operationMode = station.getOperationMode();
     }
 
