@@ -13,6 +13,8 @@ public interface StationRedisRepository {
 
     boolean updateBikeCountAndRequestedAt(StationStatus stationStatus);
 
+    void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses);
+
     List<MapStationResponse> findNearbyStations(double centerLat, double centerLon, double height, double width);
 
     List<MapStationResponse> findStationStatus(List<Station> favoriteStations);

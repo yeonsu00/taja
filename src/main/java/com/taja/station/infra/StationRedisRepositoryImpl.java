@@ -117,6 +117,32 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     }
 
     @Override
+    public void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses) {
+        try {
+            redisTemplate.executePipelined(new SessionCallback<Object>() {
+                @Override
+                @SuppressWarnings({"unchecked"})
+                public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+                    for (StationStatus status : statuses) {
+                        String key = STATION_KEY_PREFIX + status.getStationNumber();
+
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("bikeCount", status.getParkingBikeCount());
+                        updates.put("requestedAt", status.getRequestedAt().toString());
+
+                        operations.opsForHash().putAll((K) key, updates);
+                    }
+                    return null;
+                }
+            });
+
+            log.info("Redis 파이프라인을 통해 {}개의 대여소 상태 업데이트 완료.", statuses.size());
+        } catch (Exception e) {
+            log.error("Redis 파이프라인 대여소 상태 업데이트 실패: 총 {}개 중 작업 실패", statuses.size(), e);
+        }
+    }
+
+    @Override
     public List<MapStationResponse> findNearbyStations(double centerLat, double centerLon,
                                                        double height, double width) {
         Point center = new Point(centerLon, centerLat);
