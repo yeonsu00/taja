@@ -39,7 +39,7 @@ public class StationRepositoryImpl implements StationRepository {
         return savedStationEntities
                 .stream()
                 .map(StationEntity::toStation)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
