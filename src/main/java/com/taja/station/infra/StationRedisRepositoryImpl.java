@@ -190,6 +190,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                     }
 
                     return new MapStationResponse(
+                            station.getStationId(),
                             station.getNumber(),
                             station.getLatitude(),
                             station.getLongitude(),
@@ -207,13 +208,15 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             Integer number = Integer.parseInt(member);
 
             String hashKey = STATION_KEY_PREFIX + number;
+            Object stationIdObj = redisTemplate.opsForHash().get(hashKey, "stationId");
             Object bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
             Object requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
 
+            Long stationId = stationIdObj != null ? Long.parseLong(stationIdObj.toString()) : null;
             int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
             LocalDateTime requestedAt = requestedAtObj != null ? LocalDateTime.parse(requestedAtObj.toString()) : null;
 
-            return Optional.of(new MapStationResponse(number, point.getY(), point.getX(), bikeCount, requestedAt));
+            return Optional.of(new MapStationResponse(stationId, number, point.getY(), point.getX(), bikeCount, requestedAt));
 
         } catch (NumberFormatException | DateTimeParseException e) {
             log.warn("대여소 정보 파싱 실패: number={}, error={}", result.getContent().getName(), e.getMessage());
