@@ -51,3 +51,13 @@ jwt:
   expiration:
     access-token: 1800000   # 30분
     refresh-token: 604800000 # 7일
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
