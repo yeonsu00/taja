@@ -1,7 +1,6 @@
 package com.taja.member.application;
 
 import com.taja.global.exception.EmailException;
-import com.taja.global.exception.TokenException;
 import com.taja.jwt.JwtTokenProvider;
 import com.taja.member.application.dto.TokenDto;
 import com.taja.member.domain.EmailCode;
@@ -111,7 +110,7 @@ public class AuthService {
     }
 
     @Transactional
-    public boolean checkNicknameDuplicate(String name) {
+    public boolean checkMemberNameDuplicate(String name) {
         return memberRepository.existsByName(name);
     }
 

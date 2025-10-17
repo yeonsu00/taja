@@ -70,11 +70,11 @@ public class AuthController {
         return CommonApiResponse.success("이메일 인증을 성공했습니다.");
     }
 
-    @Operation(summary = "닉네임 중복 확인", description = "닉네임이 중복되었는지 확인합니다.")
+    @Operation(summary = "이름 중복 확인", description = "이름이 중복되었는지 확인합니다.")
     @PostMapping("/name/duplicate-check")
-    public CommonApiResponse<CheckDuplicateNameResponse> checkNicknameDuplicate(
+    public CommonApiResponse<CheckDuplicateNameResponse> checkNameDuplicate(
             @Valid @RequestBody CheckDuplicateNameRequest checkDuplicateNameRequest) {
-        boolean isDuplicate = authService.checkNicknameDuplicate(checkDuplicateNameRequest.name());
+        boolean isDuplicate = authService.checkMemberNameDuplicate(checkDuplicateNameRequest.name());
         return CommonApiResponse.success(new CheckDuplicateNameResponse(isDuplicate), "이름 중복 확인을 성공했습니다.");
     }
 

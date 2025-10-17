@@ -1,10 +1,10 @@
 package com.taja.station.presentation.response.detail;
 
 public record ChatRoomRecentMessageResponse(
-        String nickname,
+        String memberName,
         String message,
         Boolean isReply,
-        String replyToUserNickname,
+        String replyToMemberName,
         String replyToMessage
 ) {
 }
