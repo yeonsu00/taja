@@ -75,7 +75,7 @@ public class AuthController {
     public CommonApiResponse<CheckDuplicateNameResponse> checkNicknameDuplicate(
             @Valid @RequestBody CheckDuplicateNameRequest checkDuplicateNameRequest) {
         boolean isDuplicate = authService.checkNicknameDuplicate(checkDuplicateNameRequest.name());
-        return CommonApiResponse.success(new CheckDuplicateNameResponse(isDuplicate), "닉네임 중복 확인을 성공했습니다.");
+        return CommonApiResponse.success(new CheckDuplicateNameResponse(isDuplicate), "이름 중복 확인을 성공했습니다.");
     }
 
     @Operation(summary = "로그아웃", description = "리프레시 토큰을 삭제하여 로그아웃합니다.")
