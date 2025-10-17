@@ -14,6 +14,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonApiResponse<?>> handleUnexpectedException(Exception ex) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof MemberException) {
+            return handleMemberNotFoundException((MemberException) cause);
+        }
+
         log.error("[UNEXPECTED ERROR] {}", ex.getMessage(), ex);
         CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
 
@@ -50,10 +55,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MemberException.class)
-    public ResponseEntity<CommonApiResponse<?>> handleUserNotFoundException(MemberException ex) {
-        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.USER_NOT_FOUND, ex.getMessage());
+    public ResponseEntity<CommonApiResponse<?>> handleMemberNotFoundException(MemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.MEMBER_NOT_FOUND, ex.getMessage());
 
-        return ResponseEntity.status(ResponseCode.USER_NOT_FOUND.getHttpStatus()).body(body);
+        return ResponseEntity.status(ResponseCode.MEMBER_NOT_FOUND.getHttpStatus()).body(body);
     }
 
     @ExceptionHandler(EmailException.class)
