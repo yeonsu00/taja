@@ -1,5 +1,6 @@
 package com.taja.station.presentation.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,6 +13,7 @@ public record MapStationResponse(
         LocalDateTime requestedAt
 ) {
 
+    @JsonIgnore
     public boolean isAvailable() {
         return bikeCount > 0;
     }
