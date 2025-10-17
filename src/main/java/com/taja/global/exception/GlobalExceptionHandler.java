@@ -68,11 +68,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ResponseCode.EMAIL_ERROR.getHttpStatus()).body(body);
     }
 
-    @ExceptionHandler(DuplicateNameException.class)
-    public ResponseEntity<CommonApiResponse<?>> handleDuplicateNameException(DuplicateNameException ex) {
-        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.DUPLICATE_NAME, ex.getMessage());
+    @ExceptionHandler(DuplicateMemberException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleDuplicateNameException(DuplicateMemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.DUPLICATE_MEMBER, ex.getMessage());
 
-        return ResponseEntity.status(ResponseCode.DUPLICATE_NAME.getHttpStatus()).body(body);
+        return ResponseEntity.status(ResponseCode.DUPLICATE_MEMBER.getHttpStatus()).body(body);
     }
 
     @ExceptionHandler(FavoriteStationNotFoundException.class)

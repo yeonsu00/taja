@@ -1,9 +1,11 @@
 package com.taja.member.infra;
 
+import com.taja.global.exception.DuplicateMemberException;
 import com.taja.global.exception.MemberException;
 import com.taja.member.application.MemberRepository;
 import com.taja.member.domain.Member;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -22,7 +24,11 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public void save(Member member) {
         MemberEntity memberEntity = MemberEntity.fromNewMember(member);
-        memberJpaRepository.save(memberEntity);
+        try {
+            memberJpaRepository.save(memberEntity);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateMemberException("이미 회원가입된 사용자입니다.");
+        }
     }
 
     @Override
