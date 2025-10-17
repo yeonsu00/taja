@@ -65,7 +65,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
     @Override
     public void saveStationsWithPipeline(List<Station> stations, LocalDateTime requestedAt) {
-       try {
+        try {
             redisTemplate.executePipelined(new SessionCallback<Object>() {
                 @Override
                 @SuppressWarnings({"unchecked"})
@@ -88,7 +88,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 }
             });
 
-           log.info("{}개의 대여소 정보를 Redis에 저장했습니다. ", stations.size());
+            log.info("{}개의 대여소 정보를 Redis에 저장했습니다. ", stations.size());
         } catch (Exception e) {
             log.error("Redis 파이프라인 저장 실패: 총 {}개 중 작업 실패", stations.size(), e);
         }
@@ -173,30 +173,40 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     public List<MapStationResponse> findStationStatus(List<Station> favoriteStations) {
         return favoriteStations.stream()
                 .map(station -> {
+                    Object bikeCountObj = null;
+                    Object requestedAtObj = null;
                     String hashKey = "stations:" + station.getNumber();
 
-                    Object bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
-                    Object requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
+                    try {
+                        bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
+                        requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
 
-                    int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
-                    LocalDateTime requestedAt = null;
-                    if (requestedAtObj != null) {
-                        try {
-                            requestedAt = LocalDateTime.parse(requestedAtObj.toString());
-                        } catch (DateTimeParseException e) {
-                            log.warn("Redis requestedAt 파싱 실패: station={}, value={}", station.getNumber(),
-                                    requestedAtObj);
-                        }
+                        int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
+                        LocalDateTime requestedAt = (requestedAtObj != null) ?
+                                LocalDateTime.parse(requestedAtObj.toString()) : null;
+
+                        return new MapStationResponse(
+                                station.getStationId(),
+                                station.getNumber(),
+                                station.getLatitude(),
+                                station.getLongitude(),
+                                bikeCount,
+                                requestedAt
+                        );
+
+                    } catch (DataAccessException e) {
+                        log.error("Redis 연결 또는 데이터 접근 실패 (대여소 번호: {}): {}", station.getNumber(), e.getMessage());
+                        throw new RuntimeException("데이터베이스 처리 중 오류가 발생했습니다.", e);
+
+                    } catch (NumberFormatException | DateTimeParseException e) {
+                        log.warn("Redis 데이터 파싱 실패: station={}, bikeCount={}, requestedAt={}",
+                                station.getNumber(), bikeCountObj, requestedAtObj);
+                        throw new RuntimeException("데이터 파싱 중 오류가 발생했습니다.", e);
+
+                    } catch (Exception e) {
+                        log.error("대여소 상태 조회 중 예상치 못한 오류 발생 (대여소 번호: {}): {}", station.getNumber(), e.getMessage());
+                        throw new RuntimeException("알 수 없는 오류가 발생했습니다.", e);
                     }
-
-                    return new MapStationResponse(
-                            station.getStationId(),
-                            station.getNumber(),
-                            station.getLatitude(),
-                            station.getLongitude(),
-                            bikeCount,
-                            requestedAt
-                    );
                 })
                 .collect(Collectors.toList());
     }
@@ -216,7 +226,8 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
             LocalDateTime requestedAt = requestedAtObj != null ? LocalDateTime.parse(requestedAtObj.toString()) : null;
 
-            return Optional.of(new MapStationResponse(stationId, number, point.getY(), point.getX(), bikeCount, requestedAt));
+            return Optional.of(
+                    new MapStationResponse(stationId, number, point.getY(), point.getX(), bikeCount, requestedAt));
 
         } catch (NumberFormatException | DateTimeParseException e) {
             log.warn("대여소 정보 파싱 실패: number={}, error={}", result.getContent().getName(), e.getMessage());
