@@ -194,10 +194,6 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                                 requestedAt
                         );
 
-                    } catch (DataAccessException e) {
-                        log.error("Redis 연결 또는 데이터 접근 실패 (대여소 번호: {}): {}", station.getNumber(), e.getMessage());
-                        throw new RuntimeException("데이터베이스 처리 중 오류가 발생했습니다.", e);
-
                     } catch (NumberFormatException | DateTimeParseException e) {
                         log.warn("Redis 데이터 파싱 실패: station={}, bikeCount={}, requestedAt={}",
                                 station.getNumber(), bikeCountObj, requestedAtObj);
