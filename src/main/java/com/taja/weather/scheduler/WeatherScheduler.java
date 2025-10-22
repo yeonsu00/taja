@@ -14,7 +14,7 @@ public class WeatherScheduler {
 
     private final WeatherService weatherService;
 
-    @Scheduled(cron = "0 5 * * * *")
+    @Scheduled(cron = "0 45 * * * *")
     public void scheduleWeatherCollection() {
         LocalDateTime scheduledTime = LocalDateTime.now();
         log.info("===== 초단기실황 날씨 정보 수집 스케줄러 시작 : {} =====", scheduledTime);

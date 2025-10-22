@@ -14,7 +14,7 @@ public class StationStatusScheduler {
 
     private final StationStatusApiService stationStatusApiService;
 
-    @Scheduled(cron = "0 0/5 * * * *")
+    @Scheduled(cron = "0 0/10 * * * *")
     public void scheduleStationStatusCollection() {
         LocalDateTime scheduledTime = LocalDateTime.now();
         log.info("===== 대여소 실시간 상태 수집 스케줄러 시작 : {} =====", scheduledTime);
