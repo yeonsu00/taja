@@ -48,7 +48,7 @@ public class WeatherHistoryEntity {
         this.requestedAt = requestedAt;
     }
 
-    public static WeatherHistoryEntity fromWeatherHistory(WeatherHistory weatherHistory) {
+    public static WeatherHistoryEntity fromWeatherHistory(WeatherHistory weatherHistory, LocalDateTime requestedAt) {
         return WeatherHistoryEntity.builder()
                 .baseDate(weatherHistory.getBaseDate())
                 .baseTime(weatherHistory.getBaseTime())
@@ -56,7 +56,7 @@ public class WeatherHistoryEntity {
                 .temperature(weatherHistory.getTemperature())
                 .hourlyRain(weatherHistory.getHourlyRain())
                 .windSpeed(weatherHistory.getWindSpeed())
-                .requestedAt(weatherHistory.getRequestedAt())
+                .requestedAt(requestedAt)
                 .build();
     }
 }
