@@ -49,4 +49,13 @@ public class DistrictPointEntity extends BaseEntity {
         this.xPoint = xPoint;
         this.yPoint = yPoint;
     }
+
+    public DistrictPoint toDistrictPoint() {
+        return DistrictPoint.builder()
+                .districtPointId(this.districtPointId)
+                .districtName(this.districtName)
+                .xPoint(this.xPoint)
+                .yPoint(this.yPoint)
+                .build();
+    }
 }

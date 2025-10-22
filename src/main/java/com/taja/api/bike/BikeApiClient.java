@@ -1,12 +1,12 @@
-package com.taja.bikeapi.application;
+package com.taja.api.bike;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taja.bikeapi.application.dto.station.StationApiResponseDto;
-import com.taja.bikeapi.application.dto.station.StationDto;
-import com.taja.bikeapi.application.dto.status.BikeApiResponseDto;
-import com.taja.bikeapi.application.dto.status.ResultDto;
-import com.taja.bikeapi.application.dto.status.StationStatusDto;
+import com.taja.api.bike.dto.station.StationApiResponseDto;
+import com.taja.api.bike.dto.station.StationDto;
+import com.taja.api.bike.dto.status.BikeApiResponseDto;
+import com.taja.api.bike.dto.status.ResultDto;
+import com.taja.api.bike.dto.status.StationStatusDto;
 import com.taja.global.exception.ApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +20,20 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class BikeApiClient {
 
-    private final WebClient webClient;
+    private final WebClient webClient = WebClient.create();
+
     private final ObjectMapper objectMapper;
 
-    @Value("${api.key}")
+    @Value("${api.bike.base-url}")
+    private String baseUrl;
+
+    @Value("${api.bike.key}")
     private String apiKey;
 
-    @Value("${api.status.path}")
+    @Value("${api.bike.status.path}")
     private String apiStatusPath;
 
-    @Value("${api.station.path}")
+    @Value("${api.bike.station.path}")
     private String apiStationPath;
 
     public Mono<List<StationStatusDto>> fetchStationStatuses(int startIndex, int endIndex) {
@@ -56,7 +60,7 @@ public class BikeApiClient {
     }
 
     private String getPath(String apiPath, int startIndex, int endIndex) {
-        return apiKey + apiPath + startIndex + "/" + endIndex;
+        return baseUrl + apiKey + apiPath + startIndex + "/" + endIndex;
     }
 
     private Mono<List<StationStatusDto>> handleStationStatusApiResponse(JsonNode jsonNode) {

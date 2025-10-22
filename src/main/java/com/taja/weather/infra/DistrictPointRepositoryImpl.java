@@ -28,4 +28,12 @@ public class DistrictPointRepositoryImpl implements DistrictPointRepository {
         return districtPoints.size();
     }
 
+    @Override
+    public List<DistrictPoint> findAll() {
+        return districtPointJpaRepository.findAll()
+                .stream()
+                .map(DistrictPointEntity::toDistrictPoint)
+                .toList();
+    }
+
 }

@@ -1,8 +1,8 @@
 package com.taja.station.application;
 
-import com.taja.bikeapi.application.BikeApiBatchFetcher;
-import com.taja.bikeapi.application.BikeApiClient;
-import com.taja.bikeapi.application.dto.station.StationDto;
+import com.taja.api.bike.BikeApiBatchFetcher;
+import com.taja.api.bike.BikeApiClient;
+import com.taja.api.bike.dto.station.StationDto;
 import com.taja.station.domain.Station;
 import java.time.LocalDateTime;
 import java.util.List;

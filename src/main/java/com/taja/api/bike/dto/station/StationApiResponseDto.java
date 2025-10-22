@@ -1,4 +1,4 @@
-package com.taja.bikeapi.application.dto.station;
+package com.taja.api.bike.dto.station;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

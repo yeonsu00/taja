@@ -1,6 +1,6 @@
 package com.taja.status.application;
 
-import com.taja.bikeapi.application.dto.status.StationStatusDto;
+import com.taja.api.bike.dto.status.StationStatusDto;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.status.domain.StationStatus;
 import java.time.LocalDateTime;

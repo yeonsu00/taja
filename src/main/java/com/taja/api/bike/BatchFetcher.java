@@ -1,4 +1,4 @@
-package com.taja.bikeapi.application;
+package com.taja.api.bike;
 
 import java.util.List;
 import reactor.core.publisher.Mono;
