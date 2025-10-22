@@ -33,8 +33,6 @@ public class WeatherApiService {
                         baseDate, baseTime, point.getXPoint(), point.getYPoint())
                 .map(weatherApiResponseDto -> weatherApiResponseDto.toWeatherHistory(point.getDistrictName()));
 
-        log.info("===== 날씨 정보 수집 시작 : {} =====", requestedAt);
-
         weatherApiBatchFetcher.fetchAllConcurrently(districtPoints, fetchFunction, CONCURRENT_REQUESTS,
                         DistrictPoint::getDistrictName)
                 .publishOn(Schedulers.boundedElastic())
