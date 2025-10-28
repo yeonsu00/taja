@@ -5,16 +5,24 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "weather_history")
+@Table(name = "weather_history",
+    indexes = {
+        @Index(name = "idx_weather_base_date_district_time", 
+               columnList = "baseDate, district, baseTime")
+    }
+)
 @RequiredArgsConstructor
+@Getter
 public class WeatherHistoryEntity {
 
     @Id
@@ -57,6 +65,19 @@ public class WeatherHistoryEntity {
                 .hourlyRain(weatherHistory.getHourlyRain())
                 .windSpeed(weatherHistory.getWindSpeed())
                 .requestedAt(requestedAt)
+                .build();
+    }
+
+    public WeatherHistory toWeatherHistory() {
+        return WeatherHistory.builder()
+                .weatherHistoryId(this.weatherHistoryId)
+                .baseDate(this.baseDate)
+                .baseTime(this.baseTime)
+                .district(this.district)
+                .temperature(this.temperature)
+                .hourlyRain(this.hourlyRain)
+                .windSpeed(this.windSpeed)
+                .requestedAt(this.requestedAt)
                 .build();
     }
 }

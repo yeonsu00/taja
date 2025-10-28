@@ -2,6 +2,7 @@ package com.taja.weather.infra;
 
 import com.taja.weather.application.WeatherHistoryRepository;
 import com.taja.weather.domain.WeatherHistory;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +20,13 @@ public class WeatherHistoryRepositoryImpl implements WeatherHistoryRepository {
                 .map(weatherHistory -> WeatherHistoryEntity.fromWeatherHistory(weatherHistory, requestedAt))
                 .toList();
         weatherHistoryJpaRepository.saveAll(weatherHistoryEntities);
+    }
+
+    @Override
+    public List<WeatherHistory> findAllByBaseDate(LocalDate baseDate) {
+        List<WeatherHistoryEntity> weatherHistoryEntities = weatherHistoryJpaRepository.findAllByBaseDate(baseDate);
+        return weatherHistoryEntities.stream()
+                .map(WeatherHistoryEntity::toWeatherHistory)
+                .toList();
     }
 }
