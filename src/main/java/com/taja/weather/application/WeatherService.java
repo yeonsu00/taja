@@ -30,6 +30,7 @@ public class WeatherService {
         weatherApiService.loadAndSaveWeatherHistories(districtPoints, requestedAt);
     }
 
+    @Transactional(readOnly = true)
     public List<WeatherHistory> getWeathersByBaseDate(LocalDate yesterday) {
         return weatherHistoryRepository.findAllByBaseDate(yesterday);
     }
