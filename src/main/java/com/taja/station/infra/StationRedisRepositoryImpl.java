@@ -53,6 +53,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             values.put("stationId", station.getStationId());
             values.put("bikeCount", 0);
             values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+            values.put("district", station.getDistrict());
 
             redisTemplate.opsForHash().putAll(hashKey, values);
 
@@ -76,6 +77,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                         values.put("stationId", station.getStationId());
                         values.put("bikeCount", 0);
                         values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+                        values.put("district", station.getDistrict());
                         operations.opsForHash().putAll((K) hashKey, values);
 
                         operations.opsForGeo().add(
