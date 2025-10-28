@@ -6,14 +6,21 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "station_status")
+@Table(name = "station_status",
+    indexes = {
+        @Index(name = "idx_station_status_requested_at", columnList = "requestedAt")
+    }
+)
 @RequiredArgsConstructor
+@Getter
 public class StationStatusEntity {
 
     @Id
@@ -48,6 +55,16 @@ public class StationStatusEntity {
                 .stationName(stationStatus.getStationName())
                 .parkingBikeCount(stationStatus.getParkingBikeCount())
                 .requestedAt(stationStatus.getRequestedAt())
+                .build();
+    }
+
+    public StationStatus toStationStatus() {
+        return StationStatus.builder()
+                .stationStatusId(this.stationStatusId)
+                .stationNumber(this.stationNumber)
+                .stationName(this.stationName)
+                .parkingBikeCount(this.parkingBikeCount)
+                .requestedAt(this.requestedAt)
                 .build();
     }
 }

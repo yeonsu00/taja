@@ -3,6 +3,7 @@ package com.taja.status.application;
 import com.taja.api.bike.dto.status.StationStatusDto;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.status.domain.StationStatus;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -31,4 +32,10 @@ public class StationStatusService {
         stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(stationStatuses);
     }
 
+    @Transactional(readOnly = true)
+    public List<StationStatus> getStationStatusesByDate(LocalDate requestedDate) {
+        LocalDateTime startDateTime = requestedDate.atStartOfDay();
+        LocalDateTime endDateTime = requestedDate.plusDays(1).atStartOfDay();
+        return stationStatusRepository.findAllByRequestedAtBetween(startDateTime, endDateTime);
+    }
 }
