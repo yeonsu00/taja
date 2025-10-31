@@ -67,6 +67,9 @@ jobs:
             API_BASE_URL=${{ secrets.API_BASE_URL }}
             STATUS_API_PATH=${{ secrets.STATUS_API_PATH }}
             STATION_API_PATH=${{ secrets.STATION_API_PATH }}
+            EMAIL_USER_NAME=${{ secrets.EMAIL_USER_NAME }}
+            EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
             EOF
 
             # 2) 기존 컨테이너 중지/삭제

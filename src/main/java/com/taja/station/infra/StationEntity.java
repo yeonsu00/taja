@@ -14,11 +14,13 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Entity
 @Table(name = "stations")
 @RequiredArgsConstructor
 @Getter
+@Slf4j
 public class StationEntity extends BaseEntity {
 
     @Id
@@ -54,9 +56,10 @@ public class StationEntity extends BaseEntity {
     private OperationMode operationMode;
 
     @Builder
-    public StationEntity(String name, Integer number, String district, String address, double latitude,
+    private StationEntity(Long stationId, String name, Integer number, String district, String address, double latitude,
                          double longitude, Integer lcdHoldCount, Integer qrHoldCount, Integer totalHoldCount,
                          OperationMode operationMode) {
+        this.stationId = stationId;
         this.name = name;
         this.number = number;
         this.district = district;
@@ -69,8 +72,24 @@ public class StationEntity extends BaseEntity {
         this.operationMode = operationMode;
     }
 
+    public static StationEntity fromNewStation(Station station) {
+        return StationEntity.builder()
+                .name(station.getName())
+                .number(station.getNumber())
+                .district(station.getDistrict())
+                .address(station.getAddress())
+                .latitude(station.getLatitude())
+                .longitude(station.getLongitude())
+                .lcdHoldCount(station.getLcdHoldCount())
+                .qrHoldCount(station.getQrHoldCount())
+                .totalHoldCount(station.getTotalHoldCount())
+                .operationMode(station.getOperationMode())
+                .build();
+    }
+
     public static StationEntity fromStation(Station station) {
         return StationEntity.builder()
+                .stationId(station.getStationId())
                 .name(station.getName())
                 .number(station.getNumber())
                 .district(station.getDistrict())
@@ -91,6 +110,7 @@ public class StationEntity extends BaseEntity {
         this.longitude = station.getLongitude();
         this.lcdHoldCount = station.getLcdHoldCount();
         this.qrHoldCount = station.getQrHoldCount();
+        this.totalHoldCount = station.getTotalHoldCount();
         this.operationMode = station.getOperationMode();
     }
 

@@ -28,20 +28,7 @@ public class StationStatusService {
 
         int savedStationStatusCount = stationStatusRepository.saveAll(stationStatuses);
         log.info("{}개의 대여소 실시간 상태를 DB에 저장했습니다.", savedStationStatusCount);
-
-        updateBikeCountToRedis(stationStatuses);
-    }
-
-    private void updateBikeCountToRedis(List<StationStatus> stationStatuses) {
-        int redisUpdatedCount = 0;
-
-        for (StationStatus status : stationStatuses) {
-            if (stationRedisRepository.updateBikeCountAndRequestedAt(status)) {
-                redisUpdatedCount++;
-            }
-        }
-
-        log.info("Redis 대여소 실시간 상태 총 {}개 업데이트됨.", redisUpdatedCount);
+        stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(stationStatuses);
     }
 
 }

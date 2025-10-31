@@ -2,18 +2,24 @@ package com.taja.status.presentation;
 
 import com.taja.status.application.StationStatusApiService;
 import com.taja.global.response.CommonApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/station-status")
+@Tag(name = "Station Status", description = "Station Status API")
 public class StationStatusController {
 
     private final StationStatusApiService stationStatusApiService;
 
-    @PostMapping("/station-status/upload")
+    @Operation(summary = "대여소 실시간 상태 업로드", description = "대여소 실시간 상태 정보를 수집하여 저장합니다.")
+    @PostMapping("/upload")
     public CommonApiResponse<String> readStationStatus() {
         LocalDateTime now = LocalDateTime.now();
         stationStatusApiService.loadStationStatuses(now);

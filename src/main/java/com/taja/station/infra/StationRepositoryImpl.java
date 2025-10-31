@@ -16,7 +16,7 @@ public class StationRepositoryImpl implements StationRepository {
     private final StationJpaRepository stationJpaRepository;
 
     @Override
-    public int upsert(List<Station> stations) {
+    public List<Station> upsert(List<Station> stations) {
         List<Integer> numbers = stations.stream()
                 .map(Station::getNumber)
                 .toList();
@@ -28,14 +28,18 @@ public class StationRepositoryImpl implements StationRepository {
             StationEntity existingStation = existingStations.get(station.getNumber());
 
             if (existingStation == null) {
-                return StationEntity.fromStation(station);
+                return StationEntity.fromNewStation(station);
             } else {
                 existingStation.update(station);
                 return existingStation;
             }
         }).toList();
 
-        return stationJpaRepository.saveAll(stationsToSave).size();
+        List<StationEntity> savedStationEntities = stationJpaRepository.saveAll(stationsToSave);
+        return savedStationEntities
+                .stream()
+                .map(StationEntity::toStation)
+                .toList();
     }
 
     @Override
@@ -47,9 +51,9 @@ public class StationRepositoryImpl implements StationRepository {
     }
 
     @Override
-    public Station findStationByNumber(int stationNumber) {
-        StationEntity stationEntity = stationJpaRepository.findByNumber(stationNumber)
-                .orElseThrow(() -> new StationNotFoundException(stationNumber + " 대여소를 찾을 수 없습니다."));
+    public Station findStationById(Long stationId) {
+        StationEntity stationEntity = stationJpaRepository.findById(stationId)
+                .orElseThrow(() -> new StationNotFoundException("ID : " + stationId + " 대여소를 찾을 수 없습니다."));
         return stationEntity.toStation();
     }
 
@@ -59,5 +63,12 @@ public class StationRepositoryImpl implements StationRepository {
         return stations.stream()
                 .map(StationEntity::toStation)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Station findById(Long stationId) {
+        StationEntity stationEntity = stationJpaRepository.findById(stationId)
+                .orElseThrow(() -> new StationNotFoundException(stationId + " 대여소를 찾을 수 없습니다."));
+        return stationEntity.toStation();
     }
 }

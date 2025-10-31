@@ -3,7 +3,7 @@ package com.taja.station.infra;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -60,15 +60,15 @@ class StationRedisRepositoryImplTest {
         setupHashValues("102", 5, requestedAtStr);
 
         // when
-        List<NearbyStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<MapStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(2);
-        NearbyStationResponse result1 = results.getFirst();
+        MapStationResponse result1 = results.getFirst();
         assertThat(result1.number()).isEqualTo(101);
         assertThat(result1.bikeCount()).isEqualTo(10);
         assertThat(result1.requestedAt()).isEqualTo(LocalDateTime.parse(requestedAtStr));
-        NearbyStationResponse result2 = results.get(1);
+        MapStationResponse result2 = results.get(1);
         assertThat(result2.number()).isEqualTo(102);
         assertThat(result2.bikeCount()).isEqualTo(5);
     }
@@ -80,7 +80,7 @@ class StationRedisRepositoryImplTest {
         setupGeoSearch(null);
 
         // when
-        List<NearbyStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<MapStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).isNotNull().isEmpty();
@@ -96,11 +96,11 @@ class StationRedisRepositoryImplTest {
         setupHashValues("201", null, null);
 
         // when
-        List<NearbyStationResponse> results = stationRedisRepository.findNearbyStations(37.6, 127.1, 1.0, 1.0);
+        List<MapStationResponse> results = stationRedisRepository.findNearbyStations(37.6, 127.1, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(1);
-        NearbyStationResponse result = results.getFirst();
+        MapStationResponse result = results.getFirst();
         assertThat(result.number()).isEqualTo(201);
         assertThat(result.bikeCount()).isEqualTo(0);
         assertThat(result.requestedAt()).isNull();
@@ -118,7 +118,7 @@ class StationRedisRepositoryImplTest {
         setupHashValues("101", 10, "2025-09-09T15:00:00");
 
         // when
-        List<NearbyStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<MapStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(1);
@@ -135,7 +135,7 @@ class StationRedisRepositoryImplTest {
         setupHashValues("102", 5, "INVALID_DATE");
 
         // when
-        List<NearbyStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<MapStationResponse> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).isNotNull().isEmpty();

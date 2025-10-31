@@ -36,3 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 /dev.env
+/dump.rdb
+/src/main/generated/

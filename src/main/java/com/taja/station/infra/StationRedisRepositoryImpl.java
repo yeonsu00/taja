@@ -2,7 +2,7 @@ package com.taja.station.infra;
 
 import com.taja.station.application.StationRedisRepository;
 import com.taja.station.domain.Station;
-import com.taja.station.presentation.response.NearbyStationResponse;
+import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.status.domain.StationStatus;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -11,15 +11,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.stereotype.Repository;
@@ -46,6 +50,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             );
 
             Map<String, Object> values = new HashMap<>();
+            values.put("stationId", station.getStationId());
             values.put("bikeCount", 0);
             values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
 
@@ -55,6 +60,37 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
         } catch (Exception e) {
             log.error("Redis 저장 실패: station={}", station.getNumber(), e);
             return false;
+        }
+    }
+
+    @Override
+    public void saveStationsWithPipeline(List<Station> stations, LocalDateTime requestedAt) {
+       try {
+            redisTemplate.executePipelined(new SessionCallback<Object>() {
+                @Override
+                @SuppressWarnings({"unchecked"})
+                public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+                    for (Station station : stations) {
+                        String hashKey = STATION_KEY_PREFIX + station.getNumber();
+                        Map<String, Object> values = new HashMap<>();
+                        values.put("stationId", station.getStationId());
+                        values.put("bikeCount", 0);
+                        values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+                        operations.opsForHash().putAll((K) hashKey, values);
+
+                        operations.opsForGeo().add(
+                                (K) GEO_KEY,
+                                new Point(station.getLongitude(), station.getLatitude()),
+                                (V) station.getNumber().toString()
+                        );
+                    }
+                    return null;
+                }
+            });
+
+           log.info("{}개의 대여소 정보를 Redis에 저장했습니다. ", stations.size());
+        } catch (Exception e) {
+            log.error("Redis 파이프라인 저장 실패: 총 {}개 중 작업 실패", stations.size(), e);
         }
     }
 
@@ -81,8 +117,34 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     }
 
     @Override
-    public List<NearbyStationResponse> findNearbyStations(double centerLat, double centerLon,
-                                                          double height, double width) {
+    public void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses) {
+        try {
+            redisTemplate.executePipelined(new SessionCallback<Object>() {
+                @Override
+                @SuppressWarnings({"unchecked"})
+                public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+                    for (StationStatus status : statuses) {
+                        String key = STATION_KEY_PREFIX + status.getStationNumber();
+
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("bikeCount", status.getParkingBikeCount());
+                        updates.put("requestedAt", status.getRequestedAt().toString());
+
+                        operations.opsForHash().putAll((K) key, updates);
+                    }
+                    return null;
+                }
+            });
+
+            log.info("Redis 파이프라인을 통해 {}개의 대여소 상태 업데이트 완료.", statuses.size());
+        } catch (Exception e) {
+            log.error("Redis 파이프라인 대여소 상태 업데이트 실패: 총 {}개 중 작업 실패", statuses.size(), e);
+        }
+    }
+
+    @Override
+    public List<MapStationResponse> findNearbyStations(double centerLat, double centerLon,
+                                                       double height, double width) {
         Point center = new Point(centerLon, centerLat);
 
         GeoShape shape = GeoShape.byBox(
@@ -107,20 +169,54 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 .collect(Collectors.toList());
     }
 
-    private Optional<NearbyStationResponse> toNearbyStationResponse(GeoResult<GeoLocation<Object>> result) {
+    @Override
+    public List<MapStationResponse> findStationStatus(List<Station> favoriteStations) {
+        return favoriteStations.stream()
+                .map(station -> {
+                    String hashKey = "stations:" + station.getNumber();
+
+                    Object bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
+                    Object requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
+
+                    int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
+                    LocalDateTime requestedAt = null;
+                    if (requestedAtObj != null) {
+                        try {
+                            requestedAt = LocalDateTime.parse(requestedAtObj.toString());
+                        } catch (DateTimeParseException e) {
+                            log.warn("Redis requestedAt 파싱 실패: station={}, value={}", station.getNumber(),
+                                    requestedAtObj);
+                        }
+                    }
+
+                    return new MapStationResponse(
+                            station.getStationId(),
+                            station.getNumber(),
+                            station.getLatitude(),
+                            station.getLongitude(),
+                            bikeCount,
+                            requestedAt
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Optional<MapStationResponse> toNearbyStationResponse(GeoResult<GeoLocation<Object>> result) {
         try {
             String member = result.getContent().getName().toString();
             Point point = result.getContent().getPoint();
             Integer number = Integer.parseInt(member);
 
             String hashKey = STATION_KEY_PREFIX + number;
+            Object stationIdObj = redisTemplate.opsForHash().get(hashKey, "stationId");
             Object bikeCountObj = redisTemplate.opsForHash().get(hashKey, "bikeCount");
             Object requestedAtObj = redisTemplate.opsForHash().get(hashKey, "requestedAt");
 
+            Long stationId = stationIdObj != null ? Long.parseLong(stationIdObj.toString()) : null;
             int bikeCount = bikeCountObj != null ? Integer.parseInt(bikeCountObj.toString()) : 0;
             LocalDateTime requestedAt = requestedAtObj != null ? LocalDateTime.parse(requestedAtObj.toString()) : null;
 
-            return Optional.of(new NearbyStationResponse(number, point.getY(), point.getX(), bikeCount, requestedAt));
+            return Optional.of(new MapStationResponse(stationId, number, point.getY(), point.getX(), bikeCount, requestedAt));
 
         } catch (NumberFormatException | DateTimeParseException e) {
             log.warn("대여소 정보 파싱 실패: number={}, error={}", result.getContent().getName(), e.getMessage());
