@@ -11,18 +11,18 @@ public class StationStatus {
 
     private Integer stationNumber;
 
-    private String stationName;
+    private Long stationId;
 
     private Integer parkingBikeCount;
 
     private LocalDateTime requestedAt;
 
     @Builder
-    public StationStatus(Long stationStatusId, Integer stationNumber, String stationName, Integer parkingBikeCount,
+    public StationStatus(Long stationStatusId, Integer stationNumber, Long stationId, Integer parkingBikeCount,
                          LocalDateTime requestedAt) {
         this.stationStatusId = stationStatusId;
         this.stationNumber = stationNumber;
-        this.stationName = stationName;
+        this.stationId = stationId;
         this.parkingBikeCount = parkingBikeCount;
         this.requestedAt = requestedAt;
     }

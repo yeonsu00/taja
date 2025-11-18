@@ -31,7 +31,7 @@ public class StationStatusEntity {
     private Integer stationNumber;
 
     @Column(nullable = false)
-    private String stationName;
+    private Long stationId;
 
     @Column(nullable = false)
     private Integer parkingBikeCount;
@@ -40,11 +40,11 @@ public class StationStatusEntity {
     private LocalDateTime requestedAt;
 
     @Builder
-    public StationStatusEntity(Long stationStatusId, Integer stationNumber, String stationName,
+    public StationStatusEntity(Long stationStatusId, Integer stationNumber, Long stationId,
                                Integer parkingBikeCount, LocalDateTime requestedAt) {
         this.stationStatusId = stationStatusId;
         this.stationNumber = stationNumber;
-        this.stationName = stationName;
+        this.stationId = stationId;
         this.parkingBikeCount = parkingBikeCount;
         this.requestedAt = requestedAt;
     }
@@ -52,7 +52,7 @@ public class StationStatusEntity {
     public static StationStatusEntity fromStationStatus(StationStatus stationStatus) {
         return StationStatusEntity.builder()
                 .stationNumber(stationStatus.getStationNumber())
-                .stationName(stationStatus.getStationName())
+                .stationId(stationStatus.getStationId())
                 .parkingBikeCount(stationStatus.getParkingBikeCount())
                 .requestedAt(stationStatus.getRequestedAt())
                 .build();
@@ -62,7 +62,7 @@ public class StationStatusEntity {
         return StationStatus.builder()
                 .stationStatusId(this.stationStatusId)
                 .stationNumber(this.stationNumber)
-                .stationName(this.stationName)
+                .stationId(this.stationId)
                 .parkingBikeCount(this.parkingBikeCount)
                 .requestedAt(this.requestedAt)
                 .build();

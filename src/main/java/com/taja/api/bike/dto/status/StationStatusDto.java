@@ -17,11 +17,11 @@ public record StationStatusDto(
     public StationStatus toStationStatus(LocalDateTime requestedAt) {
         String[] parts = stationName.split("\\.", 2);
         Integer number = Integer.parseInt(parts[0]);
-        String name = parts[1].trim();
+        Long id = Long.parseLong(stationId);
 
         return StationStatus.builder()
                 .stationNumber(number)
-                .stationName(name)
+                .stationId(id)
                 .parkingBikeCount(Integer.parseInt(parkingBikeTotalCount))
                 .requestedAt(requestedAt)
                 .build();
