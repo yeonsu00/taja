@@ -16,12 +16,12 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "hourly_statistics",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_hourly_statistics_station_hour", 
-            columnNames = {"stationId", "hour"}
-        )
-    }
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_hourly_statistics_station_hour",
+                        columnNames = {"stationId", "hour"}
+                )
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -47,7 +47,7 @@ public class HourlyStatisticsEntity extends BaseEntity {
         this.avgParkingBikeCount = avgParkingBikeCount;
     }
 
-    public static HourlyStatisticsEntity fromDomain(HourlyStatistics statistics) {
+    public static HourlyStatisticsEntity fromHourlyStatistics(HourlyStatistics statistics) {
         return HourlyStatisticsEntity.builder()
                 .hourlyStatisticsId(statistics.getHourlyStatisticsId())
                 .stationId(statistics.getStationId())
@@ -56,7 +56,7 @@ public class HourlyStatisticsEntity extends BaseEntity {
                 .build();
     }
 
-    public HourlyStatistics toDomain() {
+    public HourlyStatistics toHourlyStatistics() {
         return HourlyStatistics.builder()
                 .hourlyStatisticsId(this.hourlyStatisticsId)
                 .stationId(this.stationId)
@@ -67,7 +67,7 @@ public class HourlyStatisticsEntity extends BaseEntity {
                 .build();
     }
 
-    public void update(HourlyStatistics statistics) {
-        this.avgParkingBikeCount = statistics.getAvgParkingBikeCount();
+    public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
+        this.avgParkingBikeCount = newAvgParkingBikeCount;
     }
 }

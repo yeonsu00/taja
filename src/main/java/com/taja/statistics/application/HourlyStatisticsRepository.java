@@ -1,10 +1,11 @@
 package com.taja.statistics.application;
 
-import com.taja.statistics.infra.HourlyStatisticsEntity;
-import java.util.List;
+import com.taja.statistics.domain.HourlyStatistics;
 
 public interface HourlyStatisticsRepository {
-    HourlyStatisticsEntity findByStationIdAndHour(Long stationId, int hour);
+    HourlyStatistics findByStationIdAndHour(Long stationId, int hour);
 
-    void saveAll(List<HourlyStatisticsEntity> toSave);
+    void saveHourlyStatistics(HourlyStatistics hourlyStatistics);
+
+    void updateHourlyStatistics(HourlyStatistics existingHourlyStatistics);
 }

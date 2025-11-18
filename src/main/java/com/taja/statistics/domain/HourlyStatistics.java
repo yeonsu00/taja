@@ -38,14 +38,7 @@ public class HourlyStatistics {
                 .build();
     }
 
-    public HourlyStatistics updateAverage(Integer newAvgParkingBikeCount) {
-        return HourlyStatistics.builder()
-                .hourlyStatisticsId(this.hourlyStatisticsId)
-                .stationId(this.stationId)
-                .hour(this.hour)
-                .avgParkingBikeCount(newAvgParkingBikeCount)
-                .createdAt(this.createdAt)
-                .updatedAt(LocalDateTime.now())
-                .build();
+    public void updateAverage(Integer newAvgParkingBikeCount) {
+        this.avgParkingBikeCount = (newAvgParkingBikeCount + this.avgParkingBikeCount) / 2;
     }
 }

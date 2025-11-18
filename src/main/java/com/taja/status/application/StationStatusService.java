@@ -6,6 +6,7 @@ import com.taja.status.domain.StationStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,5 +38,9 @@ public class StationStatusService {
         LocalDateTime startDateTime = requestedDate.atStartOfDay();
         LocalDateTime endDateTime = requestedDate.plusDays(1).atStartOfDay();
         return stationStatusRepository.findAllByRequestedAtBetween(startDateTime, endDateTime);
+    }
+
+    public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
+        return stationStatusRepository.findStationHourlyAverage(calculationDate);
     }
 }
