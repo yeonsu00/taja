@@ -1,11 +1,10 @@
 package com.taja.statistics.application;
 
 import com.taja.statistics.domain.HourlyStatistics;
+import java.util.Optional;
 
 public interface HourlyStatisticsRepository {
-    HourlyStatistics findByStationIdAndHour(Long stationId, int hour);
+    Optional<HourlyStatistics> findByStationIdAndHour(Long stationId, int hour);
 
-    void saveHourlyStatistics(HourlyStatistics hourlyStatistics);
-
-    void updateHourlyStatistics(HourlyStatistics existingHourlyStatistics);
+    void save(HourlyStatistics hourlyStatistics);
 }

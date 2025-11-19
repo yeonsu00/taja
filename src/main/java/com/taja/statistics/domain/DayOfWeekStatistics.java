@@ -1,34 +1,54 @@
 package com.taja.statistics.domain;
 
+import com.taja.global.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "day_of_week_statistics",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_day_of_week_statistics_station_day", 
+            columnNames = {"stationId", "dayOfWeek"}
+        )
+    }
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class DayOfWeekStatistics {
+public class DayOfWeekStatistics extends BaseEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long dayOfWeekStatisticsId;
 
+    @Column(nullable = false)
     private Long stationId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private DayOfWeek dayOfWeek;
 
     private Integer avgParkingBikeCount;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     @Builder
-    public DayOfWeekStatistics(Long dayOfWeekStatisticsId, Long stationId, DayOfWeek dayOfWeek,
-                              Integer avgParkingBikeCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private DayOfWeekStatistics(Long dayOfWeekStatisticsId, Long stationId, DayOfWeek dayOfWeek,
+                                Integer avgParkingBikeCount) {
         this.dayOfWeekStatisticsId = dayOfWeekStatisticsId;
         this.stationId = stationId;
         this.dayOfWeek = dayOfWeek;
         this.avgParkingBikeCount = avgParkingBikeCount;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public static DayOfWeekStatistics create(Long stationId, DayOfWeek dayOfWeek, Integer avgParkingBikeCount) {
@@ -39,14 +59,7 @@ public class DayOfWeekStatistics {
                 .build();
     }
 
-    public DayOfWeekStatistics updateAverage(Integer newAvgParkingBikeCount) {
-        return DayOfWeekStatistics.builder()
-                .dayOfWeekStatisticsId(this.dayOfWeekStatisticsId)
-                .stationId(this.stationId)
-                .dayOfWeek(this.dayOfWeek)
-                .avgParkingBikeCount(newAvgParkingBikeCount)
-                .createdAt(this.createdAt)
-                .updatedAt(LocalDateTime.now())
-                .build();
+    public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
+        this.avgParkingBikeCount = newAvgParkingBikeCount;
     }
 }

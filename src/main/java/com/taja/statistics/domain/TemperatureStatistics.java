@@ -1,35 +1,52 @@
 package com.taja.statistics.domain;
 
-import java.time.LocalDateTime;
+import com.taja.global.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "temperature_statistics",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_temperature_statistics_station_temp", 
+            columnNames = {"stationId", "temperatureRange"}
+        )
+    }
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class TemperatureStatistics {
+public class TemperatureStatistics extends BaseEntity {
 
     public static final double TEMPERATURE_RANGE_INTERVAL = 5.0;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long temperatureStatisticsId;
 
+    @Column(nullable = false)
     private Long stationId;
 
+    @Column(nullable = false)
     private Double temperatureRange;
 
     private Integer avgParkingBikeCount;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     @Builder
-    public TemperatureStatistics(Long temperatureStatisticsId, Long stationId, Double temperatureRange,
-                                Integer avgParkingBikeCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private TemperatureStatistics(Long temperatureStatisticsId, Long stationId, Double temperatureRange,
+                                  Integer avgParkingBikeCount) {
         this.temperatureStatisticsId = temperatureStatisticsId;
         this.stationId = stationId;
         this.temperatureRange = temperatureRange;
         this.avgParkingBikeCount = avgParkingBikeCount;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public static TemperatureStatistics create(Long stationId, Double temperatureRange, Integer avgParkingBikeCount) {
@@ -40,15 +57,8 @@ public class TemperatureStatistics {
                 .build();
     }
 
-    public TemperatureStatistics updateAverage(Integer newAvgParkingBikeCount) {
-        return TemperatureStatistics.builder()
-                .temperatureStatisticsId(this.temperatureStatisticsId)
-                .stationId(this.stationId)
-                .temperatureRange(this.temperatureRange)
-                .avgParkingBikeCount(newAvgParkingBikeCount)
-                .createdAt(this.createdAt)
-                .updatedAt(LocalDateTime.now())
-                .build();
+    public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
+        this.avgParkingBikeCount = newAvgParkingBikeCount;
     }
 
     public static Double getTemperatureRangeStart(Double temperature) {

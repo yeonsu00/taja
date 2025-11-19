@@ -1,6 +1,7 @@
 package com.taja.statistics.infra;
 
 import com.taja.statistics.application.DayOfWeekStatisticsRepository;
+import com.taja.statistics.domain.DayOfWeekStatistics;
 import java.time.DayOfWeek;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -13,12 +14,12 @@ public class DayOfWeekStatisticsRepositoryImpl implements DayOfWeekStatisticsRep
 
 
     @Override
-    public DayOfWeekStatisticsEntity findByStationIdAndDayOfWeek(Long stationId, DayOfWeek dayOfWeek) {
+    public DayOfWeekStatistics findByStationIdAndDayOfWeek(Long stationId, DayOfWeek dayOfWeek) {
         return dayOfWeekStatisticsJpaRepository.findByStationIdAndDayOfWeek(stationId, dayOfWeek);
     }
 
     @Override
-    public void save(DayOfWeekStatisticsEntity dayOfWeekStatisticsEntity) {
-        dayOfWeekStatisticsJpaRepository.save(dayOfWeekStatisticsEntity);
+    public void save(DayOfWeekStatistics dayOfWeekStatistics) {
+        dayOfWeekStatisticsJpaRepository.save(dayOfWeekStatistics);
     }
 }

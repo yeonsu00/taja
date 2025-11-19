@@ -1,10 +1,10 @@
 package com.taja.statistics.application;
 
-import com.taja.statistics.infra.TemperatureStatisticsEntity;
+import com.taja.statistics.domain.TemperatureStatistics;
 import java.util.List;
 
 public interface TemperatureStatisticsRepository {
-    TemperatureStatisticsEntity findByStationIdAndTemperatureRange(Long stationId, Double tempRangeStart);
+    TemperatureStatistics findByStationIdAndTemperatureRange(Long stationId, Double tempRangeStart);
 
-    void saveAll(List<TemperatureStatisticsEntity> temperatureStatisticsEntities);
+    void saveAll(List<TemperatureStatistics> temperatureStatisticsEntities);
 }

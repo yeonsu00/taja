@@ -1,7 +1,6 @@
 package com.taja.statistics.application;
 
 import com.taja.statistics.domain.DayOfWeekStatistics;
-import com.taja.statistics.infra.DayOfWeekStatisticsEntity;
 import com.taja.status.domain.StationStatus;
 import java.time.DayOfWeek;
 import java.util.List;
@@ -29,17 +28,16 @@ public class DayOfWeekStatisticsService {
                         .orElse(0.0)
         );
 
-        DayOfWeekStatisticsEntity existing = dayOfWeekStatisticsRepository
+        DayOfWeekStatistics existing = dayOfWeekStatisticsRepository
                 .findByStationIdAndDayOfWeek(stationId, dayOfWeek);
 
         if (existing != null) {
-            DayOfWeekStatistics updated = existing.toDomain().updateAverage(avgParkingBikeCount);
-            existing.update(updated);
+            existing.updateAvgParkingBikeCount(avgParkingBikeCount);
             log.debug("요일별 통계 업데이트 완료 - stationId: {}, dayOfWeek: {}, avg: {}",
                     stationId, dayOfWeek, avgParkingBikeCount);
         } else {
-            DayOfWeekStatistics newStats = DayOfWeekStatistics.create(stationId, dayOfWeek, avgParkingBikeCount);
-            dayOfWeekStatisticsRepository.save(DayOfWeekStatisticsEntity.fromDomain(newStats));
+            DayOfWeekStatistics newEntity = DayOfWeekStatistics.create(stationId, dayOfWeek, avgParkingBikeCount);
+            dayOfWeekStatisticsRepository.save(newEntity);
             log.debug("요일별 통계 생성 완료 - stationId: {}, dayOfWeek: {}, avg: {}", 
                     stationId, dayOfWeek, avgParkingBikeCount);
         }

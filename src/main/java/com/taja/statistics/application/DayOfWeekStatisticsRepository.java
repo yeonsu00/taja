@@ -1,10 +1,10 @@
 package com.taja.statistics.application;
 
-import com.taja.statistics.infra.DayOfWeekStatisticsEntity;
+import com.taja.statistics.domain.DayOfWeekStatistics;
 import java.time.DayOfWeek;
 
 public interface DayOfWeekStatisticsRepository {
-    DayOfWeekStatisticsEntity findByStationIdAndDayOfWeek(Long stationId, DayOfWeek dayOfWeek);
+    DayOfWeekStatistics findByStationIdAndDayOfWeek(Long stationId, DayOfWeek dayOfWeek);
 
-    void save(DayOfWeekStatisticsEntity dayOfWeekStatisticsEntity);
+    void save(DayOfWeekStatistics dayOfWeekStatistics);
 }

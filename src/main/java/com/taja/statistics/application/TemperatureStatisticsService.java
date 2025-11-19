@@ -1,7 +1,6 @@
 package com.taja.statistics.application;
 
 import com.taja.statistics.domain.TemperatureStatistics;
-import com.taja.statistics.infra.TemperatureStatisticsEntity;
 import com.taja.status.domain.StationStatus;
 import com.taja.weather.domain.WeatherHistory;
 import java.util.ArrayList;
@@ -72,7 +71,7 @@ public class TemperatureStatisticsService {
         }
 
         // 온도 구간별로 통계 저장
-        List<TemperatureStatisticsEntity> toSave = new ArrayList<>();
+        List<TemperatureStatistics> toSave = new ArrayList<>();
         int updatedCount = 0;
 
         for (Map.Entry<Double, List<Integer>> entry : parkingCountsByTempRange.entrySet()) {
@@ -88,19 +87,18 @@ public class TemperatureStatisticsService {
             );
 
             // 기존 통계 조회
-            TemperatureStatisticsEntity existing = temperatureStatisticsRepository
+            TemperatureStatistics existing = temperatureStatisticsRepository
                     .findByStationIdAndTemperatureRange(stationId, tempRangeStart);
 
             if (existing != null) {
                 // 기존 통계 업데이트
-                TemperatureStatistics updated = existing.toDomain().updateAverage(avgParkingBikeCount);
-                existing.update(updated);
+                existing.updateAvgParkingBikeCount(avgParkingBikeCount);
                 updatedCount++;
             } else {
                 // 새 통계 생성
-                TemperatureStatistics newStats = TemperatureStatistics.create(
+                TemperatureStatistics newEntity = TemperatureStatistics.create(
                         stationId, tempRangeStart, avgParkingBikeCount);
-                toSave.add(TemperatureStatisticsEntity.fromDomain(newStats));
+                toSave.add(newEntity);
             }
         }
 
