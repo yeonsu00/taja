@@ -3,7 +3,6 @@ package com.taja.statistics.application;
 import com.taja.statistics.domain.HourlyStatistics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -11,7 +10,6 @@ public class HourlyStatisticsService {
 
     private final HourlyStatisticsRepository hourlyStatisticsRepository;
 
-    @Transactional
     public void upsertHourlyStatistics(Long stationId, Integer hour, Integer avgCount) {
         HourlyStatistics existing = hourlyStatisticsRepository.findByStationIdAndHour(stationId, hour)
                 .orElse(null);
@@ -21,7 +19,6 @@ public class HourlyStatisticsService {
             hourlyStatisticsRepository.save(newEntity);
         } else {
             existing.updateAvgParkingBikeCount(avgCount);
-            // 더티 체킹으로 자동 저장
         }
     }
 
