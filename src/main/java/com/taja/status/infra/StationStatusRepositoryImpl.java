@@ -49,4 +49,19 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
 
         return stationHourlyAverages;
     }
+
+    @Override
+    public Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate) {
+        List<Object[]> results = stationStatusJpaRepository.findStationDailyAverage(calculationDate);
+
+        Map<Long, Integer> stationDailyAverages = new HashMap<>();
+        for (Object[] row : results) {
+            Long stationId = ((Number) row[0]).longValue();
+            Integer avgCount = ((Number) row[1]).intValue();
+
+            stationDailyAverages.put(stationId, avgCount);
+        }
+
+        return stationDailyAverages;
+    }
 }

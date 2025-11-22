@@ -43,4 +43,8 @@ public class StationStatusService {
     public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
         return stationStatusRepository.findStationHourlyAverage(calculationDate);
     }
+
+    public Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate) {
+        return stationStatusRepository.findStationDailyAverage(calculationDate);
+    }
 }

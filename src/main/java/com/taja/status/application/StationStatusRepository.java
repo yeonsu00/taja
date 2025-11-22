@@ -12,4 +12,6 @@ public interface StationStatusRepository {
     List<StationStatus> findAllByRequestedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate);
+
+    Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate);
 }

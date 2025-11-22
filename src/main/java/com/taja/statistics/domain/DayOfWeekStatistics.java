@@ -60,6 +60,6 @@ public class DayOfWeekStatistics extends BaseEntity {
     }
 
     public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
-        this.avgParkingBikeCount = newAvgParkingBikeCount;
+        this.avgParkingBikeCount = (newAvgParkingBikeCount + this.avgParkingBikeCount) / 2;
     }
 }

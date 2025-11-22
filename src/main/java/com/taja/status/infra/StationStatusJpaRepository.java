@@ -24,4 +24,13 @@ public interface StationStatusJpaRepository extends JpaRepository<StationStatusE
     """)
     List<Object[]> findStationHourlyAverage(@Param("date") LocalDate calculationDate);
 
+    @Query("""
+        SELECT s.stationId, AVG(s.parkingBikeCount)
+        FROM StationStatusEntity s
+        WHERE DATE(s.requestedAt) = :date
+        GROUP BY s.stationId
+        ORDER BY s.stationId
+    """)
+    List<Object[]> findStationDailyAverage(@Param("date") LocalDate calculationDate);
+
 }
