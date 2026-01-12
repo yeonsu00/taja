@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StatisticsService {
+public class StatisticsFacade {
 
     private final StationStatusService stationStatusService;
     private final HourlyStatisticsService hourlyStatisticsService;
@@ -78,34 +78,4 @@ public class StatisticsService {
         log.info("시간대별 통계 계산 시작 - 대상 날짜: {}", calculationDate);
         return calculationDate;
     }
-
-//    @Transactional
-//    public int calculateStatistics(
-//            LocalDate yesterday,
-//            List<StationStatus> yesterdayStatuses,
-//            List<WeatherHistory> yesterdayWeathers,
-//            Map<Integer, Long> stationNumberToIdMap,
-//            Map<Long, String> stationIdToDistrictMap
-//    ) {
-//        Map<Long, List<StationStatus>> statusesByStation = yesterdayStatuses.stream()
-//                .filter(status -> stationNumberToIdMap.containsKey(status.getStationNumber()))
-//                .collect(Collectors.groupingBy(status -> stationNumberToIdMap.get(status.getStationNumber())));
-//
-//        log.info("대여소별 그룹화 완료 - {} 개 대여소", statusesByStation.size());
-//
-//        int updatedStationCount = 0;
-//        for (Map.Entry<Long, List<StationStatus>> entry : statusesByStation.entrySet()) {
-//            Long stationId = entry.getKey();
-//            List<StationStatus> statuses = entry.getValue();
-//            String district = stationIdToDistrictMap.get(stationId);
-//
-//            hourlyStatisticsService.calculateAndSave(stationId, statuses);
-//            dayOfWeekStatisticsService.calculateAndSave(stationId, yesterday.getDayOfWeek(), statuses);
-//            temperatureStatisticsService.calculateAndSave(stationId, district, statuses, yesterdayWeathers);
-//
-//            updatedStationCount++;
-//        }
-//
-//        return updatedStationCount;
-//    }
 }
