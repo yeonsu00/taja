@@ -3,7 +3,6 @@ package com.taja.status.infra;
 import com.taja.status.application.StationStatusRepository;
 import com.taja.status.domain.StationStatus;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,15 +21,6 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
                 .map(StationStatusEntity::fromStationStatus)
                 .toList();
         return stationStatusJpaRepository.saveAll(stationStatusEntities).size();
-    }
-
-    @Override
-    public List<StationStatus> findAllByRequestedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        List<StationStatusEntity> stationStatusEntities = stationStatusJpaRepository.findAllByRequestedAtBetween(
-                startDateTime, endDateTime);
-        return stationStatusEntities.stream()
-                .map(StationStatusEntity::toStationStatus)
-                .toList();
     }
 
     @Override
@@ -63,5 +53,17 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
         }
 
         return stationDailyAverages;
+    }
+
+    @Override
+    public List<StationStatus> findAllByDateAndStationIds(LocalDate calculationDate, List<Long> stationIds) {
+        if (stationIds.isEmpty()) {
+            return List.of();
+        }
+        List<StationStatusEntity> stationStatusEntities = stationStatusJpaRepository.findAllByDateAndStationIds(
+                calculationDate, stationIds);
+        return stationStatusEntities.stream()
+                .map(StationStatusEntity::toStationStatus)
+                .toList();
     }
 }

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,18 +34,29 @@ public class StationStatusService {
         stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(stationStatuses);
     }
 
-    @Transactional(readOnly = true)
-    public List<StationStatus> getStationStatusesByDate(LocalDate requestedDate) {
-        LocalDateTime startDateTime = requestedDate.atStartOfDay();
-        LocalDateTime endDateTime = requestedDate.plusDays(1).atStartOfDay();
-        return stationStatusRepository.findAllByRequestedAtBetween(startDateTime, endDateTime);
-    }
-
     public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
         return stationStatusRepository.findStationHourlyAverage(calculationDate);
     }
 
     public Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate) {
         return stationStatusRepository.findStationDailyAverage(calculationDate);
+    }
+
+    public List<StationStatus> findStationStatusesByDateAndStationIds(LocalDate calculationDate, List<Long> stationIds) {
+        return stationStatusRepository.findAllByDateAndStationIds(calculationDate, stationIds);
+    }
+
+    public Map<Long, Map<Integer, Integer>> calculateHourlyAvgParkingBikeCount(List<StationStatus> stationStatuses) {
+        return stationStatuses.stream()
+                .collect(Collectors.groupingBy(
+                        StationStatus::getStationId,
+                        Collectors.groupingBy(
+                                status -> status.getRequestedTime().getHour(),
+                                Collectors.collectingAndThen(
+                                        Collectors.averagingInt(StationStatus::getParkingBikeCount),
+                                        avg -> (int) Math.round(avg)
+                                )
+                        )
+                ));
     }
 }

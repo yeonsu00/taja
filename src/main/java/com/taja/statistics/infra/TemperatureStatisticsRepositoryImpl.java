@@ -2,6 +2,7 @@ package com.taja.statistics.infra;
 
 import com.taja.statistics.application.TemperatureStatisticsRepository;
 import com.taja.statistics.domain.TemperatureStatistics;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -13,12 +14,15 @@ public class TemperatureStatisticsRepositoryImpl implements TemperatureStatistic
     private final TemperatureStatisticsJpaRepository temperatureStatisticsJpaRepository;
 
     @Override
-    public TemperatureStatistics findByStationIdAndTemperatureRange(Long stationId, Double tempRangeStart) {
-        return temperatureStatisticsJpaRepository.findByStationIdAndTemperatureRange(stationId, tempRangeStart);
+    public void saveTemperatureStatistics(List<TemperatureStatistics> temperatureStatisticsEntities) {
+        temperatureStatisticsJpaRepository.saveAll(temperatureStatisticsEntities);
     }
 
     @Override
-    public void saveAll(List<TemperatureStatistics> temperatureStatisticsEntities) {
-        temperatureStatisticsJpaRepository.saveAll(temperatureStatisticsEntities);
+    public List<TemperatureStatistics> findAllByStationIds(List<Long> stationIds) {
+        if (stationIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return temperatureStatisticsJpaRepository.findAllByStationIdIn(stationIds);
     }
 }

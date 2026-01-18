@@ -4,7 +4,9 @@ import com.taja.station.application.StationRedisRepository;
 import com.taja.station.domain.Station;
 import com.taja.station.presentation.response.MapStationResponse;
 import com.taja.status.domain.StationStatus;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
@@ -107,7 +109,9 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("bikeCount", status.getParkingBikeCount());
-        updates.put("requestedAt", status.getRequestedAt().toString());
+
+        LocalDateTime requestedAt = getLocalDateTime(status);
+        updates.put("requestedAt", requestedAt.toString());
 
         try {
             redisTemplate.opsForHash().putAll(key, updates);
@@ -130,7 +134,9 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
                         Map<String, Object> updates = new HashMap<>();
                         updates.put("bikeCount", status.getParkingBikeCount());
-                        updates.put("requestedAt", status.getRequestedAt().toString());
+
+                        LocalDateTime requestedAt = getLocalDateTime(status);
+                        updates.put("requestedAt", requestedAt.toString());
 
                         operations.opsForHash().putAll((K) key, updates);
                     }
@@ -231,5 +237,11 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             log.warn("대여소 정보 파싱 실패: number={}, error={}", result.getContent().getName(), e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private static LocalDateTime getLocalDateTime(StationStatus status) {
+        LocalDate date = status.getRequestedDate();
+        LocalTime time = status.getRequestedTime();
+        return LocalDateTime.of(date, time);
     }
 }

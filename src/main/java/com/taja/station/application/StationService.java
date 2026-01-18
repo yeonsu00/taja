@@ -83,4 +83,8 @@ public class StationService {
 
         return StationDetailResponse.fromStation(station, nearbyStations);
     }
+
+    public List<Station> findAllStations() {
+        return stationRepository.findAll();
+    }
 }

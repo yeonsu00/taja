@@ -40,13 +40,16 @@ public class TemperatureStatistics extends BaseEntity {
 
     private Integer avgParkingBikeCount;
 
+    private Long sampleCount;
+
     @Builder
-    private TemperatureStatistics(Long temperatureStatisticsId, Long stationId, Double temperatureRange,
-                                  Integer avgParkingBikeCount) {
+    public TemperatureStatistics(Long temperatureStatisticsId, Long stationId, Double temperatureRange,
+                                 Integer avgParkingBikeCount, Long sampleCount) {
         this.temperatureStatisticsId = temperatureStatisticsId;
         this.stationId = stationId;
         this.temperatureRange = temperatureRange;
         this.avgParkingBikeCount = avgParkingBikeCount;
+        this.sampleCount = sampleCount;
     }
 
     public static TemperatureStatistics create(Long stationId, Double temperatureRange, Integer avgParkingBikeCount) {
@@ -54,11 +57,21 @@ public class TemperatureStatistics extends BaseEntity {
                 .stationId(stationId)
                 .temperatureRange(temperatureRange)
                 .avgParkingBikeCount(avgParkingBikeCount)
+                .sampleCount(1L)
                 .build();
     }
 
     public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
-        this.avgParkingBikeCount = newAvgParkingBikeCount;
+        if (this.sampleCount == null || this.sampleCount == 0) {
+            this.avgParkingBikeCount = newAvgParkingBikeCount;
+            this.sampleCount = 1L;
+            return;
+        }
+
+        long nextSampleCount = this.sampleCount + 1;
+        double totalSum = (double) this.avgParkingBikeCount * this.sampleCount + newAvgParkingBikeCount;
+        this.avgParkingBikeCount = (int) Math.round(totalSum / nextSampleCount);
+        this.sampleCount = nextSampleCount;
     }
 
     public static Double getTemperatureRangeStart(Double temperature) {

@@ -71,4 +71,11 @@ public class StationRepositoryImpl implements StationRepository {
                 .orElseThrow(() -> new StationNotFoundException(stationId + " 대여소를 찾을 수 없습니다."));
         return stationEntity.toStation();
     }
+
+    @Override
+    public List<Station> findAll() {
+        return stationJpaRepository.findAll().stream()
+                .map(StationEntity::toStation)
+                .collect(Collectors.toList());
+    }
 }

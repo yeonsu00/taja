@@ -13,4 +13,6 @@ public interface StationRepository {
     List<Station> findByNumbers(List<Integer> nearbyStationsNumber);
 
     Station findById(Long stationId);
+
+    List<Station> findAll();
 }

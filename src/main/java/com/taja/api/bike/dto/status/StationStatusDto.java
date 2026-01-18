@@ -23,7 +23,8 @@ public record StationStatusDto(
                 .stationNumber(number)
                 .stationId(id)
                 .parkingBikeCount(Integer.parseInt(parkingBikeTotalCount))
-                .requestedAt(requestedAt)
+                .requestedDate(requestedAt.toLocalDate())
+                .requestedTime(requestedAt.toLocalTime())
                 .build();
     }
 

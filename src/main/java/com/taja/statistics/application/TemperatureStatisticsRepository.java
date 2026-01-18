@@ -4,7 +4,7 @@ import com.taja.statistics.domain.TemperatureStatistics;
 import java.util.List;
 
 public interface TemperatureStatisticsRepository {
-    TemperatureStatistics findByStationIdAndTemperatureRange(Long stationId, Double tempRangeStart);
+    void saveTemperatureStatistics(List<TemperatureStatistics> temperatureStatistics);
 
-    void saveAll(List<TemperatureStatistics> temperatureStatisticsEntities);
+    List<TemperatureStatistics> findAllByStationIds(List<Long> stationIds);
 }

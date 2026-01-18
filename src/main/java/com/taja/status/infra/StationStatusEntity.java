@@ -8,16 +8,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "station_status",
-    indexes = {
-        @Index(name = "idx_station_status_requested_at", columnList = "requestedAt")
-    }
+        indexes = {
+                @Index(name = "idx_station_status_date_station", columnList = "requestedDate, stationId")
+        }
 )
 @RequiredArgsConstructor
 @Getter
@@ -37,16 +38,20 @@ public class StationStatusEntity {
     private Integer parkingBikeCount;
 
     @Column(nullable = false)
-    private LocalDateTime requestedAt;
+    private LocalDate requestedDate;
+
+    @Column(nullable = false)
+    private LocalTime requestedTime;
 
     @Builder
-    public StationStatusEntity(Long stationStatusId, Integer stationNumber, Long stationId,
-                               Integer parkingBikeCount, LocalDateTime requestedAt) {
+    public StationStatusEntity(Long stationStatusId, Integer stationNumber, Long stationId, Integer parkingBikeCount,
+                               LocalDate requestedDate, LocalTime requestedTime) {
         this.stationStatusId = stationStatusId;
         this.stationNumber = stationNumber;
         this.stationId = stationId;
         this.parkingBikeCount = parkingBikeCount;
-        this.requestedAt = requestedAt;
+        this.requestedDate = requestedDate;
+        this.requestedTime = requestedTime;
     }
 
     public static StationStatusEntity fromStationStatus(StationStatus stationStatus) {
@@ -54,7 +59,8 @@ public class StationStatusEntity {
                 .stationNumber(stationStatus.getStationNumber())
                 .stationId(stationStatus.getStationId())
                 .parkingBikeCount(stationStatus.getParkingBikeCount())
-                .requestedAt(stationStatus.getRequestedAt())
+                .requestedDate(stationStatus.getRequestedDate())
+                .requestedTime(stationStatus.getRequestedTime())
                 .build();
     }
 
@@ -64,7 +70,8 @@ public class StationStatusEntity {
                 .stationNumber(this.stationNumber)
                 .stationId(this.stationId)
                 .parkingBikeCount(this.parkingBikeCount)
-                .requestedAt(this.requestedAt)
+                .requestedDate(this.requestedDate)
+                .requestedTime(this.requestedTime)
                 .build();
     }
 }

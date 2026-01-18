@@ -1,6 +1,7 @@
 package com.taja.station.domain;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -61,6 +62,12 @@ public class Station {
         double distanceM = Math.sqrt(x * x + y * y) * 1000;
 
         return (int) (Math.floor(distanceM / 10) * 10);
+    }
+
+    public static List<Long> toStationIds(List<Station> stations) {
+        return stations.stream()
+                .map(Station::getStationId)
+                .toList();
     }
 
 }

@@ -1,6 +1,7 @@
 package com.taja.status.domain;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,15 +16,18 @@ public class StationStatus {
 
     private Integer parkingBikeCount;
 
-    private LocalDateTime requestedAt;
+    private LocalDate requestedDate;
+
+    private LocalTime requestedTime;
 
     @Builder
     public StationStatus(Long stationStatusId, Integer stationNumber, Long stationId, Integer parkingBikeCount,
-                         LocalDateTime requestedAt) {
+                         LocalDate requestedDate, LocalTime requestedTime) {
         this.stationStatusId = stationStatusId;
         this.stationNumber = stationNumber;
         this.stationId = stationId;
         this.parkingBikeCount = parkingBikeCount;
-        this.requestedAt = requestedAt;
+        this.requestedDate = requestedDate;
+        this.requestedTime = requestedTime;
     }
 }
