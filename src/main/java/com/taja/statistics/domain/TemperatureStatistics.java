@@ -1,6 +1,5 @@
 package com.taja.statistics.domain;
 
-import com.taja.global.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,7 +23,7 @@ import lombok.NoArgsConstructor;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class TemperatureStatistics extends BaseEntity {
+public class TemperatureStatistics extends StatisticsBase {
 
     public static final double TEMPERATURE_RANGE_INTERVAL = 5.0;
 
@@ -33,23 +32,14 @@ public class TemperatureStatistics extends BaseEntity {
     private Long temperatureStatisticsId;
 
     @Column(nullable = false)
-    private Long stationId;
-
-    @Column(nullable = false)
     private Double temperatureRange;
-
-    private Integer avgParkingBikeCount;
-
-    private Long sampleCount;
 
     @Builder
     public TemperatureStatistics(Long temperatureStatisticsId, Long stationId, Double temperatureRange,
                                  Integer avgParkingBikeCount, Long sampleCount) {
+        super(stationId, avgParkingBikeCount, sampleCount);
         this.temperatureStatisticsId = temperatureStatisticsId;
-        this.stationId = stationId;
         this.temperatureRange = temperatureRange;
-        this.avgParkingBikeCount = avgParkingBikeCount;
-        this.sampleCount = sampleCount;
     }
 
     public static TemperatureStatistics create(Long stationId, Double temperatureRange, Integer avgParkingBikeCount) {
@@ -59,19 +49,6 @@ public class TemperatureStatistics extends BaseEntity {
                 .avgParkingBikeCount(avgParkingBikeCount)
                 .sampleCount(1L)
                 .build();
-    }
-
-    public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
-        if (this.sampleCount == null || this.sampleCount == 0) {
-            this.avgParkingBikeCount = newAvgParkingBikeCount;
-            this.sampleCount = 1L;
-            return;
-        }
-
-        long nextSampleCount = this.sampleCount + 1;
-        double totalSum = (double) this.avgParkingBikeCount * this.sampleCount + newAvgParkingBikeCount;
-        this.avgParkingBikeCount = (int) Math.round(totalSum / nextSampleCount);
-        this.sampleCount = nextSampleCount;
     }
 
     public static Double getTemperatureRangeStart(Double temperature) {

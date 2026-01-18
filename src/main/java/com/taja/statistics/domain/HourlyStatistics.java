@@ -1,6 +1,5 @@
 package com.taja.statistics.domain;
 
-import com.taja.global.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,26 +23,20 @@ import lombok.NoArgsConstructor;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class HourlyStatistics extends BaseEntity {
+public class HourlyStatistics extends StatisticsBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long hourlyStatisticsId;
 
     @Column(nullable = false)
-    private Long stationId;
-
-    @Column(nullable = false)
     private Integer hour;
 
-    private Integer avgParkingBikeCount;
-
     @Builder
-    private HourlyStatistics(Long hourlyStatisticsId, Long stationId, Integer hour, Integer avgParkingBikeCount) {
+    private HourlyStatistics(Long hourlyStatisticsId, Long stationId, Integer hour, Integer avgParkingBikeCount, Long sampleCount) {
+        super(stationId, avgParkingBikeCount, sampleCount);
         this.hourlyStatisticsId = hourlyStatisticsId;
-        this.stationId = stationId;
         this.hour = hour;
-        this.avgParkingBikeCount = avgParkingBikeCount;
     }
 
     public static HourlyStatistics create(Long stationId, Integer hour, Integer avgParkingBikeCount) {
@@ -51,10 +44,7 @@ public class HourlyStatistics extends BaseEntity {
                 .stationId(stationId)
                 .hour(hour)
                 .avgParkingBikeCount(avgParkingBikeCount)
+                .sampleCount(1L)
                 .build();
-    }
-
-    public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
-        this.avgParkingBikeCount = (newAvgParkingBikeCount + this.avgParkingBikeCount) / 2;
     }
 }

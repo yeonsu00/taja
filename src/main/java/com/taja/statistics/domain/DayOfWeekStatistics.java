@@ -1,6 +1,5 @@
 package com.taja.statistics.domain;
 
-import com.taja.global.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,28 +26,22 @@ import lombok.NoArgsConstructor;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class DayOfWeekStatistics extends BaseEntity {
+public class DayOfWeekStatistics extends StatisticsBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long dayOfWeekStatisticsId;
 
-    @Column(nullable = false)
-    private Long stationId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DayOfWeek dayOfWeek;
 
-    private Integer avgParkingBikeCount;
-
     @Builder
     private DayOfWeekStatistics(Long dayOfWeekStatisticsId, Long stationId, DayOfWeek dayOfWeek,
-                                Integer avgParkingBikeCount) {
+                                Integer avgParkingBikeCount, Long sampleCount) {
+        super(stationId, avgParkingBikeCount, sampleCount);
         this.dayOfWeekStatisticsId = dayOfWeekStatisticsId;
-        this.stationId = stationId;
         this.dayOfWeek = dayOfWeek;
-        this.avgParkingBikeCount = avgParkingBikeCount;
     }
 
     public static DayOfWeekStatistics create(Long stationId, DayOfWeek dayOfWeek, Integer avgParkingBikeCount) {
@@ -56,10 +49,7 @@ public class DayOfWeekStatistics extends BaseEntity {
                 .stationId(stationId)
                 .dayOfWeek(dayOfWeek)
                 .avgParkingBikeCount(avgParkingBikeCount)
+                .sampleCount(1L)
                 .build();
-    }
-
-    public void updateAvgParkingBikeCount(Integer newAvgParkingBikeCount) {
-        this.avgParkingBikeCount = (newAvgParkingBikeCount + this.avgParkingBikeCount) / 2;
     }
 }
