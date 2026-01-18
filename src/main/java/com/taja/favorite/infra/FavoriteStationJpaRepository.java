@@ -1,11 +1,11 @@
 package com.taja.favorite.infra;
 
-import com.taja.member.infra.MemberEntity;
-import com.taja.station.infra.StationEntity;
+import com.taja.member.domain.Member;
+import com.taja.station.domain.Station;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FavoriteStationJpaRepository extends JpaRepository<FavoriteStationEntity, Long> {
-    long deleteByMemberAndStation(MemberEntity memberEntity, StationEntity stationEntity);
+    long deleteByMemberAndStation(Member member, Station station);
 
-    boolean existsByMemberAndStation(MemberEntity memberEntity, StationEntity stationEntity);
+    boolean existsByMemberAndStation(Member member, Station station);
 }

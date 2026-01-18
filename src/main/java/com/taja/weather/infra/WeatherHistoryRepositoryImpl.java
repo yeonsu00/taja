@@ -16,17 +16,12 @@ public class WeatherHistoryRepositoryImpl implements WeatherHistoryRepository {
 
     @Override
     public void saveAll(List<WeatherHistory> weatherHistories, LocalDateTime requestedAt) {
-        List<WeatherHistoryEntity> weatherHistoryEntities = weatherHistories.stream()
-                .map(weatherHistory -> WeatherHistoryEntity.fromWeatherHistory(weatherHistory, requestedAt))
-                .toList();
-        weatherHistoryJpaRepository.saveAll(weatherHistoryEntities);
+        weatherHistories.forEach(weatherHistory -> weatherHistory.updateRequestedAt(requestedAt));
+        weatherHistoryJpaRepository.saveAll(weatherHistories);
     }
 
     @Override
     public List<WeatherHistory> findAllByBaseDate(LocalDate baseDate) {
-        List<WeatherHistoryEntity> weatherHistoryEntities = weatherHistoryJpaRepository.findAllByBaseDate(baseDate);
-        return weatherHistoryEntities.stream()
-                .map(WeatherHistoryEntity::toWeatherHistory)
-                .toList();
+        return weatherHistoryJpaRepository.findAllByBaseDate(baseDate);
     }
 }

@@ -1,14 +1,31 @@
 package com.taja.weather.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Entity
+@Table(name = "weather_history",
+    indexes = {
+        @Index(name = "idx_weather_base_date_district_time", 
+               columnList = "baseDate, district, baseTime")
+    }
+)
+@RequiredArgsConstructor
 @Getter
 public class WeatherHistory {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long weatherHistoryId;
 
     private LocalDate baseDate;
@@ -19,9 +36,9 @@ public class WeatherHistory {
 
     private Double temperature;
 
-    private Double hourlyRain;
+    private Double hourlyRain; // 1시간 강수량
 
-    private Double windSpeed;
+    private Double windSpeed; // 풍속
 
     private LocalDateTime requestedAt;
 

@@ -1,8 +1,8 @@
 package com.taja.favorite.infra;
 
 import com.taja.favorite.domain.FavoriteStation;
-import com.taja.member.infra.MemberEntity;
-import com.taja.station.infra.StationEntity;
+import com.taja.member.domain.Member;
+import com.taja.station.domain.Station;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -32,14 +32,14 @@ public class FavoriteStationEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
-    private MemberEntity member;
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
-    private StationEntity station;
+    private Station station;
 
     @Builder
-    private FavoriteStationEntity(Long favoriteStationId, MemberEntity member, StationEntity station) {
+    private FavoriteStationEntity(Long favoriteStationId, Member member, Station station) {
         this.favoriteStationId = favoriteStationId;
         this.member = member;
         this.station = station;
@@ -47,18 +47,18 @@ public class FavoriteStationEntity {
 
     public static FavoriteStationEntity fromFavoriteStation(FavoriteStation favoriteStation) {
         return FavoriteStationEntity.builder()
-                .member(MemberEntity.fromMember(favoriteStation.getMember()))
-                .station(StationEntity.fromStation(favoriteStation.getStation()))
+                .member(favoriteStation.getMember())
+                .station(favoriteStation.getStation())
                 .build();
     }
 
-    public static List<StationEntity> toStationEntities(List<FavoriteStationEntity> favoriteStationEntities) {
+    public static List<Station> toStations(List<FavoriteStationEntity> favoriteStationEntities) {
         return favoriteStationEntities.stream()
-                .map(FavoriteStationEntity::getStationEntity)
+                .map(FavoriteStationEntity::getStation)
                 .toList();
     }
 
-    private StationEntity getStationEntity() {
+    private Station getStation() {
         return this.station;
     }
 }

@@ -1,10 +1,11 @@
 package com.taja.member.infra;
 
+import com.taja.member.domain.EmailCode;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EmailCodeJpaRepository extends JpaRepository<EmailCodeEntity, Long> {
-    Optional<EmailCodeEntity> findByEmail(String email);
+public interface EmailCodeJpaRepository extends JpaRepository<EmailCode, Long> {
+    Optional<EmailCode> findByEmail(String email);
 
-    Optional<EmailCodeEntity> findByEmailAndCode(String email, String code);
+    Optional<EmailCode> findByEmailAndCode(String email, String code);
 }

@@ -15,14 +15,14 @@ public class DistrictPointRepositoryImpl implements DistrictPointRepository {
     @Override
     public int upsert(List<DistrictPoint> districtPoints) {
         for (DistrictPoint districtPoint : districtPoints) {
-            DistrictPointEntity existing = districtPointJpaRepository
+            DistrictPoint existing = districtPointJpaRepository
                     .findByDistrictName(districtPoint.getDistrictName())
                     .orElse(null);
 
             if (existing != null) {
                 existing.updatePoint(districtPoint.getXPoint(), districtPoint.getYPoint());
             } else {
-                districtPointJpaRepository.save(DistrictPointEntity.fromDistrictPoint(districtPoint));
+                districtPointJpaRepository.save(districtPoint);
             }
         }
         return districtPoints.size();
@@ -30,10 +30,7 @@ public class DistrictPointRepositoryImpl implements DistrictPointRepository {
 
     @Override
     public List<DistrictPoint> findAll() {
-        return districtPointJpaRepository.findAll()
-                .stream()
-                .map(DistrictPointEntity::toDistrictPoint)
-                .toList();
+        return districtPointJpaRepository.findAll();
     }
 
 }

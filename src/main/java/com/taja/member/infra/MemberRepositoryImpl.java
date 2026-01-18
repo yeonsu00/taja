@@ -16,16 +16,14 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Member findByEmail(String email) {
-        MemberEntity memberEntity = memberJpaRepository.findByEmail(email)
+        return memberJpaRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberException(email + " 사용자를 찾을 수 없습니다."));
-        return memberEntity.toMember();
     }
 
     @Override
     public void save(Member member) {
-        MemberEntity memberEntity = MemberEntity.fromNewMember(member);
         try {
-            memberJpaRepository.save(memberEntity);
+            memberJpaRepository.save(member);
         } catch (DataIntegrityViolationException e) {
             throw new DuplicateMemberException("이미 회원가입된 사용자입니다.");
         }

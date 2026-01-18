@@ -14,21 +14,18 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
 
     @Override
     public void save(RefreshToken refreshToken) {
-        RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.fromRefreshToken(refreshToken);
-
         refreshTokenJpaRepository.findByKey(refreshToken.getKey())
                 .ifPresentOrElse(existing -> {
                     existing.updateValue(refreshToken.getValue());
                 }, () -> {
-                    refreshTokenJpaRepository.save(refreshTokenEntity);
+                    refreshTokenJpaRepository.save(refreshToken);
                 });
     }
 
     @Override
     public RefreshToken findByValue(String value) {
-        RefreshTokenEntity refreshTokenEntity = refreshTokenJpaRepository.findByValue(value)
+        return refreshTokenJpaRepository.findByValue(value)
                 .orElseThrow(() -> new TokenException("리프레시 토큰을 찾을 수 없습니다."));
-        return refreshTokenEntity.toRefreshToken();
     }
 
     @Override

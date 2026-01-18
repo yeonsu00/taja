@@ -21,61 +21,47 @@ public class StationRepositoryImpl implements StationRepository {
                 .map(Station::getNumber)
                 .toList();
 
-        Map<Integer, StationEntity> existingStations = stationJpaRepository.findAllByNumberIn(numbers).stream()
-                .collect(Collectors.toMap(StationEntity::getNumber, entity -> entity));
+        Map<Integer, Station> existingStations = stationJpaRepository.findAllByNumberIn(numbers).stream()
+                .collect(Collectors.toMap(Station::getNumber, station -> station));
 
-        List<StationEntity> stationsToSave = stations.stream().map(station -> {
-            StationEntity existingStation = existingStations.get(station.getNumber());
+        List<Station> stationsToSave = stations.stream().map(station -> {
+            Station existingStation = existingStations.get(station.getNumber());
 
             if (existingStation == null) {
-                return StationEntity.fromNewStation(station);
+                return station;
             } else {
                 existingStation.update(station);
                 return existingStation;
             }
         }).toList();
 
-        List<StationEntity> savedStationEntities = stationJpaRepository.saveAll(stationsToSave);
-        return savedStationEntities
-                .stream()
-                .map(StationEntity::toStation)
-                .toList();
+        return stationJpaRepository.saveAll(stationsToSave);
     }
 
     @Override
     public List<Station> findByNameContaining(String keyword) {
-        List<StationEntity> searchedStations = stationJpaRepository.findByNameContaining(keyword);
-        return searchedStations.stream()
-                .map(StationEntity::toStation)
-                .collect(Collectors.toList());
+        return stationJpaRepository.findByNameContaining(keyword);
     }
 
     @Override
     public Station findStationById(Long stationId) {
-        StationEntity stationEntity = stationJpaRepository.findById(stationId)
+        return stationJpaRepository.findById(stationId)
                 .orElseThrow(() -> new StationNotFoundException("ID : " + stationId + " 대여소를 찾을 수 없습니다."));
-        return stationEntity.toStation();
     }
 
     @Override
     public List<Station> findByNumbers(List<Integer> nearbyStationsNumber) {
-        List<StationEntity> stations = stationJpaRepository.findAllByNumberIn(nearbyStationsNumber);
-        return stations.stream()
-                .map(StationEntity::toStation)
-                .collect(Collectors.toList());
+        return stationJpaRepository.findAllByNumberIn(nearbyStationsNumber);
     }
 
     @Override
     public Station findById(Long stationId) {
-        StationEntity stationEntity = stationJpaRepository.findById(stationId)
+        return stationJpaRepository.findById(stationId)
                 .orElseThrow(() -> new StationNotFoundException(stationId + " 대여소를 찾을 수 없습니다."));
-        return stationEntity.toStation();
     }
 
     @Override
     public List<Station> findAll() {
-        return stationJpaRepository.findAll().stream()
-                .map(StationEntity::toStation)
-                .collect(Collectors.toList());
+        return stationJpaRepository.findAll();
     }
 }

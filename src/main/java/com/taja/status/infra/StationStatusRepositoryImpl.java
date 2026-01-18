@@ -17,10 +17,7 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
 
     @Override
     public int saveAll(List<StationStatus> stationStatuses) {
-        List<StationStatusEntity> stationStatusEntities = stationStatuses.stream()
-                .map(StationStatusEntity::fromStationStatus)
-                .toList();
-        return stationStatusJpaRepository.saveAll(stationStatusEntities).size();
+        return stationStatusJpaRepository.saveAll(stationStatuses).size();
     }
 
     @Override
@@ -60,10 +57,6 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
         if (stationIds.isEmpty()) {
             return List.of();
         }
-        List<StationStatusEntity> stationStatusEntities = stationStatusJpaRepository.findAllByDateAndStationIds(
-                calculationDate, stationIds);
-        return stationStatusEntities.stream()
-                .map(StationStatusEntity::toStationStatus)
-                .toList();
+        return stationStatusJpaRepository.findAllByDateAndStationIds(calculationDate, stationIds);
     }
 }

@@ -1,10 +1,11 @@
 package com.taja.member.infra;
 
+import com.taja.member.domain.Member;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MemberJpaRepository extends JpaRepository<MemberEntity, Long> {
-    Optional<MemberEntity> findByEmail(String name);
+public interface MemberJpaRepository extends JpaRepository<Member, Long> {
+    Optional<Member> findByEmail(String name);
 
     boolean existsByName(String name);
 }

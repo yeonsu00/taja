@@ -16,24 +16,20 @@ public class EmailCodeRepositoryImpl implements EmailCodeRepository {
 
     @Override
     public void saveEmailCode(EmailCode emailCode) {
-        Optional<EmailCodeEntity> optionalEmailCodeEntity =
+        Optional<EmailCode> optionalEmailCode =
                 emailCodeJpaRepository.findByEmail(emailCode.getEmail());
 
-        optionalEmailCodeEntity.ifPresentOrElse(
+        optionalEmailCode.ifPresentOrElse(
                 existingEmailCode
                         -> existingEmailCode.update(emailCode.getCode(), emailCode.getCreatedAt(), emailCode.getExpiresAt()),
-                () -> {
-                    EmailCodeEntity newEmailCode = EmailCodeEntity.fromEmailCode(emailCode);
-                    emailCodeJpaRepository.save(newEmailCode);
-                }
+                () -> emailCodeJpaRepository.save(emailCode)
         );
     }
 
     @Override
     public EmailCode findEmailCode(String email, String code) {
-        EmailCodeEntity emailCodeEntity = emailCodeJpaRepository.findByEmailAndCode(email, code)
+        return emailCodeJpaRepository.findByEmailAndCode(email, code)
                 .orElseThrow(() -> new EmailException("이메일 인증 코드가 일치하지 않습니다."));
-        return emailCodeEntity.toEmailCode();
     }
 
     @Override

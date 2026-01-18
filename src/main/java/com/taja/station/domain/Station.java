@@ -1,25 +1,45 @@
 package com.taja.station.domain;
 
-import java.time.LocalDateTime;
+import com.taja.global.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Entity
+@Table(name = "stations")
+@RequiredArgsConstructor
 @Getter
-public class Station {
+public class Station extends BaseEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long stationId;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, unique = true)
     private Integer number;
 
+    @Column(nullable = false)
     private String district;
 
+    @Column(nullable = false)
     private String address;
 
+    @Column(nullable = false)
     private double latitude;
 
+    @Column(nullable = false)
     private double longitude;
 
     private Integer lcdHoldCount;
@@ -28,11 +48,9 @@ public class Station {
 
     private Integer totalHoldCount;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private OperationMode operationMode;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
     @Builder
     public Station(Long stationId, String name, Integer number, String district, String address, double latitude, double longitude,
@@ -48,6 +66,18 @@ public class Station {
         this.qrHoldCount = qrHoldCount;
         this.totalHoldCount = totalHoldCount;
         this.operationMode = operationMode;
+    }
+
+    public void update(Station station) {
+        this.name = station.getName();
+        this.district = station.getDistrict();
+        this.address = station.getAddress();
+        this.latitude = station.getLatitude();
+        this.longitude = station.getLongitude();
+        this.lcdHoldCount = station.getLcdHoldCount();
+        this.qrHoldCount = station.getQrHoldCount();
+        this.totalHoldCount = station.getTotalHoldCount();
+        this.operationMode = station.getOperationMode();
     }
 
     public int calculateDistanceTo(double centerLat, double centerLon) {
