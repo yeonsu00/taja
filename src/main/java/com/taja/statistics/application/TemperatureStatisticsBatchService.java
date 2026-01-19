@@ -1,6 +1,7 @@
 package com.taja.statistics.application;
 
 import com.taja.statistics.application.dto.StationDistricts;
+import com.taja.statistics.application.dto.StationHourlyAvg;
 import com.taja.statistics.application.dto.StationTempGroup;
 import com.taja.statistics.domain.TemperatureStatistics;
 import com.taja.station.domain.Station;
@@ -38,7 +39,7 @@ public class TemperatureStatisticsBatchService {
         List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDateAndStationIds(
                 calculationDate, stationIds);
 
-        Map<Long, Map<Integer, Integer>> stationHourlyAvgParkingBikeCountMap = stationStatusService.calculateHourlyAvgParkingBikeCount(
+        List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts = stationStatusService.calculateHourlyAvgParkingBikeCount(
                 stationStatuses);
         List<TemperatureStatistics> temperatureStatistics = temperatureStatisticsService.findStatisticsByStationIds(
                 stationIds);
@@ -47,10 +48,11 @@ public class TemperatureStatisticsBatchService {
 
         List<TemperatureStatistics> toSaveTemperatureStatistics = new ArrayList<>();
 
-        stationHourlyAvgParkingBikeCountMap.forEach((stationId, hourMap) -> {
+        stationHourlyAvgParkingBikeCounts.forEach(stationHourlyAvg -> {
+            Long stationId = stationHourlyAvg.stationId();
             String district = stationDistricts.getDistrict(stationId);
 
-            hourMap.forEach((hour, avgBikeCount) -> {
+            stationHourlyAvg.hourlyAvgParkingBikeCounts().forEach((hour, avgBikeCount) -> {
                 Double temperature = weatherService.getTemperature(districtHourlyTempMap, district, hour);
                 if (temperature == null) {
                     log.warn("기온 데이터 누락으로 통계 제외 - 자치구: {}, 시간: {}", district, hour);

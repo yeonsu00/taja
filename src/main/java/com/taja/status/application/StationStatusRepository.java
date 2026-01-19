@@ -8,7 +8,8 @@ import java.util.Map;
 public interface StationStatusRepository {
     int saveAll(List<StationStatus> stationStatuses);
 
-    Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate);
+//    Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate);
+    List<StationStatus> findByDate(LocalDate calculationDate);
 
     Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate);
 

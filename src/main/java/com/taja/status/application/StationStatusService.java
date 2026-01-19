@@ -1,6 +1,7 @@
 package com.taja.status.application;
 
 import com.taja.api.bike.dto.status.StationStatusDto;
+import com.taja.statistics.application.dto.StationHourlyAvg;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.status.domain.StationStatus;
 import java.time.LocalDate;
@@ -34,8 +35,12 @@ public class StationStatusService {
         stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(stationStatuses);
     }
 
-    public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
-        return stationStatusRepository.findStationHourlyAverage(calculationDate);
+//    public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
+//        return stationStatusRepository.findStationHourlyAverage(calculationDate);
+//    }
+
+    public List<StationStatus> findStationStatusesByDate(LocalDate calculationDate) {
+        return stationStatusRepository.findByDate(calculationDate);
     }
 
     public Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate) {
@@ -46,8 +51,8 @@ public class StationStatusService {
         return stationStatusRepository.findAllByDateAndStationIds(calculationDate, stationIds);
     }
 
-    public Map<Long, Map<Integer, Integer>> calculateHourlyAvgParkingBikeCount(List<StationStatus> stationStatuses) {
-        return stationStatuses.stream()
+    public List<StationHourlyAvg> calculateHourlyAvgParkingBikeCount(List<StationStatus> stationStatuses) {
+        Map<Long, Map<Integer, Integer>> groupedMap = stationStatuses.stream()
                 .collect(Collectors.groupingBy(
                         StationStatus::getStationId,
                         Collectors.groupingBy(
@@ -58,5 +63,9 @@ public class StationStatusService {
                                 )
                         )
                 ));
+
+        return groupedMap.entrySet().stream()
+                .map(entry -> new StationHourlyAvg(entry.getKey(), entry.getValue()))
+                .toList();
     }
 }

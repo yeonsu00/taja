@@ -9,14 +9,14 @@ import org.springframework.data.repository.query.Param;
 
 public interface StationStatusJpaRepository extends JpaRepository<StationStatus, Long> {
 
-    @Query("""
-        SELECT s.stationId, HOUR(s.requestedTime) AS hour, AVG(s.parkingBikeCount)
-        FROM StationStatus s
-        WHERE s.requestedDate = :date
-        GROUP BY s.stationId, HOUR(s.requestedTime)
-        ORDER BY s.stationId, hour
-    """)
-    List<Object[]> findStationHourlyAverage(@Param("date") LocalDate calculationDate);
+//    @Query("""
+//        SELECT s.stationId, HOUR(s.requestedTime) AS hour, AVG(s.parkingBikeCount)
+//        FROM StationStatus s
+//        WHERE s.requestedDate = :date
+//        GROUP BY s.stationId, HOUR(s.requestedTime)
+//        ORDER BY s.stationId, hour
+//    """)
+//    List<Object[]> findStationHourlyAverage(@Param("date") LocalDate calculationDate);
 
     @Query("""
         SELECT s.stationId, AVG(s.parkingBikeCount)
@@ -37,4 +37,6 @@ public interface StationStatusJpaRepository extends JpaRepository<StationStatus,
             @Param("date") LocalDate calculationDate,
             @Param("stationIds") List<Long> stationIds
     );
+
+    List<StationStatus> findByRequestedDate(LocalDate requestedDate);
 }

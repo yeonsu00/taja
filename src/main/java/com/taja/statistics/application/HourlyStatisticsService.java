@@ -1,68 +1,77 @@
 package com.taja.statistics.application;
 
+import com.taja.statistics.application.dto.StationHourlyAvg;
 import com.taja.statistics.domain.HourlyStatistics;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class HourlyStatisticsService {
 
     private final HourlyStatisticsRepository hourlyStatisticsRepository;
 
-    public void upsertHourlyStatistics(Long stationId, Integer hour, Integer avgCount) {
-        HourlyStatistics existing = hourlyStatisticsRepository.findByStationIdAndHour(stationId, hour)
-                .orElse(null);
-
-        if (existing == null) {
-            HourlyStatistics newEntity = HourlyStatistics.create(stationId, hour, avgCount);
-            hourlyStatisticsRepository.save(newEntity);
-        } else {
-            existing.updateAvgParkingBikeCount(avgCount);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int processBatch(List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts) {
+        if (stationHourlyAvgParkingBikeCounts == null || stationHourlyAvgParkingBikeCounts.isEmpty()) {
+            log.info("배치 처리할 데이터가 없습니다.");
+            return 0;
         }
+
+        List<Long> stationIds = stationHourlyAvgParkingBikeCounts.stream()
+                .map(StationHourlyAvg::stationId)
+                .toList();
+
+        List<HourlyStatistics> existingStatistics = hourlyStatisticsRepository.findAllByStationIds(stationIds);
+
+        Map<String, HourlyStatistics> existingMap = new HashMap<>();
+        for (HourlyStatistics stats : existingStatistics) {
+            String key = createKey(stats.getStationId(), stats.getHour());
+            existingMap.put(key, stats);
+        }
+
+        List<HourlyStatistics> toSaveHourlyStatistics = new ArrayList<>();
+        int updatedCount = 0;
+
+        for (StationHourlyAvg stationHourlyAvg : stationHourlyAvgParkingBikeCounts) {
+            Long stationId = stationHourlyAvg.stationId();
+            Map<Integer, Integer> hourlyAverages = stationHourlyAvg.hourlyAvgParkingBikeCounts();
+
+            for (Map.Entry<Integer, Integer> hourEntry : hourlyAverages.entrySet()) {
+                Integer hour = hourEntry.getKey();
+                Integer avgCount = hourEntry.getValue();
+
+                String key = createKey(stationId, hour);
+                HourlyStatistics existingHourlyStatistics = existingMap.get(key);
+
+                if (existingHourlyStatistics == null) {
+                    HourlyStatistics newHourlyStatistics = HourlyStatistics.create(stationId, hour, avgCount);
+                    toSaveHourlyStatistics.add(newHourlyStatistics);
+                } else {
+                    existingHourlyStatistics.updateAvgParkingBikeCount(avgCount);
+                    updatedCount++;
+                }
+            }
+        }
+
+        if (!toSaveHourlyStatistics.isEmpty()) {
+            hourlyStatisticsRepository.saveAllHourlyStatistics(toSaveHourlyStatistics);
+        }
+
+        log.info("시간대별 통계 배치 처리 완료 - 신규: {}개, 업데이트: {}개", toSaveHourlyStatistics.size(), updatedCount);
+        return toSaveHourlyStatistics.size() + updatedCount;
     }
 
-//    @Transactional
-//    public void calculateAndSave(Long stationId, List<StationStatus> statuses) {
-//        log.debug("시간대별 통계 계산 시작 - stationId: {}, 데이터 수: {}", stationId, statuses.size());
-//
-//        Map<Integer, List<StationStatus>> statusesByHour = statuses.stream()
-//                .collect(Collectors.groupingBy(status -> status.getRequestedAt().getHour()));
-//
-//        List<HourlyStatisticsEntity> toSave = new ArrayList<>();
-//        int updatedCount = 0;
-//
-//        for (int hour = 0; hour < 24; hour++) {
-//            List<StationStatus> hourlyStatuses = statusesByHour.get(hour);
-//            if (hourlyStatuses == null || hourlyStatuses.isEmpty()) {
-//                continue;
-//            }
-//
-//            int avgParkingBikeCount = (int) Math.round(
-//                    hourlyStatuses.stream()
-//                            .mapToInt(StationStatus::getParkingBikeCount)
-//                            .average()
-//                            .orElse(0.0)
-//            );
-//
-//            HourlyStatisticsEntity existing = hourlyStatisticsRepository.findByStationIdAndHour(stationId, hour);
-//
-//            if (existing != null) {
-//                HourlyStatistics updated = existing.toDomain().updateAverage(avgParkingBikeCount);
-//                existing.update(updated);
-//                updatedCount++;
-//            } else {
-//                HourlyStatistics newStats = HourlyStatistics.create(stationId, hour, avgParkingBikeCount);
-//                toSave.add(HourlyStatisticsEntity.fromDomain(newStats));
-//            }
-//        }
-//
-//        if (!toSave.isEmpty()) {
-//            hourlyStatisticsRepository.saveAll(toSave);
-//        }
-//
-//        log.debug("시간대별 통계 저장 완료 - stationId: {}, 신규: {}개, 업데이트: {}개",
-//                stationId, toSave.size(), updatedCount);
-//    }
+    private String createKey(Long stationId, Integer hour) {
+        return stationId + ":" + hour;
+    }
 }
 

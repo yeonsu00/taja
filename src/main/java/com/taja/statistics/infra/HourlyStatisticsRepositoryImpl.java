@@ -2,7 +2,7 @@ package com.taja.statistics.infra;
 
 import com.taja.statistics.application.HourlyStatisticsRepository;
 import com.taja.statistics.domain.HourlyStatistics;
-import java.util.Optional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -13,12 +13,18 @@ public class HourlyStatisticsRepositoryImpl implements HourlyStatisticsRepositor
     private final HourlyStatisticsJpaRepository hourlyStatisticsJpaRepository;
 
     @Override
-    public Optional<HourlyStatistics> findByStationIdAndHour(Long stationId, int hour) {
-        return hourlyStatisticsJpaRepository.findByStationIdAndHour(stationId, hour);
+    public List<HourlyStatistics> findAllByStationIds(List<Long> stationIds) {
+        if (stationIds == null || stationIds.isEmpty()) {
+            return List.of();
+        }
+        return hourlyStatisticsJpaRepository.findAllByStationIds(stationIds);
     }
 
     @Override
-    public void save(HourlyStatistics hourlyStatistics) {
-        hourlyStatisticsJpaRepository.save(hourlyStatistics);
+    public void saveAllHourlyStatistics(List<HourlyStatistics> hourlyStatisticsList) {
+        if (hourlyStatisticsList == null || hourlyStatisticsList.isEmpty()) {
+            return;
+        }
+        hourlyStatisticsJpaRepository.saveAll(hourlyStatisticsList);
     }
 }

@@ -20,21 +20,25 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
         return stationStatusJpaRepository.saveAll(stationStatuses).size();
     }
 
-    @Override
-    public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
-        List<Object[]> results = stationStatusJpaRepository.findStationHourlyAverage(calculationDate);
+//    @Override
+//    public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
+//        List<Object[]> results = stationStatusJpaRepository.findStationHourlyAverage(calculationDate);
+//
+//        Map<Long, Map<Integer, Integer>> stationHourlyAverages = new HashMap<>();
+//        for (Object[] row : results) {
+//            Long stationId = ((Number) row[0]).longValue();
+//            Integer hour = ((Number) row[1]).intValue();
+//            Integer avgCount = ((Number) row[2]).intValue();
+//
+//            stationHourlyAverages.computeIfAbsent(stationId, k -> new HashMap<>())
+//                    .put(hour, avgCount);
+//        }
+//
+//        return stationHourlyAverages;
+//    }
 
-        Map<Long, Map<Integer, Integer>> stationHourlyAverages = new HashMap<>();
-        for (Object[] row : results) {
-            Long stationId = ((Number) row[0]).longValue();
-            Integer hour = ((Number) row[1]).intValue();
-            Integer avgCount = ((Number) row[2]).intValue();
-
-            stationHourlyAverages.computeIfAbsent(stationId, k -> new HashMap<>())
-                    .put(hour, avgCount);
-        }
-
-        return stationHourlyAverages;
+    public List<StationStatus> findByDate(LocalDate calculationDate) {
+        return stationStatusJpaRepository.findByRequestedDate(calculationDate);
     }
 
     @Override

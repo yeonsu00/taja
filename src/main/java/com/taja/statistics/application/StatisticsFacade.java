@@ -3,7 +3,9 @@ package com.taja.statistics.application;
 import com.taja.station.application.StationService;
 import com.taja.station.domain.Station;
 import com.taja.statistics.application.dto.StationDistricts;
+import com.taja.statistics.application.dto.StationHourlyAvg;
 import com.taja.status.application.StationStatusService;
+import com.taja.status.domain.StationStatus;
 import com.taja.weather.application.WeatherService;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -28,27 +30,25 @@ public class StatisticsFacade {
 
     private static final int BATCH_SIZE = 100;
 
-    @Transactional
     public int calculateHourlyStatistics(LocalDate requestedAt) {
         LocalDate calculationDate = getCalculationDate(requestedAt);
 
-        Map<Long, Map<Integer, Integer>> stationHourlyAverages = stationStatusService.findStationHourlyAverage(
-                calculationDate);
-        log.info("시간대별 통계 변환 완료 - 대여소 수: {}", stationHourlyAverages.size());
+        List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDate(calculationDate);
+        List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts = stationStatusService.calculateHourlyAvgParkingBikeCount(
+                stationStatuses);
+
+        log.info("시간대별 통계 변환 완료 - 대여소 수: {}", stationHourlyAvgParkingBikeCounts.size());
 
         int totalUpdated = 0;
-        for (Long stationId : stationHourlyAverages.keySet()) {
-            Map<Integer, Integer> hourlyAverages = stationHourlyAverages.get(stationId);
+        for (int i = 0; i < stationHourlyAvgParkingBikeCounts.size(); i += BATCH_SIZE) {
+            int endIndex = Math.min(i + BATCH_SIZE, stationHourlyAvgParkingBikeCounts.size());
+            List<StationHourlyAvg> batchStationHourlyAvgParkingBikeCounts = stationHourlyAvgParkingBikeCounts.subList(i,
+                    endIndex);
 
-            for (Map.Entry<Integer, Integer> hourEntry : hourlyAverages.entrySet()) {
-                Integer hour = hourEntry.getKey();
-                Integer avgCount = hourEntry.getValue();
-
-                hourlyStatisticsService.upsertHourlyStatistics(stationId, hour, avgCount);
-                totalUpdated++;
-            }
+            totalUpdated += hourlyStatisticsService.processBatch(batchStationHourlyAvgParkingBikeCounts);
         }
 
+        log.info("시간대별 통계 저장 완료 - 총 {}건 처리", totalUpdated);
         return totalUpdated;
     }
 
