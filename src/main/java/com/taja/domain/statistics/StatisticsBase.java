@@ -17,6 +17,7 @@ public abstract class StatisticsBase extends BaseEntity {
 
     private Integer avgParkingBikeCount;
 
+    @Column(nullable = false)
     private Long sampleCount;
 
     protected StatisticsBase(Long stationId, Integer avgParkingBikeCount, Long sampleCount) {
