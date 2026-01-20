@@ -1,9 +1,9 @@
 package com.taja.config;
 
-import com.taja.jwt.CustomAuthenticationEntryPoint;
-import com.taja.jwt.JwtAuthenticationFilter;
-import com.taja.jwt.JwtExceptionFilter;
-import com.taja.jwt.JwtTokenProvider;
+import com.taja.infrastructure.jwt.CustomAuthenticationEntryPoint;
+import com.taja.infrastructure.jwt.JwtAuthenticationFilter;
+import com.taja.infrastructure.jwt.JwtExceptionFilter;
+import com.taja.infrastructure.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
