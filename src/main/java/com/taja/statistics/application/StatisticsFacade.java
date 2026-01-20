@@ -2,6 +2,7 @@ package com.taja.statistics.application;
 
 import com.taja.station.application.StationService;
 import com.taja.station.domain.Station;
+import com.taja.statistics.application.dto.StationDailyAvg;
 import com.taja.statistics.application.dto.StationDistricts;
 import com.taja.statistics.application.dto.StationHourlyAvg;
 import com.taja.status.application.StationStatusService;
@@ -57,18 +58,17 @@ public class StatisticsFacade {
         LocalDate calculationDate = getCalculationDate(requestedAt);
         DayOfWeek dayOfWeek = calculationDate.getDayOfWeek();
 
-        log.info("요일별 통계 계산 시작 - 대상 날짜: {}, 요일: {}", calculationDate, dayOfWeek);
-
-        Map<Long, Integer> stationDailyAverages = stationStatusService.findStationDailyAverage(calculationDate);
-        log.info("요일별 통계 조회 완료 - 대여소 수: {}", stationDailyAverages.size());
+        List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDate(calculationDate);
+        List<StationDailyAvg> stationDailyAvgParkingBikeCounts = stationStatusService.calculateDailyAvgParkingBikeCount(
+                stationStatuses);
 
         int totalUpdated = 0;
-        for (Map.Entry<Long, Integer> entry : stationDailyAverages.entrySet()) {
-            Long stationId = entry.getKey();
-            Integer avgCount = entry.getValue();
+        for (int i = 0; i < stationDailyAvgParkingBikeCounts.size(); i += BATCH_SIZE) {
+            int endIndex = Math.min(i + BATCH_SIZE, stationDailyAvgParkingBikeCounts.size());
+            List<StationDailyAvg> batchStationDailyAvgParkingBikeCounts = stationDailyAvgParkingBikeCounts.subList(i,
+                    endIndex);
 
-            dayOfWeekStatisticsService.upsertDayOfWeekStatistics(stationId, dayOfWeek, avgCount);
-            totalUpdated++;
+            totalUpdated += dayOfWeekStatisticsService.processBatch(dayOfWeek, batchStationDailyAvgParkingBikeCounts);
         }
 
         log.info("요일별 통계 계산 완료 - 총 {}건 처리", totalUpdated);

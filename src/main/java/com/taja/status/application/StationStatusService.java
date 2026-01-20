@@ -1,6 +1,7 @@
 package com.taja.status.application;
 
 import com.taja.api.bike.dto.status.StationStatusDto;
+import com.taja.statistics.application.dto.StationDailyAvg;
 import com.taja.statistics.application.dto.StationHourlyAvg;
 import com.taja.station.application.StationRedisRepository;
 import com.taja.status.domain.StationStatus;
@@ -35,16 +36,8 @@ public class StationStatusService {
         stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(stationStatuses);
     }
 
-//    public Map<Long, Map<Integer, Integer>> findStationHourlyAverage(LocalDate calculationDate) {
-//        return stationStatusRepository.findStationHourlyAverage(calculationDate);
-//    }
-
     public List<StationStatus> findStationStatusesByDate(LocalDate calculationDate) {
         return stationStatusRepository.findByDate(calculationDate);
-    }
-
-    public Map<Long, Integer> findStationDailyAverage(LocalDate calculationDate) {
-        return stationStatusRepository.findStationDailyAverage(calculationDate);
     }
 
     public List<StationStatus> findStationStatusesByDateAndStationIds(LocalDate calculationDate, List<Long> stationIds) {
@@ -66,6 +59,21 @@ public class StationStatusService {
 
         return groupedMap.entrySet().stream()
                 .map(entry -> new StationHourlyAvg(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    public List<StationDailyAvg> calculateDailyAvgParkingBikeCount(List<StationStatus> stationStatuses) {
+        Map<Long, Integer> groupedMap = stationStatuses.stream()
+                .collect(Collectors.groupingBy(
+                        StationStatus::getStationId,
+                        Collectors.collectingAndThen(
+                                Collectors.averagingInt(StationStatus::getParkingBikeCount),
+                                avg -> (int) Math.round(avg)
+                        )
+                ));
+
+        return groupedMap.entrySet().stream()
+                .map(entry -> new StationDailyAvg(entry.getKey(), entry.getValue()))
                 .toList();
     }
 }
