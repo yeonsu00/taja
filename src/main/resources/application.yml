@@ -20,6 +20,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      timeout: 5s
+      connect-timeout: 5s
 
   mail:
     host: smtp.gmail.com
@@ -39,12 +41,16 @@ spring:
           writetimeout: 5000
 
 api:
-  key: ${API_KEY}
-  base-url: ${API_BASE_URL}
-  status:
-    path: ${STATUS_API_PATH}
-  station:
-    path: ${STATION_API_PATH}
+  bike:
+    key: ${BIKE_API_KEY}
+    base-url: ${BIKE_API_BASE_URL}
+    status:
+      path: ${BIKE_STATUS_API_PATH}
+    station:
+      path: ${BIKE_STATION_API_PATH}
+  weather:
+    key: ${WEATHER_API_KEY}
+    base-url: ${WEATHER_API_BASE_URL}
 
 jwt:
   secret: ${JWT_SECRET}

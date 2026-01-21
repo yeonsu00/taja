@@ -2,13 +2,28 @@ package com.taja.global.exception;
 
 import com.taja.global.response.CommonApiResponse;
 import com.taja.global.response.ResponseCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CommonApiResponse<?>> handleUnexpectedException(Exception ex) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof MemberException) {
+            return handleMemberNotFoundException((MemberException) cause);
+        }
+
+        log.error("[UNEXPECTED ERROR] {}", ex.getMessage(), ex);
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
+
+        return ResponseEntity.status(ResponseCode.INTERNAL_SERVER_ERROR.getHttpStatus()).body(body);
+    }
 
     @ExceptionHandler(ReadFileException.class)
     public ResponseEntity<CommonApiResponse<?>>  handleReadFileException(ReadFileException ex) {
@@ -40,10 +55,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MemberException.class)
-    public ResponseEntity<CommonApiResponse<?>> handleUserNotFoundException(MemberException ex) {
-        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.USER_NOT_FOUND, ex.getMessage());
+    public ResponseEntity<CommonApiResponse<?>> handleMemberNotFoundException(MemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.MEMBER_NOT_FOUND, ex.getMessage());
 
-        return ResponseEntity.status(ResponseCode.USER_NOT_FOUND.getHttpStatus()).body(body);
+        return ResponseEntity.status(ResponseCode.MEMBER_NOT_FOUND.getHttpStatus()).body(body);
     }
 
     @ExceptionHandler(EmailException.class)
@@ -53,11 +68,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ResponseCode.EMAIL_ERROR.getHttpStatus()).body(body);
     }
 
-    @ExceptionHandler(DuplicateNameException.class)
-    public ResponseEntity<CommonApiResponse<?>> handleDuplicateNameException(DuplicateNameException ex) {
-        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.DUPLICATE_NAME, ex.getMessage());
+    @ExceptionHandler(DuplicateMemberException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleDuplicateNameException(DuplicateMemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.DUPLICATE_MEMBER, ex.getMessage());
 
-        return ResponseEntity.status(ResponseCode.DUPLICATE_NAME.getHttpStatus()).body(body);
+        return ResponseEntity.status(ResponseCode.DUPLICATE_MEMBER.getHttpStatus()).body(body);
     }
 
     @ExceptionHandler(FavoriteStationNotFoundException.class)

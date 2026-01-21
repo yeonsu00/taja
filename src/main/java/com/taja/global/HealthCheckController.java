@@ -1,6 +1,6 @@
 package com.taja.global;
 
-import com.taja.jwt.CustomUserDetails;
+import com.taja.infrastructure.jwt.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
