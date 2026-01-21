@@ -1,0 +1,52 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5s
+      connect-timeout: 5s
+
+  mail:
+    host: localhost
+    port: 587
+    username: test
+    password: test
+
+api:
+  bike:
+    key: test-key
+    base-url: http://localhost:8080
+    status:
+      path: /test/status
+    station:
+      path: /test/station
+  weather:
+    key: test-key
+    base-url: http://localhost:8080
+
+jwt:
+  secret: dGVzdC1kdW1teS1zZWNyZXQta2V5LWZvci10ZXN0LW9ubHktMzJieXRlcyE=
+  expiration:
+    access-token: 1800000
+    refresh-token: 604800000
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
