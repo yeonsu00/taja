@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_hourly_statistics_station_hour",
-                        columnNames = {"stationId", "hour"}
+                        columnNames = {"station_id", "base_hour"}
                 )
         }
 )
@@ -30,19 +30,19 @@ public class HourlyStatistics extends StatisticsBase {
     private Long hourlyStatisticsId;
 
     @Column(nullable = false)
-    private Integer hour;
+    private Integer baseHour;
 
     @Builder
-    private HourlyStatistics(Long hourlyStatisticsId, Long stationId, Integer hour, Integer avgParkingBikeCount, Long sampleCount) {
+    private HourlyStatistics(Long hourlyStatisticsId, Long stationId, Integer baseHour, Integer avgParkingBikeCount, Long sampleCount) {
         super(stationId, avgParkingBikeCount, sampleCount);
         this.hourlyStatisticsId = hourlyStatisticsId;
-        this.hour = hour;
+        this.baseHour = baseHour;
     }
 
-    public static HourlyStatistics create(Long stationId, Integer hour, Integer avgParkingBikeCount) {
+    public static HourlyStatistics create(Long stationId, Integer baseHour, Integer avgParkingBikeCount) {
         return HourlyStatistics.builder()
                 .stationId(stationId)
-                .hour(hour)
+                .baseHour(baseHour)
                 .avgParkingBikeCount(avgParkingBikeCount)
                 .sampleCount(1L)
                 .build();

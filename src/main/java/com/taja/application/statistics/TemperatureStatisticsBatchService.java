@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -28,7 +27,7 @@ public class TemperatureStatisticsBatchService {
     private final TemperatureStatisticsService temperatureStatisticsService;
     private final WeatherService weatherService;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void processBatch(List<Station> batchStations, LocalDate calculationDate,
                              Map<String, Map<Integer, Double>> districtHourlyTempMap,
                              StationDistricts stationDistricts) {

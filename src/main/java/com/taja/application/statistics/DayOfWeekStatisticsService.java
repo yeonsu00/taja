@@ -10,7 +10,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -20,7 +19,7 @@ public class DayOfWeekStatisticsService {
 
     private final DayOfWeekStatisticsRepository dayOfWeekStatisticsRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public int processBatch(DayOfWeek dayOfWeek, List<StationDailyAvg> stationDailyAvgParkingBikeCounts) {
         if (stationDailyAvgParkingBikeCounts == null || stationDailyAvgParkingBikeCounts.isEmpty()) {
             log.info("배치 처리할 데이터가 없습니다.");

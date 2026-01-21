@@ -9,7 +9,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -19,7 +18,7 @@ public class HourlyStatisticsService {
 
     private final HourlyStatisticsRepository hourlyStatisticsRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public int processBatch(List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts) {
         if (stationHourlyAvgParkingBikeCounts == null || stationHourlyAvgParkingBikeCounts.isEmpty()) {
             log.info("배치 처리할 데이터가 없습니다.");
@@ -34,7 +33,7 @@ public class HourlyStatisticsService {
 
         Map<String, HourlyStatistics> existingMap = new HashMap<>();
         for (HourlyStatistics stats : existingStatistics) {
-            String key = createKey(stats.getStationId(), stats.getHour());
+            String key = createKey(stats.getStationId(), stats.getBaseHour());
             existingMap.put(key, stats);
         }
 

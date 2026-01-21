@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface HourlyStatisticsJpaRepository extends JpaRepository<HourlyStatistics, Long> {
 
-    @Query("SELECT h FROM HourlyStatistics h WHERE h.stationId = :stationId AND h.hour = :hour")
+    @Query("SELECT h FROM HourlyStatistics h WHERE h.stationId = :stationId AND h.baseHour = :hour")
     Optional<HourlyStatistics> findByStationIdAndHour(@Param("stationId") Long stationId, @Param("hour") Integer hour);
 
     @Query("SELECT h FROM HourlyStatistics h WHERE h.stationId IN :stationIds")
