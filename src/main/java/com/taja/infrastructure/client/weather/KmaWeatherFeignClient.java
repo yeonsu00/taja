@@ -1,6 +1,6 @@
-package com.taja.infrastructure.api.weather;
+package com.taja.infrastructure.client.weather;
 
-import com.taja.infrastructure.api.weather.dto.WeatherApiResponseDto;
+import com.taja.infrastructure.client.weather.dto.WeatherApiResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

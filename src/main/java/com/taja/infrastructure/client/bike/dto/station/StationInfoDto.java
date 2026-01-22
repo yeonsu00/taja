@@ -1,7 +1,7 @@
-package com.taja.infrastructure.api.bike.dto.station;
+package com.taja.infrastructure.client.bike.dto.station;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.taja.infrastructure.api.bike.dto.status.ResultDto;
+import com.taja.infrastructure.client.bike.dto.status.ResultDto;
 import java.util.List;
 
 public record StationInfoDto(

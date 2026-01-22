@@ -1,4 +1,4 @@
-package com.taja.infrastructure.api.weather.dto;
+package com.taja.infrastructure.client.weather.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taja.domain.weather.WeatherHistory;

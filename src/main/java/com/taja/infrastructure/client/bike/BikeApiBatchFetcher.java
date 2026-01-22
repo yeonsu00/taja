@@ -1,4 +1,4 @@
-package com.taja.infrastructure.api.bike;
+package com.taja.infrastructure.client.bike;
 
 import com.taja.global.exception.ApiException;
 import java.time.Duration;

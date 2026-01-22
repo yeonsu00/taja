@@ -1,4 +1,4 @@
-package com.taja.infrastructure.api.weather;
+package com.taja.infrastructure.client.weather;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -12,12 +12,12 @@ import com.taja.domain.weather.DistrictPoint;
 import com.taja.domain.weather.WeatherHistory;
 import com.taja.global.exception.ApiException;
 import com.taja.global.exception.NoRetryApiException;
-import com.taja.infrastructure.api.weather.dto.WeatherApiResponseDto;
-import com.taja.infrastructure.api.weather.dto.WeatherBodyDto;
-import com.taja.infrastructure.api.weather.dto.WeatherHeaderDto;
-import com.taja.infrastructure.api.weather.dto.WeatherItemDto;
-import com.taja.infrastructure.api.weather.dto.WeatherItemsDto;
-import com.taja.infrastructure.api.weather.dto.WeatherResponseDto;
+import com.taja.infrastructure.client.weather.dto.WeatherApiResponseDto;
+import com.taja.infrastructure.client.weather.dto.WeatherBodyDto;
+import com.taja.infrastructure.client.weather.dto.WeatherHeaderDto;
+import com.taja.infrastructure.client.weather.dto.WeatherItemDto;
+import com.taja.infrastructure.client.weather.dto.WeatherItemsDto;
+import com.taja.infrastructure.client.weather.dto.WeatherResponseDto;
 import feign.FeignException;
 import feign.Request;
 import java.io.IOException;

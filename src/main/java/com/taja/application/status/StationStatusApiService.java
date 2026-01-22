@@ -1,7 +1,7 @@
 package com.taja.application.status;
 
-import com.taja.infrastructure.api.bike.BikeApiBatchFetcher;
-import com.taja.infrastructure.api.bike.BikeApiClient;
+import com.taja.infrastructure.client.bike.BikeApiBatchFetcher;
+import com.taja.infrastructure.client.bike.BikeApiClient;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

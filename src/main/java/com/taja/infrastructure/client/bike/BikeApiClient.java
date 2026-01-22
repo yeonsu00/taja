@@ -1,12 +1,12 @@
-package com.taja.infrastructure.api.bike;
+package com.taja.infrastructure.client.bike;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taja.infrastructure.api.bike.dto.station.StationApiResponseDto;
-import com.taja.infrastructure.api.bike.dto.station.StationDto;
-import com.taja.infrastructure.api.bike.dto.status.BikeApiResponseDto;
-import com.taja.infrastructure.api.bike.dto.status.ResultDto;
-import com.taja.infrastructure.api.bike.dto.status.StationStatusDto;
+import com.taja.infrastructure.client.bike.dto.station.StationApiResponseDto;
+import com.taja.infrastructure.client.bike.dto.station.StationDto;
+import com.taja.infrastructure.client.bike.dto.status.BikeApiResponseDto;
+import com.taja.infrastructure.client.bike.dto.status.ResultDto;
+import com.taja.infrastructure.client.bike.dto.status.StationStatusDto;
 import com.taja.global.exception.ApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.taja.infrastructure.api.bike.dto.status;
+package com.taja.infrastructure.client.bike.dto.status;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taja.domain.status.StationStatus;

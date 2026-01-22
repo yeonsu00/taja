@@ -1,4 +1,4 @@
-package com.taja.infrastructure.api.weather;
+package com.taja.infrastructure.client.weather;
 
 import static com.taja.config.Resilience4jConfig.WEATHER_API_RESILIENCE;
 
@@ -7,7 +7,7 @@ import com.taja.domain.weather.DistrictPoint;
 import com.taja.domain.weather.WeatherHistory;
 import com.taja.global.exception.ApiException;
 import com.taja.global.exception.NoRetryApiException;
-import com.taja.infrastructure.api.weather.dto.WeatherApiResponseDto;
+import com.taja.infrastructure.client.weather.dto.WeatherApiResponseDto;
 import io.github.resilience4j.retry.annotation.Retry;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

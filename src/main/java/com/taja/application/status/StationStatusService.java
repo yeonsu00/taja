@@ -1,6 +1,6 @@
 package com.taja.application.status;
 
-import com.taja.infrastructure.api.bike.dto.status.StationStatusDto;
+import com.taja.infrastructure.client.bike.dto.status.StationStatusDto;
 import com.taja.application.statistics.dto.StationDailyAvg;
 import com.taja.application.statistics.dto.StationHourlyAvg;
 import com.taja.application.station.StationRedisRepository;
