@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,7 @@ public class WeatherService {
 
     private final DistrictPointFileReader districtPointFileReader;
     private final DistrictPointRepository districtPointRepository;
-    private final WeatherApiService weatherApiService;
+    private final WeatherClient weatherClient;
     private final WeatherHistoryRepository weatherHistoryRepository;
 
     @Transactional
@@ -29,7 +31,16 @@ public class WeatherService {
 
     public void saveWeatherHistories(LocalDateTime requestedAt) {
         List<DistrictPoint> districtPoints = districtPointRepository.findAll();
-        weatherApiService.loadAndSaveWeatherHistories(districtPoints, requestedAt);
+
+        List<WeatherHistory> weatherHistories =
+                districtPoints.stream()
+                        .map(
+                                districtPoint ->
+                                        weatherClient.fetchWeatherHistory(districtPoint, requestedAt))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+
+        weatherHistoryRepository.saveAll(weatherHistories, requestedAt);
     }
 
     public Map<String, Map<Integer, Double>> findWeathersByBaseDate(LocalDate calculationDate) {

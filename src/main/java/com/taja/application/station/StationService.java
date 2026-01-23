@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -19,8 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class StationService {
 
     private final StationFileReader stationFileReader;
+    private final StationClient stationClient;
     private final StationRepository stationRepository;
     private final StationRedisRepository stationRedisRepository;
+    private final TransactionTemplate transactionTemplate;
+
+    private static final int TOTAL_COUNT = 3500;
+    private static final int ITEMS_PER_REQUEST = 500;
 
     @Transactional
     public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
@@ -30,16 +36,6 @@ public class StationService {
         stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
 
         return savedStations.size();
-    }
-
-    @Transactional
-    public void saveStations(List<Station> loadedStations, LocalDateTime requestedAt) {
-        log.info("총 {}개의 대여소 정보를 성공적으로 수집했습니다.", loadedStations.size());
-
-        List<Station> savedStations = stationRepository.upsert(loadedStations);
-        log.info("{}개의 대여소 정보를 DB에 저장했습니다. ", savedStations.size());
-
-        stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
     }
 
     @Transactional(readOnly = true)
@@ -86,5 +82,22 @@ public class StationService {
 
     public List<Station> findAllStations() {
         return stationRepository.findAll();
+    }
+
+    public void loadStations(LocalDateTime requestedAt) {
+        int pageCount = (int) Math.ceil((double) TOTAL_COUNT / ITEMS_PER_REQUEST);
+
+        for (int page = 0; page < pageCount; page++) {
+            int startIndex = 1 + (page * ITEMS_PER_REQUEST);
+            int endIndex = startIndex + ITEMS_PER_REQUEST - 1;
+
+            List<Station> loadedStations = stationClient.fetchStationInfos(startIndex, endIndex);
+            transactionTemplate.execute(status -> {
+                List<Station> savedStations = stationRepository.upsert(loadedStations);
+                stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
+                log.info("배치 저장 완료 ({}-{}): {}개의 대여소 정보 저장", startIndex, endIndex, savedStations.size());
+                return null;
+            });
+        }
     }
 }

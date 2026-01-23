@@ -2,9 +2,7 @@ package com.taja.application.weather;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.taja.domain.weather.WeatherHistory;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;

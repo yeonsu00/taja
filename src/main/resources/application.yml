@@ -40,6 +40,14 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 10000
+
 api:
   bike:
     key: ${BIKE_API_KEY}
