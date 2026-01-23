@@ -19,6 +19,7 @@ import org.springframework.web.client.ResourceAccessException;
 public class Resilience4jConfig {
 
     public static final String WEATHER_API_RESILIENCE = "weatherApi";
+    public static final String STATION_API_RESILIENCE = "stationApi";
 
     @Bean
     public RetryConfig retryConfig() {
@@ -62,5 +63,10 @@ public class Resilience4jConfig {
     @Bean
     public Retry weatherApiRetry(RetryRegistry retryRegistry, RetryConfig retryConfig) {
         return retryRegistry.retry(WEATHER_API_RESILIENCE, retryConfig);
+    }
+
+    @Bean
+    public Retry stationApiRetry(RetryRegistry retryRegistry, RetryConfig retryConfig) {
+        return retryRegistry.retry(STATION_API_RESILIENCE, retryConfig);
     }
 }

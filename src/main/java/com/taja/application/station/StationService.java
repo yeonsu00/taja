@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -22,6 +23,7 @@ public class StationService {
     private final StationClient stationClient;
     private final StationRepository stationRepository;
     private final StationRedisRepository stationRedisRepository;
+    private final TransactionTemplate transactionTemplate;
 
     private static final int TOTAL_COUNT = 3500;
     private static final int ITEMS_PER_REQUEST = 500;
@@ -90,11 +92,12 @@ public class StationService {
             int endIndex = startIndex + ITEMS_PER_REQUEST - 1;
 
             List<Station> loadedStations = stationClient.fetchStationInfos(startIndex, endIndex);
-
-            //저장 -> 트랜잭션 처리 필요
-            List<Station> savedStations = stationRepository.upsert(loadedStations);
-            stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
-            log.info("배치 저장 완료 ({}-{}): {}개의 대여소 정보 저장", startIndex, endIndex, savedStations.size());
+            transactionTemplate.execute(status -> {
+                List<Station> savedStations = stationRepository.upsert(loadedStations);
+                stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
+                log.info("배치 저장 완료 ({}-{}): {}개의 대여소 정보 저장", startIndex, endIndex, savedStations.size());
+                return null;
+            });
         }
     }
 }
