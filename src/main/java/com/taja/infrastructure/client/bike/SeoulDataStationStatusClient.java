@@ -110,30 +110,9 @@ public class SeoulDataStationStatusClient implements StatusClient {
 
     private Mono<List<StationStatusDto>> handleError(Throwable error, int startIndex, int endIndex) {
         String prefix = String.format("대여소 상태 API [%d-%d] ", startIndex, endIndex);
-
-        if (error instanceof NoRetryApiException e) {
-            log.error("{} 재시도 불가 에러 | CODE: {}, MESSAGE: {}", prefix, e.getCode(), e.getMessage());
-        }
-        else if (error instanceof ApiException e) {
-            log.error("{} 재시도 후 최종 실패 | CODE: {}, MESSAGE: {}", prefix, e.getCode(), e.getMessage());
-        }
-        else if (isTimeout(error)) {
-            log.error("{} 요청 타임아웃 발생 | 오류: {}", prefix, error.getMessage());
-        }
-        else if (error instanceof WebClientException) {
-            log.error("{} 네트워크/클라이언트 에러 | 오류: {}", prefix, error.getMessage());
-        }
-        else {
-            log.error("{} 알 수 없는 치명적 에러 | 타입: {}, 메시지: {}", prefix, error.getClass().getSimpleName(), error.getMessage());
-        }
-
+        String logMessage = ErrorLogStrategy.format(error, prefix);
+        log.error(logMessage);
         return Mono.just(List.of());
-    }
-
-    private boolean isTimeout(Throwable e) {
-        return e instanceof TimeoutException ||
-                e.getCause() instanceof TimeoutException ||
-                (e.getMessage() != null && e.getMessage().toLowerCase().contains("timeout"));
     }
 
     private String getPath(String apiPath, int startIndex, int endIndex) {
