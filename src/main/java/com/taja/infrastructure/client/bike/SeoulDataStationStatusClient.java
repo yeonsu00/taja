@@ -1,20 +1,33 @@
 package com.taja.infrastructure.client.bike;
 
 import com.taja.application.status.StatusClient;
+import com.taja.global.exception.ApiException;
+import com.taja.global.exception.NoRetryApiException;
 import com.taja.infrastructure.client.bike.dto.status.BikeApiResponseDto;
 import com.taja.infrastructure.client.bike.dto.status.BikeStatusDto;
 import com.taja.infrastructure.client.bike.dto.status.StationStatusDto;
+import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Slf4j
 @Service
 public class SeoulDataStationStatusClient implements StatusClient {
+
+    private static final String SUCCESS_RESULT_CODE = "INFO-000";
+    private static final Set<String> NON_RETRYABLE_ERROR_CODES = Set.of(
+            "ERROR-300", "ERROR-301", "ERROR-310", "ERROR-331",
+            "ERROR-332", "ERROR-333", "ERROR-334", "ERROR-335", "ERROR-336", "INFO-200"
+    );
 
     private final WebClient bikeWebClient;
     private final String apiKey;
@@ -37,38 +50,90 @@ public class SeoulDataStationStatusClient implements StatusClient {
                 .uri(path)
                 .retrieve()
                 .bodyToMono(BikeApiResponseDto.class)
-                .map(response -> {
-                    if (BikeApiResponseDto.hasErrorCode(response)) {
-                        String resultCode = response.result().code();
-                        String resultMessage = response.result().message();
+                .timeout(Duration.ofSeconds(10))
+                .map(response -> processResponse(response, startIndex, endIndex))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                        .filter(this::shouldRetry)
+                        .doBeforeRetry(retrySignal ->
+                                log.warn("대여소 상태 API 재시도 ({}-{}) | 시도 횟수: {}",
+                                        startIndex, endIndex, retrySignal.totalRetries() + 1)))
+                .onErrorResume(error -> handleError(error, startIndex, endIndex));
+    }
 
-                        return List.<StationStatusDto>of();
-                    }
+    private boolean shouldRetry(Throwable throwable) {
+        if (throwable instanceof NoRetryApiException) {
+            return false;
+        }
 
-                    if (!BikeApiResponseDto.hasRentBikeStatus(response)) {
-                        return List.<StationStatusDto>of();
-                    }
+        if (throwable instanceof ApiException ||
+                throwable instanceof TimeoutException ||
+                throwable instanceof WebClientException) {
+            return true;
+        }
 
-                    BikeStatusDto rentBikeStatus = response.rentBikeStatus();
-                    String resultCode = rentBikeStatus.result().code();
-                    String resultMessage = rentBikeStatus.result().message();
+        Throwable cause = throwable.getCause();
+        return cause instanceof TimeoutException || cause instanceof WebClientException;
+    }
 
-                    if ("INFO-000".equals(resultCode)) {
-                        List<StationStatusDto> stationStatuses = rentBikeStatus.stationStatuses();
-                        log.info("✅ 대여소 상태 API 요청 성공 ({}-{}) | 수집된 데이터 수: {}", 
-                                startIndex, endIndex, stationStatuses != null ? stationStatuses.size() : 0);
-                        return stationStatuses != null ? stationStatuses : List.<StationStatusDto>of();
-                    }
+    private List<StationStatusDto> processResponse(BikeApiResponseDto response, int startIndex, int endIndex) {
+        if (BikeApiResponseDto.hasErrorCode(response)) {
+            String resultCode = response.result().code();
+            String resultMessage = response.result().message();
 
-                    log.error("대여소 상태 API 에러 응답 ({}-{}) | CODE: {}, MESSAGE: {}",
-                            startIndex, endIndex, resultCode, resultMessage);
-                    return List.<StationStatusDto>of();
-                })
-                .onErrorResume(error -> {
-                    log.error("대여소 상태 API 호출 실패 ({}-{}) | 오류: {}",
-                            startIndex, endIndex, error.getMessage());
-                    return Mono.just(List.<StationStatusDto>of());
-                });
+            if (NON_RETRYABLE_ERROR_CODES.contains(resultCode)) {
+                throw new NoRetryApiException(resultCode, resultMessage);
+            }
+
+            throw new ApiException(resultCode, resultMessage);
+        }
+
+        if (!BikeApiResponseDto.hasRentBikeStatus(response)) {
+            throw new ApiException("JSON_PARSING_ERROR", "API 응답 DTO 파싱에 실패했습니다.");
+        }
+
+        BikeStatusDto rentBikeStatus = response.rentBikeStatus();
+        String resultCode = rentBikeStatus.result().code();
+        String resultMessage = rentBikeStatus.result().message();
+
+        if (SUCCESS_RESULT_CODE.equals(resultCode)) {
+            List<StationStatusDto> stationStatuses = rentBikeStatus.stationStatuses();
+            log.info("✅ 대여소 상태 API 요청 성공 ({}-{}) | 수집된 데이터 수: {}", startIndex, endIndex, stationStatuses.size());
+            return stationStatuses;
+        }
+
+        if (NON_RETRYABLE_ERROR_CODES.contains(resultCode)) {
+            throw new NoRetryApiException(resultCode, resultMessage);
+        }
+
+        throw new ApiException(resultCode, resultMessage);
+    }
+
+    private Mono<List<StationStatusDto>> handleError(Throwable error, int startIndex, int endIndex) {
+        String prefix = String.format("대여소 상태 API [%d-%d] ", startIndex, endIndex);
+
+        if (error instanceof NoRetryApiException e) {
+            log.error("{} 재시도 불가 에러 | CODE: {}, MESSAGE: {}", prefix, e.getCode(), e.getMessage());
+        }
+        else if (error instanceof ApiException e) {
+            log.error("{} 재시도 후 최종 실패 | CODE: {}, MESSAGE: {}", prefix, e.getCode(), e.getMessage());
+        }
+        else if (isTimeout(error)) {
+            log.error("{} 요청 타임아웃 발생 | 오류: {}", prefix, error.getMessage());
+        }
+        else if (error instanceof WebClientException) {
+            log.error("{} 네트워크/클라이언트 에러 | 오류: {}", prefix, error.getMessage());
+        }
+        else {
+            log.error("{} 알 수 없는 치명적 에러 | 타입: {}, 메시지: {}", prefix, error.getClass().getSimpleName(), error.getMessage());
+        }
+
+        return Mono.just(List.of());
+    }
+
+    private boolean isTimeout(Throwable e) {
+        return e instanceof TimeoutException ||
+                e.getCause() instanceof TimeoutException ||
+                (e.getMessage() != null && e.getMessage().toLowerCase().contains("timeout"));
     }
 
     private String getPath(String apiPath, int startIndex, int endIndex) {
