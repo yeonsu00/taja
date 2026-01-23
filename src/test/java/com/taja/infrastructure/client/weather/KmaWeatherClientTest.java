@@ -38,8 +38,8 @@ import org.springframework.web.client.ResourceAccessException;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@DisplayName("KmaWeatherClient Resilience4j 동작 테스트")
-class KmaWeatherClientResilienceTest {
+@DisplayName("KmaWeatherClient 테스트")
+class KmaWeatherClientTest {
 
     @Autowired
     private KmaWeatherClient kmaWeatherClient;
@@ -173,6 +173,25 @@ class KmaWeatherClientResilienceTest {
     class TimeoutTest {
 
         @Test
+        @DisplayName("연결 타임아웃 발생 시 3번 재시도 후 Fallback이 호출된다")
+        void callsFallback_after3Retries_whenConnectTimeout() {
+            // given
+            ResourceAccessException connectTimeoutException = 
+                    new ResourceAccessException("Connect timed out", new java.net.ConnectException("Connection timed out"));
+
+            doThrow(connectTimeoutException)
+                    .when(kmaWeatherFeignClient)
+                    .getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
+
+            // when
+            WeatherHistory result = kmaWeatherClient.fetchWeatherHistory(districtPoint, requestedAt);
+
+            // then
+            assertThat(result).isNull(); // fallback에서 null 반환
+            verify(kmaWeatherFeignClient, times(3)).getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
+        }
+
+        @Test
         @DisplayName("SocketTimeoutException 발생 시 3번 재시도 후 Fallback이 호출된다")
         void callsFallback_after3Retries_whenSocketTimeoutException() {
             // given
@@ -180,6 +199,25 @@ class KmaWeatherClientResilienceTest {
             RuntimeException runtimeException = new RuntimeException(socketTimeoutException);
 
             doThrow(runtimeException)
+                    .when(kmaWeatherFeignClient)
+                    .getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
+
+            // when
+            WeatherHistory result = kmaWeatherClient.fetchWeatherHistory(districtPoint, requestedAt);
+
+            // then
+            assertThat(result).isNull();
+            verify(kmaWeatherFeignClient, times(3)).getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
+        }
+
+        @Test
+        @DisplayName("읽기 타임아웃(ResourceAccessException) 발생 시 3번 재시도 후 Fallback이 호출된다")
+        void callsFallback_after3Retries_whenReadTimeoutResourceAccess() {
+            // given
+            ResourceAccessException readTimeoutException = 
+                    new ResourceAccessException("Read timed out", new SocketTimeoutException("Read timed out"));
+
+            doThrow(readTimeoutException)
                     .when(kmaWeatherFeignClient)
                     .getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
 
@@ -215,6 +253,25 @@ class KmaWeatherClientResilienceTest {
             // given
             TimeoutException timeoutException = new TimeoutException("Request timeout");
             RuntimeException runtimeException = new RuntimeException(timeoutException);
+
+            doThrow(runtimeException)
+                    .when(kmaWeatherFeignClient)
+                    .getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
+
+            // when
+            WeatherHistory result = kmaWeatherClient.fetchWeatherHistory(districtPoint, requestedAt);
+
+            // then
+            assertThat(result).isNull();
+            verify(kmaWeatherFeignClient, times(3)).getUltraShortNowcast(anyString(), anyString(), anyInt(), anyInt(), anyString(), anyString(), anyInt(), anyInt());
+        }
+
+        @Test
+        @DisplayName("타임아웃 발생 시 RuntimeException으로 래핑되어 재시도된다")
+        void retries_whenTimeoutWrappedInRuntimeException() {
+            // given
+            SocketTimeoutException socketTimeoutException = new SocketTimeoutException("Read timed out");
+            RuntimeException runtimeException = new RuntimeException("요청 시간이 초과되었습니다", socketTimeoutException);
 
             doThrow(runtimeException)
                     .when(kmaWeatherFeignClient)
@@ -373,7 +430,6 @@ class KmaWeatherClientResilienceTest {
 
             // then
             assertThat(result).isNull();
-            // 로그 검증은 별도로 할 수 있지만, 여기서는 null 반환만 확인
         }
     }
 

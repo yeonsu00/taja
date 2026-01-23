@@ -29,7 +29,7 @@ spring:
 
 api:
   bike:
-    key: test-key
+    key: /test-key
     base-url: http://localhost:8080
     status:
       path: /test/status
