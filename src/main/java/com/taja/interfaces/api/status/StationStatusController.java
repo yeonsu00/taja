@@ -1,6 +1,6 @@
 package com.taja.interfaces.api.status;
 
-import com.taja.application.status.StationStatusApiService;
+import com.taja.application.status.StationStatusService;
 import com.taja.global.response.CommonApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Station Status", description = "Station Status API")
 public class StationStatusController {
 
-    private final StationStatusApiService stationStatusApiService;
+    private final StationStatusService stationStatusService;
 
     @Operation(summary = "대여소 실시간 상태 업로드", description = "대여소 실시간 상태 정보를 수집하여 저장합니다.")
     @PostMapping("/upload")
     public CommonApiResponse<String> readStationStatus() {
         LocalDateTime now = LocalDateTime.now();
-        stationStatusApiService.loadStationStatuses(now);
+        stationStatusService.loadStationStatuses(now);
         return CommonApiResponse.success("대여소 실시간 상태가 등록되었습니다.");
     }
 

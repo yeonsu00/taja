@@ -1,6 +1,6 @@
 package com.taja.interfaces.scheduler;
 
-import com.taja.application.status.StationStatusApiService;
+import com.taja.application.status.StationStatusService;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class StationStatusScheduler {
 
-    private final StationStatusApiService stationStatusApiService;
+    private final StationStatusService stationStatusService;
 
     @Scheduled(cron = "0 0/10 * * * *")
     public void scheduleStationStatusCollection() {
@@ -20,7 +20,7 @@ public class StationStatusScheduler {
         log.info("===== 대여소 실시간 상태 수집 스케줄러 시작 : {} =====", scheduledTime);
 
         try {
-            stationStatusApiService.loadStationStatuses(scheduledTime);
+            stationStatusService.loadStationStatuses(scheduledTime);
         } catch (Exception e) {
             log.error("대여소 실시간 상태 수집 스케줄링 작업 실행 중 오류가 발생했습니다.", e);
         }
