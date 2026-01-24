@@ -2,9 +2,11 @@ package com.taja.application.status;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.taja.application.station.StationRepository;
+import com.taja.domain.station.OperationMode;
+import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +24,9 @@ class StationStatusServiceIntegrationTest {
 
     @Autowired
     private StationStatusService stationStatusService;
+
+    @Autowired
+    private StationRepository stationRepository;
 
     @DisplayName("날짜별 대여소 상태 조회 시,")
     @Nested
@@ -63,9 +68,11 @@ class StationStatusServiceIntegrationTest {
         void calculatesHourlyAverageCorrectly() {
             // arrange
             LocalDate date = LocalDate.of(2024, 1, 1);
+            List<Station> stations = persistStations(1, 2);
+            Long station1Id = stations.stream().filter(s -> s.getNumber() == 1).findFirst().orElseThrow().getStationId();
+            Long station2Id = stations.stream().filter(s -> s.getNumber() == 2).findFirst().orElseThrow().getStationId();
 
             StationStatus status1 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(10)
                     .requestedDate(date)
@@ -73,7 +80,6 @@ class StationStatusServiceIntegrationTest {
                     .build();
 
             StationStatus status2 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(15)
                     .requestedDate(date)
@@ -81,7 +87,6 @@ class StationStatusServiceIntegrationTest {
                     .build();
 
             StationStatus status3 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(20)
                     .requestedDate(date)
@@ -89,7 +94,6 @@ class StationStatusServiceIntegrationTest {
                     .build();
 
             StationStatus status4 = StationStatus.builder()
-                    .stationId(2L)
                     .stationNumber(2)
                     .parkingBikeCount(30)
                     .requestedDate(date)
@@ -105,7 +109,7 @@ class StationStatusServiceIntegrationTest {
             assertThat(result).hasSize(2); // 2개 대여소
 
             var station1Result = result.stream()
-                    .filter(avg -> avg.stationId().equals(1L))
+                    .filter(avg -> avg.stationId().equals(station1Id))
                     .findFirst()
                     .orElseThrow();
             assertThat(station1Result.hourlyAvgParkingBikeCounts()).hasSize(2);
@@ -115,7 +119,7 @@ class StationStatusServiceIntegrationTest {
             assertThat(station1Result.hourlyAvgParkingBikeCounts().get(10)).isEqualTo(20);
 
             var station2Result = result.stream()
-                    .filter(avg -> avg.stationId().equals(2L))
+                    .filter(avg -> avg.stationId().equals(station2Id))
                     .findFirst()
                     .orElseThrow();
             assertThat(station2Result.hourlyAvgParkingBikeCounts()).hasSize(1);
@@ -128,24 +132,24 @@ class StationStatusServiceIntegrationTest {
         void roundsUpWhenAverageIsHalfOrMore_roundsDownWhenAverageIsLessThanHalf() {
             // arrange
             LocalDate date = LocalDate.of(2024, 1, 1);
+            List<Station> stations = persistStations(1, 2);
+            Long station1Id = stations.stream().filter(s -> s.getNumber() == 1).findFirst().orElseThrow().getStationId();
+            Long station2Id = stations.stream().filter(s -> s.getNumber() == 2).findFirst().orElseThrow().getStationId();
 
             // 평균 12.7이 되는 케이스: (10 + 10 + 18) / 3 = 12.666... -> Math.round(12.666...) = 13
             StationStatus status1_1 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(10)
                     .requestedDate(date)
                     .requestedTime(LocalTime.of(9, 0))
                     .build();
             StationStatus status1_2 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(10)
                     .requestedDate(date)
                     .requestedTime(LocalTime.of(9, 0))
                     .build();
             StationStatus status1_3 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(18)
                     .requestedDate(date)
@@ -154,21 +158,18 @@ class StationStatusServiceIntegrationTest {
 
             // 평균 12.2가 되는 케이스: (10 + 10 + 17) / 3 = 12.333... -> Math.round(12.333...) = 12
             StationStatus status2_1 = StationStatus.builder()
-                    .stationId(2L)
                     .stationNumber(2)
                     .parkingBikeCount(10)
                     .requestedDate(date)
                     .requestedTime(LocalTime.of(9, 0))
                     .build();
             StationStatus status2_2 = StationStatus.builder()
-                    .stationId(2L)
                     .stationNumber(2)
                     .parkingBikeCount(10)
                     .requestedDate(date)
                     .requestedTime(LocalTime.of(9, 0))
                     .build();
             StationStatus status2_3 = StationStatus.builder()
-                    .stationId(2L)
                     .stationNumber(2)
                     .parkingBikeCount(17)
                     .requestedDate(date)
@@ -185,14 +186,14 @@ class StationStatusServiceIntegrationTest {
 
             // assert
             var station1Result = result.stream()
-                    .filter(avg -> avg.stationId().equals(1L))
+                    .filter(avg -> avg.stationId().equals(station1Id))
                     .findFirst()
                     .orElseThrow();
             // 대여소1의 9시: (10 + 10 + 18) / 3 = 12.666... -> Math.round(12.666...) = 13
             assertThat(station1Result.hourlyAvgParkingBikeCounts().get(9)).isEqualTo(13);
 
             var station2Result = result.stream()
-                    .filter(avg -> avg.stationId().equals(2L))
+                    .filter(avg -> avg.stationId().equals(station2Id))
                     .findFirst()
                     .orElseThrow();
             // 대여소2의 9시: (10 + 10 + 17) / 3 = 12.333... -> Math.round(12.333...) = 12
@@ -222,9 +223,11 @@ class StationStatusServiceIntegrationTest {
         void calculatesDailyAverageCorrectly() {
             // arrange
             LocalDate date = LocalDate.of(2024, 1, 1);
+            List<Station> stations = persistStations(1, 2);
+            Long station1Id = stations.stream().filter(s -> s.getNumber() == 1).findFirst().orElseThrow().getStationId();
+            Long station2Id = stations.stream().filter(s -> s.getNumber() == 2).findFirst().orElseThrow().getStationId();
 
             StationStatus status1 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(10)
                     .requestedDate(date)
@@ -232,7 +235,6 @@ class StationStatusServiceIntegrationTest {
                     .build();
 
             StationStatus status2 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(15)
                     .requestedDate(date)
@@ -240,7 +242,6 @@ class StationStatusServiceIntegrationTest {
                     .build();
 
             StationStatus status3 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(20)
                     .requestedDate(date)
@@ -248,7 +249,6 @@ class StationStatusServiceIntegrationTest {
                     .build();
 
             StationStatus status4 = StationStatus.builder()
-                    .stationId(2L)
                     .stationNumber(2)
                     .parkingBikeCount(30)
                     .requestedDate(date)
@@ -264,14 +264,14 @@ class StationStatusServiceIntegrationTest {
             assertThat(result).hasSize(2); // 2개 대여소
 
             var station1Result = result.stream()
-                    .filter(avg -> avg.stationId().equals(1L))
+                    .filter(avg -> avg.stationId().equals(station1Id))
                     .findFirst()
                     .orElseThrow();
             // 대여소1의 일평균: (10 + 15 + 20) / 3 = 15.0 -> Math.round(15.0) = 15
             assertThat(station1Result.dailyAvgParkingBikeCount()).isEqualTo(15);
 
             var station2Result = result.stream()
-                    .filter(avg -> avg.stationId().equals(2L))
+                    .filter(avg -> avg.stationId().equals(station2Id))
                     .findFirst()
                     .orElseThrow();
             // 대여소2의 일평균: 30대 하나만 있으므로 평균 30
@@ -290,5 +290,20 @@ class StationStatusServiceIntegrationTest {
             // assert
             assertThat(result).isEmpty();
         }
+    }
+
+    private List<Station> persistStations(int... numbers) {
+        List<Station> toSave = java.util.stream.IntStream.range(0, numbers.length)
+                .mapToObj(i -> Station.builder()
+                        .name("대여소" + numbers[i])
+                        .number(numbers[i])
+                        .district("강남구")
+                        .address("주소")
+                        .latitude(37.5665)
+                        .longitude(126.9780)
+                        .operationMode(OperationMode.QR)
+                        .build())
+                .toList();
+        return stationRepository.upsert(toSave);
     }
 }

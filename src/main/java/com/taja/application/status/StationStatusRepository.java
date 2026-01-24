@@ -9,5 +9,5 @@ public interface StationStatusRepository {
 
     List<StationStatus> findByDate(LocalDate calculationDate);
 
-    List<StationStatus> findAllByDateAndStationIds(LocalDate calculationDate, List<Long> stationIds);
+    List<StationStatus> findAllByDateAndStationNumbers(LocalDate calculationDate, List<Integer> stationNumbers);
 }

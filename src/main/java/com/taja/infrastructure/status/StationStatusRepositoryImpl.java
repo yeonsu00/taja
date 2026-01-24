@@ -24,10 +24,10 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
     }
 
     @Override
-    public List<StationStatus> findAllByDateAndStationIds(LocalDate calculationDate, List<Long> stationIds) {
-        if (stationIds.isEmpty()) {
+    public List<StationStatus> findAllByDateAndStationNumbers(LocalDate calculationDate, List<Integer> stationNumbers) {
+        if (stationNumbers.isEmpty()) {
             return List.of();
         }
-        return stationStatusJpaRepository.findAllByDateAndStationIds(calculationDate, stationIds);
+        return stationStatusJpaRepository.findAllByDateAndStationNumbers(calculationDate, stationNumbers);
     }
 }
