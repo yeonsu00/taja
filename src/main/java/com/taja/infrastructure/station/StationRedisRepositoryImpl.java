@@ -41,32 +41,6 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     private static final String GEO_KEY = "locations";
 
     @Override
-    public boolean saveStation(Station station, LocalDateTime requestedAt) {
-        String hashKey = STATION_KEY_PREFIX + station.getNumber();
-
-        try {
-            redisTemplate.opsForGeo().add(
-                    GEO_KEY,
-                    new Point(station.getLongitude(), station.getLatitude()),
-                    String.valueOf(station.getNumber())
-            );
-
-            Map<String, Object> values = new HashMap<>();
-            values.put("stationId", station.getStationId());
-            values.put("bikeCount", 0);
-            values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
-            values.put("district", station.getDistrict());
-
-            redisTemplate.opsForHash().putAll(hashKey, values);
-
-            return true;
-        } catch (Exception e) {
-            log.error("Redis 저장 실패: station={}", station.getNumber(), e);
-            return false;
-        }
-    }
-
-    @Override
     public void saveStationsWithPipeline(List<Station> stations, LocalDateTime requestedAt) {
         try {
             redisTemplate.executePipelined(new SessionCallback<Object>() {
@@ -75,12 +49,14 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
                     for (Station station : stations) {
                         String hashKey = STATION_KEY_PREFIX + station.getNumber();
-                        Map<String, Object> values = new HashMap<>();
-                        values.put("stationId", station.getStationId());
-                        values.put("bikeCount", 0);
-                        values.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
-                        values.put("district", station.getDistrict());
-                        operations.opsForHash().putAll((K) hashKey, values);
+
+                        Map<String, Object> updateValues = new HashMap<>();
+                        updateValues.put("stationId", station.getStationId());
+                        updateValues.put("requestedAt", requestedAt.withSecond(0).withNano(0).toString());
+                        updateValues.put("district", station.getDistrict());
+
+                        operations.opsForHash().putAll((K) hashKey, updateValues);
+                        operations.opsForHash().putIfAbsent((K) hashKey, "bikeCount", "0");
 
                         operations.opsForGeo().add(
                                 (K) GEO_KEY,
@@ -92,35 +68,35 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 }
             });
 
-            log.info("{}개의 대여소 정보를 Redis에 저장했습니다. ", stations.size());
+            log.info("{}개의 대여소 정보 갱신 및 신규 등록을 완료했습니다.", stations.size());
         } catch (Exception e) {
-            log.error("Redis 파이프라인 저장 실패: 총 {}개 중 작업 실패", stations.size(), e);
+            log.error("Redis 파이프라인 작업 중 오류 발생", e);
         }
     }
 
-    @Override
-    public boolean updateBikeCountAndRequestedAt(StationStatus status) {
-        String key = STATION_KEY_PREFIX + status.getStationNumber();
-
-        if (!redisTemplate.hasKey(key)) {
-            log.warn("해당 key가 존재하지 않음: {}", key);
-            return false;
-        }
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("bikeCount", status.getParkingBikeCount());
-
-        LocalDateTime requestedAt = getLocalDateTime(status);
-        updates.put("requestedAt", requestedAt.toString());
-
-        try {
-            redisTemplate.opsForHash().putAll(key, updates);
-            return true;
-        } catch (Exception e) {
-            log.error("Redis 업데이트 실패: {}", key, e);
-            return false;
-        }
-    }
+//    @Override
+//    public boolean updateBikeCountAndRequestedAt(StationStatus status) {
+//        String key = STATION_KEY_PREFIX + status.getStationNumber();
+//
+//        if (!redisTemplate.hasKey(key)) {
+//            log.warn("해당 key가 존재하지 않음: {}", key);
+//            return false;
+//        }
+//
+//        Map<String, Object> updates = new HashMap<>();
+//        updates.put("bikeCount", status.getParkingBikeCount());
+//
+//        LocalDateTime requestedAt = getLocalDateTime(status);
+//        updates.put("requestedAt", requestedAt.toString());
+//
+//        try {
+//            redisTemplate.opsForHash().putAll(key, updates);
+//            return true;
+//        } catch (Exception e) {
+//            log.error("Redis 업데이트 실패: {}", key, e);
+//            return false;
+//        }
+//    }
 
     @Override
     public void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses) {
