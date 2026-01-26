@@ -44,7 +44,10 @@ public class StationService {
         double height = latDelta * 2;
         double width = lonDelta * 2;
 
-        return stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
+        List<StationInfo.StationGeoInfo> geoInfos = stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
+        List<StationInfo.StationFullInfo> stationInfos = stationRedisRepository.findStationInfos(geoInfos);
+
+        return StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
     }
 
     @Transactional(readOnly = true)
@@ -69,9 +72,13 @@ public class StationService {
     public StationDetailResponse findStationDetail(Long stationId) {
         Station station = stationRepository.findStationById(stationId);
 
+        List<StationInfo.StationGeoInfo> geoInfos = stationRedisRepository.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1);
+        List<StationInfo.StationFullInfo> stationInfos = stationRedisRepository.findStationInfos(geoInfos);
+        List<MapStationResponse> nearbyStationsResponse = StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
+
         List<Integer> nearbyStationsNumber =
                 MapStationResponse.extractAvailableNumbers(
-                        stationRedisRepository.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1),
+                        nearbyStationsResponse,
                         station.getNumber()
                 );
 

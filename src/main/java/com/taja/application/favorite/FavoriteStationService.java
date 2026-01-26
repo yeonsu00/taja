@@ -1,5 +1,6 @@
 package com.taja.application.favorite;
 
+import com.taja.application.station.StationInfo;
 import com.taja.domain.favorite.FavoriteStation;
 import com.taja.application.member.MemberRepository;
 import com.taja.domain.member.Member;
@@ -49,6 +50,7 @@ public class FavoriteStationService {
     @Transactional(readOnly = true)
     public List<MapStationResponse> findFavoriteStationsByMemberEmail(String email) {
         List<Station> favoriteStations = favoriteStationRepository.findFavoriteStationsByMemberEmail(email);
-        return stationRedisRepository.findStationStatus(favoriteStations);
+        List<StationInfo.StationFullInfo> stationInfos = stationRedisRepository.findStationStatus(favoriteStations);
+        return StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
     }
 }
