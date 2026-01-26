@@ -33,15 +33,23 @@ public class StationCacheEventListener {
                 .collect(Collectors.toList());
         List<Station> stations = stationService.findStationByNumbers(stationNumbers);
         
-        stationCacheService.saveStations(stations, event.requestedAt());
-        log.info("대여소 캐시 갱신 완료: {}개", stations.size());
+        try {
+            stationCacheService.saveStations(stations, event.requestedAt());
+            log.info("대여소 캐시 갱신 완료: {}개", stations.size());
+        } catch (Exception e) {
+            log.error("대여소 캐시 갱신 중 오류 발생: {}", e.getMessage(), e);
+        }
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleStationStatusesUpdated(StationEvent.StationStatusesUpdated event) {
         log.info("대여소 상태 업데이트 이벤트 수신: {}개 대여소 상태 캐시 갱신 시작", event.stationStatuses().size());
-        stationCacheService.updateBikeCountAndRequestedAt(event.stationStatuses());
-        log.info("대여소 상태 캐시 갱신 완료: {}개", event.stationStatuses().size());
+        try {
+            stationCacheService.updateBikeCountAndRequestedAt(event.stationStatuses());
+            log.info("대여소 상태 캐시 갱신 완료: {}개", event.stationStatuses().size());
+        } catch (Exception e) {
+            log.error("대여소 상태 캐시 갱신 중 오류 발생: {}", e.getMessage(), e);
+        }
     }
 }
