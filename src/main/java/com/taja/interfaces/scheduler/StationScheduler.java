@@ -1,6 +1,7 @@
 package com.taja.interfaces.scheduler;
 
 import com.taja.application.station.StationService;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +15,18 @@ public class StationScheduler {
 
     private final StationService stationService;
 
+    @PostConstruct
+    public void initializeStationCollection() {
+        log.info("===== 서버 시작 시 대여소 정보 수집 실행 =====");
+        executeStationCollection();
+    }
+
     @Scheduled(cron = "0 12 3 1 * *")
     public void scheduleStationCollection() {
+        executeStationCollection();
+    }
+
+    private void executeStationCollection() {
         LocalDateTime scheduledTime = LocalDateTime.now();
         log.info("===== 대여소 정보 수집 스케줄러 시작 : {} =====", scheduledTime);
 
@@ -24,7 +35,6 @@ public class StationScheduler {
         } catch (Exception e) {
             log.error("대여소 정보 수집 스케줄링 작업 실행 중 오류가 발생했습니다.", e);
         }
-
     }
 
 }
