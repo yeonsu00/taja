@@ -1,6 +1,8 @@
 package com.taja.interfaces.api.station;
 
+import com.taja.application.favorite.FavoriteStationFacade;
 import com.taja.application.favorite.FavoriteStationService;
+import com.taja.application.station.StationFacade;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.application.station.StationService;
@@ -34,13 +36,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class StationController {
 
     private final StationService stationService;
+    private final StationFacade stationFacade;
     private final FavoriteStationService favoriteStationService;
+    private final FavoriteStationFacade favoriteStationFacade;
 
     @Operation(summary = "대여소 파일 업로드", description = "엑셀 파일을 업로드하여 대여소 정보를 등록 및 수정합니다.")
     @PostMapping("/upload")
     public CommonApiResponse<String> readStationFile(@RequestParam("file") MultipartFile file) {
         LocalDateTime requestedAt = LocalDateTime.now();
-        int count = stationService.uploadStationsFromFile(file, requestedAt);
+        int count = stationFacade.uploadStationsFromFile(file, requestedAt);
         return CommonApiResponse.success(count + "개 대여소가 등록 및 수정되었습니다.");
     }
 
@@ -48,7 +52,7 @@ public class StationController {
     @GetMapping("/map/nearby")
     public CommonApiResponse<List<MapStationResponse>> findNearbyStations(
             @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
-        List<MapStationResponse> nearbyStations = stationService.findNearbyStations(
+        List<MapStationResponse> nearbyStations = stationFacade.findNearbyStations(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
@@ -75,7 +79,7 @@ public class StationController {
     @GetMapping("/{stationId}")
     public CommonApiResponse<StationDetailResponse> findStationDetail(
             @PathVariable("stationId") Long stationId) {
-        StationDetailResponse stationDetailResponse = stationService.findStationDetail(stationId);
+        StationDetailResponse stationDetailResponse = stationFacade.findStationDetail(stationId);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
     }
 
@@ -116,7 +120,7 @@ public class StationController {
     public CommonApiResponse<List<MapStationResponse>> findFavoriteStations(
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         String email = customUserDetails.getUsername();
-        List<MapStationResponse> favoriteStations = favoriteStationService.findFavoriteStationsByMemberEmail(email);
+        List<MapStationResponse> favoriteStations = favoriteStationFacade.findFavoriteStationsByMemberEmail(email);
         return CommonApiResponse.success(favoriteStations, "즐겨찾기 대여소 조회에 성공했습니다.");
     }
 

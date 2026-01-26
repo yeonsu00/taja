@@ -71,9 +71,9 @@ class StatisticsFacadeIntegrationTest {
             LocalDate requestedAt = LocalDate.of(2024, 1, 2);
             LocalDate calculationDate = requestedAt.minusDays(1);
 
-            StationStatus status1 = createStationStatus(1L, 1, 10, calculationDate, LocalTime.of(9, 0));
-            StationStatus status2 = createStationStatus(1L, 1, 15, calculationDate, LocalTime.of(10, 0));
-            StationStatus status3 = createStationStatus(2L, 2, 20, calculationDate, LocalTime.of(9, 0));
+            StationStatus status1 = createStationStatus(1, 10, calculationDate, LocalTime.of(9, 0));
+            StationStatus status2 = createStationStatus(1, 15, calculationDate, LocalTime.of(10, 0));
+            StationStatus status3 = createStationStatus(2, 20, calculationDate, LocalTime.of(9, 0));
 
             List<StationStatus> stationStatuses = List.of(status1, status2, status3);
 
@@ -186,9 +186,9 @@ class StatisticsFacadeIntegrationTest {
             LocalDate calculationDate = requestedAt.minusDays(1); // 월요일
             DayOfWeek dayOfWeek = calculationDate.getDayOfWeek(); // MONDAY
 
-            StationStatus status1 = createStationStatus(1L, 1, 10, calculationDate, LocalTime.of(9, 0));
-            StationStatus status2 = createStationStatus(1L, 1, 15, calculationDate, LocalTime.of(10, 0));
-            StationStatus status3 = createStationStatus(2L, 2, 20, calculationDate, LocalTime.of(9, 0));
+            StationStatus status1 = createStationStatus(1, 10, calculationDate, LocalTime.of(9, 0));
+            StationStatus status2 = createStationStatus(1, 15, calculationDate, LocalTime.of(10, 0));
+            StationStatus status3 = createStationStatus(2, 20, calculationDate, LocalTime.of(9, 0));
 
             List<StationStatus> stationStatuses = List.of(status1, status2, status3);
 
@@ -429,10 +429,9 @@ class StatisticsFacadeIntegrationTest {
         }
     }
 
-    private StationStatus createStationStatus(Long stationId, Integer stationNumber, Integer parkingBikeCount,
+    private StationStatus createStationStatus(Integer stationNumber, Integer parkingBikeCount,
                                                LocalDate requestedDate, LocalTime requestedTime) {
         StationStatus status = mock(StationStatus.class);
-        when(status.getStationId()).thenReturn(stationId);
         when(status.getStationNumber()).thenReturn(stationNumber);
         when(status.getParkingBikeCount()).thenReturn(parkingBikeCount);
         when(status.getRequestedDate()).thenReturn(requestedDate);

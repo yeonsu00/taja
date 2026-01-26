@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class RedisExceptionAspect {
 
     @AfterThrowing(
-            pointcut = "execution(* com.taja.infrastructure.station.StationRedisRepositoryImpl.*(..))",
+            pointcut = "execution(* com.taja.infrastructure.cache.StationRedisRepositoryImpl.*(..))",
             throwing = "ex"
     )
     public void handleDataAccessException(JoinPoint joinPoint, DataAccessException ex) {

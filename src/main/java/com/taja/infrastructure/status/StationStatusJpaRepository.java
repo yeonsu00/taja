@@ -12,12 +12,12 @@ public interface StationStatusJpaRepository extends JpaRepository<StationStatus,
     @Query("""
         SELECT s FROM StationStatus s
         WHERE s.requestedDate = :date
-        AND s.stationId IN :stationIds
-        ORDER BY s.stationId, s.requestedTime
+        AND s.stationNumber IN :stationNumbers
+        ORDER BY s.stationNumber, s.requestedTime
     """)
-    List<StationStatus> findAllByDateAndStationIds(
+    List<StationStatus> findAllByDateAndStationNumbers(
             @Param("date") LocalDate calculationDate,
-            @Param("stationIds") List<Long> stationIds
+            @Param("stationNumbers") List<Integer> stationNumbers
     );
 
     List<StationStatus> findByRequestedDate(LocalDate requestedDate);

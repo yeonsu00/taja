@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Entity
 @Table(name = "station_status",
         indexes = {
-                @Index(name = "idx_station_status_date_station", columnList = "requestedDate, stationId")
+                @Index(name = "idx_station_status_date_station", columnList = "requestedDate, stationNumber")
         }
 )
 @RequiredArgsConstructor
@@ -31,9 +31,6 @@ public class StationStatus {
     private Integer stationNumber;
 
     @Column(nullable = false)
-    private Long stationId;
-
-    @Column(nullable = false)
     private Integer parkingBikeCount;
 
     @Column(nullable = false)
@@ -43,11 +40,10 @@ public class StationStatus {
     private LocalTime requestedTime;
 
     @Builder
-    public StationStatus(Long stationStatusId, Integer stationNumber, Long stationId, Integer parkingBikeCount,
+    public StationStatus(Long stationStatusId, Integer stationNumber, Integer parkingBikeCount,
                          LocalDate requestedDate, LocalTime requestedTime) {
         this.stationStatusId = stationStatusId;
         this.stationNumber = stationNumber;
-        this.stationId = stationId;
         this.parkingBikeCount = parkingBikeCount;
         this.requestedDate = requestedDate;
         this.requestedTime = requestedTime;

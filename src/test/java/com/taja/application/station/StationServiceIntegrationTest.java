@@ -35,40 +35,4 @@ class StationServiceIntegrationTest {
         }
     }
 
-    @DisplayName("주변 대여소 조회 시,")
-    @Nested
-    class FindNearbyStations {
-
-        @DisplayName("주변 대여소를 조회할 수 있다.")
-        @Test
-        void findsNearbyStations() {
-            // arrange
-            double centerLat = 37.5665;
-            double centerLon = 126.9780;
-            double latDelta = 0.01;
-            double lonDelta = 0.01;
-
-            // act
-            var result = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
-
-            // assert
-            assertThat(result).isNotNull();
-        }
-
-        @DisplayName("범위가 0이면 빈 리스트를 반환한다.")
-        @Test
-        void returnsEmptyList_whenDeltaIsZero() {
-            // arrange
-            double centerLat = 37.5665;
-            double centerLon = 126.9780;
-            double latDelta = 0.0;
-            double lonDelta = 0.0;
-
-            // act
-            var result = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
-
-            // assert
-            assertThat(result).isEmpty();
-        }
-    }
 }

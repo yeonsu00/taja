@@ -32,11 +32,12 @@ public class TemperatureStatisticsBatchService {
                              Map<String, Map<Integer, Double>> districtHourlyTempMap,
                              StationDistricts stationDistricts) {
         List<Long> stationIds = Station.toStationIds(batchStations);
+        List<Integer> stationNumbers = batchStations.stream().map(Station::getNumber).toList();
 
         log.info("배치 처리 시작 - 대여소 수: {}", batchStations.size());
 
-        List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDateAndStationIds(
-                calculationDate, stationIds);
+        List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDateAndStationNumbers(
+                calculationDate, stationNumbers);
 
         List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts = stationStatusService.calculateHourlyAvgParkingBikeCount(
                 stationStatuses);

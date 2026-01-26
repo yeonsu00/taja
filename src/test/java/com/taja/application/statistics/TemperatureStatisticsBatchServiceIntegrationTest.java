@@ -2,6 +2,7 @@ package com.taja.application.statistics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.taja.application.station.StationRepository;
 import com.taja.application.statistics.dto.StationDistricts;
 import com.taja.application.status.StationStatusRepository;
 import com.taja.domain.station.OperationMode;
@@ -35,6 +36,9 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
     @Autowired
     private StationStatusRepository stationStatusRepository;
 
+    @Autowired
+    private StationRepository stationRepository;
+
     @DisplayName("기온별 통계 배치 처리 시,")
     @Nested
     class ProcessBatch {
@@ -45,10 +49,10 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
             // arrange
             LocalDate calculationDate = LocalDate.of(2024, 1, 1);
             Station station = createStation(1L, "대여소1", "강남구");
+            station = stationRepository.upsert(List.of(station)).getFirst();
 
             // 대여소 상태 데이터 생성 및 저장
             StationStatus status1 = StationStatus.builder()
-                    .stationId(1L)
                     .stationNumber(1)
                     .parkingBikeCount(10)
                     .requestedDate(calculationDate)
@@ -69,7 +73,7 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
                     List.of(station), calculationDate, districtHourlyTempMap, stationDistricts);
 
             // assert
-            List<TemperatureStatistics> savedStats = temperatureStatisticsService.findStatisticsByStationIds(List.of(1L));
+            List<TemperatureStatistics> savedStats = temperatureStatisticsService.findStatisticsByStationIds(List.of(station.getStationId()));
             assertThat(savedStats).isNotEmpty();
         }
 
