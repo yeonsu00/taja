@@ -1,4 +1,4 @@
-package com.taja.application.station;
+package com.taja.application.cache;
 
 import com.taja.domain.status.StationStatus;
 import com.taja.domain.station.Station;
@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StationRedisRepository {
-    void saveStationsWithPipeline(List<Station> stations, LocalDateTime requestedAt);
+    void saveStations(List<Station> stations, LocalDateTime requestedAt);
 
     void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses);
 

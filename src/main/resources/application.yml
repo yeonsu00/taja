@@ -66,6 +66,11 @@ jwt:
     access-token: 1800000   # 30분
     refresh-token: 604800000 # 7일
 
+cache:
+  station:
+    ttl-sec: 3600
+    refresh-threshold-sec: 10
+
 springdoc:
   api-docs:
     enabled: true

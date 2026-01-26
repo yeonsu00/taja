@@ -3,7 +3,8 @@ package com.taja.infrastructure.station;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.taja.application.station.StationInfo;
+import com.taja.application.cache.StationInfo;
+import com.taja.infrastructure.cache.StationRedisRepositoryImpl;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;

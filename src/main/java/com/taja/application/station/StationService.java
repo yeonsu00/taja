@@ -1,9 +1,8 @@
 package com.taja.application.station;
 
+import com.taja.application.cache.StationRedisRepository;
 import com.taja.domain.station.Station;
-import com.taja.interfaces.api.station.response.MapStationResponse;
 import com.taja.interfaces.api.station.response.StationSimpleResponse;
-import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -22,32 +21,15 @@ public class StationService {
     private final StationFileReader stationFileReader;
     private final StationClient stationClient;
     private final StationRepository stationRepository;
-    private final StationRedisRepository stationRedisRepository;
     private final TransactionTemplate transactionTemplate;
+    private final StationRedisRepository stationRedisRepository;
 
     private static final int TOTAL_COUNT = 3500;
     private static final int ITEMS_PER_REQUEST = 500;
 
-    @Transactional
-    public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
+    public List<Station> uploadStationsFromFile(MultipartFile file) {
         List<Station> readStations = stationFileReader.readStationsFromFile(file);
-        List<Station> savedStations = stationRepository.upsert(readStations);
-
-        stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
-
-        return savedStations.size();
-    }
-
-    @Transactional(readOnly = true)
-    public List<MapStationResponse> findNearbyStations(double centerLat, double centerLon,
-                                                       double latDelta, double lonDelta) {
-        double height = latDelta * 2;
-        double width = lonDelta * 2;
-
-        List<StationInfo.StationGeoInfo> geoInfos = stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
-        List<StationInfo.StationFullInfo> stationInfos = stationRedisRepository.findStationInfos(geoInfos);
-
-        return StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
+        return stationRepository.upsert(readStations);
     }
 
     @Transactional(readOnly = true)
@@ -68,23 +50,12 @@ public class StationService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public StationDetailResponse findStationDetail(Long stationId) {
-        Station station = stationRepository.findStationById(stationId);
+    public Station findStationByStationId(Long stationId) {
+        return stationRepository.findStationById(stationId);
+    }
 
-        List<StationInfo.StationGeoInfo> geoInfos = stationRedisRepository.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1);
-        List<StationInfo.StationFullInfo> stationInfos = stationRedisRepository.findStationInfos(geoInfos);
-        List<MapStationResponse> nearbyStationsResponse = StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
-
-        List<Integer> nearbyStationsNumber =
-                MapStationResponse.extractAvailableNumbers(
-                        nearbyStationsResponse,
-                        station.getNumber()
-                );
-
-        List<Station> nearbyStations = stationRepository.findByNumbers(nearbyStationsNumber);
-
-        return StationDetailResponse.fromStation(station, nearbyStations);
+    public List<Station> findStationByNumbers(List<Integer> stationNumbers) {
+        return stationRepository.findByNumbers(stationNumbers);
     }
 
     public List<Station> findAllStations() {
@@ -101,7 +72,7 @@ public class StationService {
             List<Station> loadedStations = stationClient.fetchStationInfos(startIndex, endIndex);
             transactionTemplate.execute(status -> {
                 List<Station> savedStations = stationRepository.upsert(loadedStations);
-                stationRedisRepository.saveStationsWithPipeline(savedStations, requestedAt);
+                stationRedisRepository.saveStations(savedStations, requestedAt);
                 log.info("배치 저장 완료 ({}-{}): {}개의 대여소 정보 저장", startIndex, endIndex, savedStations.size());
                 return null;
             });

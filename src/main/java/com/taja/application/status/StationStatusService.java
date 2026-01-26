@@ -1,7 +1,7 @@
 package com.taja.application.status;
 
+import com.taja.application.cache.StationRedisRepository;
 import com.taja.application.station.StationRepository;
-import com.taja.application.station.StationRedisRepository;
 import com.taja.application.statistics.dto.StationDailyAvg;
 import com.taja.application.statistics.dto.StationHourlyAvg;
 import com.taja.domain.station.Station;

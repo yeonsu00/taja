@@ -1,4 +1,4 @@
-package com.taja.application.station;
+package com.taja.application.cache;
 
 import com.taja.interfaces.api.station.response.MapStationResponse;
 import java.time.LocalDateTime;
