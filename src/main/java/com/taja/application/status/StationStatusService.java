@@ -1,7 +1,7 @@
 package com.taja.application.status;
 
-import com.taja.application.cache.StationRedisRepository;
 import com.taja.application.station.StationRepository;
+import com.taja.application.station.event.StationEvent;
 import com.taja.application.statistics.dto.StationDailyAvg;
 import com.taja.application.statistics.dto.StationHourlyAvg;
 import com.taja.domain.station.Station;
@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Flux;
@@ -26,9 +27,9 @@ public class StationStatusService {
 
     private final StationStatusRepository stationStatusRepository;
     private final StationRepository stationRepository;
-    private final StationRedisRepository stationRedisRepository;
     private final TransactionTemplate transactionTemplate;
     private final StatusClient statusClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final int TOTAL_COUNT = 3000;
     private static final int ITEMS_PER_REQUEST = 500;
@@ -116,7 +117,7 @@ public class StationStatusService {
 
             int savedStationStatusCount = stationStatusRepository.saveAll(stationStatuses);
             log.info("{}개의 대여소 실시간 상태를 DB에 저장했습니다. 요청 시간: {}", savedStationStatusCount, requestedAt);
-            stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(stationStatuses);
+            eventPublisher.publishEvent(new StationEvent.StationStatusesUpdated(stationStatuses));
             return null;
         });
     }
