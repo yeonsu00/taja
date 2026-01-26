@@ -31,6 +31,14 @@ class StationServiceTest {
         double latDelta = 0.0;
         double lonDelta = 0.0;
 
+        double height = latDelta * 2;
+        double width = lonDelta * 2;
+
+        when(stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width))
+                .thenReturn(List.of());
+        when(stationRedisRepository.findStationInfos(List.of()))
+                .thenReturn(List.of());
+
         // when
         List<MapStationResponse> result = stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
 
@@ -51,11 +59,17 @@ class StationServiceTest {
         double expectedHeight = latDelta * 2;
         double expectedWidth = lonDelta * 2;
 
+        when(stationRedisRepository.findNearbyStations(centerLat, centerLon, expectedHeight, expectedWidth))
+                .thenReturn(List.of());
+        when(stationRedisRepository.findStationInfos(List.of()))
+                .thenReturn(List.of());
+
         // when
         stationService.findNearbyStations(centerLat, centerLon, latDelta, lonDelta);
 
         // then
         verify(stationRedisRepository).findNearbyStations(centerLat, centerLon, expectedHeight, expectedWidth);
+        verify(stationRedisRepository).findStationInfos(List.of());
     }
 
     @DisplayName("주변 대여소 정보를 성공적으로 조회하고 반환한다.")
@@ -72,13 +86,20 @@ class StationServiceTest {
 
         LocalDateTime requestedAt = LocalDateTime.now();
 
-        List<MapStationResponse> expectedResponse = List.of(
-                new MapStationResponse(1L, 1, 37.5660, 126.9775, 1, requestedAt),
-                new MapStationResponse(2L, 2, 37.5670, 126.9785, 2, requestedAt)
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(1, 37.5660, 126.9775),
+                new StationInfo.StationGeoInfo(2, 37.5670, 126.9785)
+        );
+
+        List<StationInfo.StationFullInfo> stationInfos = List.of(
+                new StationInfo.StationFullInfo(1L, 1, 37.5660, 126.9775, 1, requestedAt),
+                new StationInfo.StationFullInfo(2L, 2, 37.5670, 126.9785, 2, requestedAt)
         );
 
         when(stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width))
-                .thenReturn(expectedResponse);
+                .thenReturn(geoInfos);
+        when(stationRedisRepository.findStationInfos(geoInfos))
+                .thenReturn(stationInfos);
 
         // when
         List<MapStationResponse> actualResponse = stationService.findNearbyStations(centerLat, centerLon, latDelta,
@@ -86,8 +107,10 @@ class StationServiceTest {
 
         // then
         assertThat(actualResponse).hasSize(2);
-        assertThat(actualResponse).isEqualTo(expectedResponse);
         assertThat(actualResponse.getFirst().number().intValue()).isEqualTo(1);
+        assertThat(actualResponse.getFirst().bikeCount()).isEqualTo(1);
+        assertThat(actualResponse.get(1).number().intValue()).isEqualTo(2);
+        assertThat(actualResponse.get(1).bikeCount()).isEqualTo(2);
     }
 
 }
