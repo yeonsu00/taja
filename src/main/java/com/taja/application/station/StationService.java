@@ -1,6 +1,6 @@
 package com.taja.application.station;
 
-import com.taja.application.cache.StationRedisRepository;
+import com.taja.application.station.event.StationEvent;
 import com.taja.domain.station.Station;
 import com.taja.interfaces.api.station.response.StationSimpleResponse;
 import java.time.LocalDateTime;
@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -22,7 +23,7 @@ public class StationService {
     private final StationClient stationClient;
     private final StationRepository stationRepository;
     private final TransactionTemplate transactionTemplate;
-    private final StationRedisRepository stationRedisRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final int TOTAL_COUNT = 3500;
     private static final int ITEMS_PER_REQUEST = 500;
@@ -72,8 +73,8 @@ public class StationService {
             List<Station> loadedStations = stationClient.fetchStationInfos(startIndex, endIndex);
             transactionTemplate.execute(status -> {
                 List<Station> savedStations = stationRepository.upsert(loadedStations);
-                stationRedisRepository.saveStations(savedStations, requestedAt);
                 log.info("배치 저장 완료 ({}-{}): {}개의 대여소 정보 저장", startIndex, endIndex, savedStations.size());
+                eventPublisher.publishEvent(new StationEvent.StationsSaved(savedStations, requestedAt));
                 return null;
             });
         }
