@@ -4,39 +4,32 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.taja.application.cache.StationInfo;
+import com.taja.domain.station.OperationMode;
+import com.taja.domain.station.Station;
+import com.taja.infrastructure.cache.StationGeoRepository;
+import com.taja.infrastructure.cache.StationHashRepository;
 import com.taja.infrastructure.cache.StationRedisRepositoryImpl;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.GeoResult;
-import org.springframework.data.geo.GeoResults;
-import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.core.GeoOperations;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.domain.geo.GeoShape;
 
 @ExtendWith(MockitoExtension.class)
 class StationRedisRepositoryImplTest {
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private StationHashRepository stationHashRepository;
 
     @Mock
-    private GeoOperations<String, Object> geoOperations;
+    private StationGeoRepository stationGeoRepository;
 
     @Mock
-    private HashOperations<String, Object, Object> hashOperations;
+    private StationJpaRepository stationJpaRepository;
 
     @InjectMocks
     private StationRedisRepositoryImpl stationRedisRepository;
@@ -45,9 +38,12 @@ class StationRedisRepositoryImplTest {
     @Test
     void findNearbyStations_success() {
         // given
-        GeoLocation<Object> location1 = createGeoLocation("101", 127.001, 37.501);
-        GeoLocation<Object> location2 = createGeoLocation("102", 127.002, 37.502);
-        setupGeoSearch(createGeoResults(location1, location2));
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(101, 37.501, 127.001),
+                new StationInfo.StationGeoInfo(102, 37.502, 127.002)
+        );
+        when(stationGeoRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0))
+                .thenReturn(geoInfos);
 
         // when
         List<StationInfo.StationGeoInfo> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
@@ -73,12 +69,17 @@ class StationRedisRepositoryImplTest {
                 new StationInfo.StationGeoInfo(102, 37.502, 127.002)
         );
 
-        setupHashOperations();
         String requestedAtStr = "2025-09-09T14:30:00";
-        setupHashValues("101", 10L, requestedAtStr);
-        setupHashValues("102", 5L, requestedAtStr);
-        when(hashOperations.get("stations:101", "stationId")).thenReturn("1");
-        when(hashOperations.get("stations:102", "stationId")).thenReturn("2");
+        LocalDateTime requestedAt = LocalDateTime.parse(requestedAtStr);
+        
+        StationInfo.StationFullInfo fullInfo1 = new StationInfo.StationFullInfo(1L, 101, 37.501, 127.001, 10, requestedAt);
+        StationInfo.StationFullInfo fullInfo2 = new StationInfo.StationFullInfo(2L, 102, 37.502, 127.002, 5, requestedAt);
+
+        when(stationHashRepository.fetchFullInfo(101, 37.501, 127.001))
+                .thenReturn(Optional.of(fullInfo1));
+        when(stationHashRepository.fetchFullInfo(102, 37.502, 127.002))
+                .thenReturn(Optional.of(fullInfo2));
+        when(stationHashRepository.isThresholdReached(anyInt())).thenReturn(false);
 
         // when
         List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
@@ -88,7 +89,7 @@ class StationRedisRepositoryImplTest {
         StationInfo.StationFullInfo result1 = results.getFirst();
         assertThat(result1.number()).isEqualTo(101);
         assertThat(result1.bikeCount()).isEqualTo(10);
-        assertThat(result1.requestedAt()).isEqualTo(LocalDateTime.parse(requestedAtStr));
+        assertThat(result1.requestedAt()).isEqualTo(requestedAt);
         StationInfo.StationFullInfo result2 = results.get(1);
         assertThat(result2.number()).isEqualTo(102);
         assertThat(result2.bikeCount()).isEqualTo(5);
@@ -98,7 +99,8 @@ class StationRedisRepositoryImplTest {
     @Test
     void findNearbyStations_whenGeoResultIsNull() {
         // given
-        setupGeoSearch(null);
+        when(stationGeoRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0))
+                .thenReturn(List.of());
 
         // when
         List<StationInfo.StationGeoInfo> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
@@ -107,7 +109,7 @@ class StationRedisRepositoryImplTest {
         assertThat(results).isNotNull().isEmpty();
     }
 
-    @DisplayName("HASH 데이터가 없을 경우 기본값(자전거 0대, 시간 null)으로 응답한다.")
+    @DisplayName("HASH 데이터가 없을 경우 DB에서 조회하여 캐시에 저장하고 반환한다.")
     @Test
     void findStationInfos_whenHashDataIsMissing() {
         // given
@@ -115,9 +117,29 @@ class StationRedisRepositoryImplTest {
                 new StationInfo.StationGeoInfo(201, 37.6, 127.1)
         );
 
-        setupHashOperations();
-        setupHashValues("201", null, null);
-        when(hashOperations.get("stations:201", "stationId")).thenReturn(null);
+        // 캐시에 데이터가 없음
+        when(stationHashRepository.fetchFullInfo(201, 37.6, 127.1))
+                .thenReturn(Optional.empty());
+
+        // DB에서 조회
+        Station station = Station.builder()
+                .stationId(1L)
+                .number(201)
+                .name("테스트 대여소")
+                .district("강남구")
+                .address("테스트 주소")
+                .latitude(37.6)
+                .longitude(127.1)
+                .operationMode(OperationMode.LCD_QR)
+                .build();
+        when(stationJpaRepository.findByNumber(201))
+                .thenReturn(Optional.of(station));
+
+        // 캐시 저장 후 조회
+        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(1L, 201, 37.6, 127.1, 0, null);
+        when(stationHashRepository.fetchFullInfo(201, 37.6, 127.1))
+                .thenReturn(Optional.empty())  // 첫 번째 호출: 캐시 미스
+                .thenReturn(Optional.of(cachedInfo));  // 두 번째 호출: 캐시 저장 후 조회
 
         // when
         List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
@@ -126,17 +148,20 @@ class StationRedisRepositoryImplTest {
         assertThat(results).hasSize(1);
         StationInfo.StationFullInfo result = results.getFirst();
         assertThat(result.number()).isEqualTo(201);
-        assertThat(result.bikeCount()).isEqualTo(0);
-        assertThat(result.requestedAt()).isNull();
+        assertThat(result.stationId()).isEqualTo(1L);
+        verify(stationHashRepository).saveStationInfosWithPipeline(anyList(), any(LocalDateTime.class));
     }
 
-    @DisplayName("대여소 번호가 숫자가 아닐 때(NumberFormatException), 해당 대여소를 결과에서 제외한다.")
+    @DisplayName("대여소 번호가 숫자가 아닐 때, 해당 대여소를 결과에서 제외한다.")
     @Test
     void findNearbyStations_excludeStation_whenMemberIsNotNumeric() {
         // given
-        GeoLocation<Object> validLocation = createGeoLocation("101", 127.001, 37.501);
-        GeoLocation<Object> invalidLocation = createGeoLocation("STRING", 127.002, 37.502);
-        setupGeoSearch(createGeoResults(validLocation, invalidLocation));
+        // StationGeoRepository에서 이미 필터링된 결과를 반환한다고 가정
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(101, 37.501, 127.001)
+        );
+        when(stationGeoRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0))
+                .thenReturn(geoInfos);
 
         // when
         List<StationInfo.StationGeoInfo> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
@@ -146,7 +171,7 @@ class StationRedisRepositoryImplTest {
         assertThat(results.getFirst().number()).isEqualTo(101);
     }
 
-    @DisplayName("날짜 형식이 잘못되었을 때(DateTimeParseException), 해당 대여소를 결과에서 제외한다.")
+    @DisplayName("날짜 형식이 잘못되었을 때, 해당 대여소를 결과에서 제외한다.")
     @Test
     void findStationInfos_excludeStation_whenDateFormatIsInvalid() {
         // given
@@ -154,40 +179,16 @@ class StationRedisRepositoryImplTest {
                 new StationInfo.StationGeoInfo(102, 37.503, 127.003)
         );
 
-        setupHashOperations();
-        setupHashValues("102", 5L, "INVALID_DATE");
-        when(hashOperations.get("stations:102", "stationId")).thenReturn("2");
+        // StationHashRepository에서 파싱 실패로 Optional.empty() 반환
+        when(stationHashRepository.fetchFullInfo(102, 37.503, 127.003))
+                .thenReturn(Optional.empty());
+        when(stationJpaRepository.findByNumber(102))
+                .thenReturn(Optional.empty());
 
         // when
         List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
 
         // then
         assertThat(results).isNotNull().isEmpty();
-    }
-
-    private void setupGeoSearch(GeoResults<GeoLocation<Object>> results) {
-        when(redisTemplate.opsForGeo()).thenReturn(geoOperations);
-        when(geoOperations.search(anyString(), any(), any(GeoShape.class), any())).thenReturn(results);
-    }
-
-    private void setupHashOperations() {
-        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-    }
-
-    private void setupHashValues(String stationNumber, Object bikeCount, Object requestedAt) {
-        when(hashOperations.get("stations:" + stationNumber, "bikeCount")).thenReturn(bikeCount);
-        when(hashOperations.get("stations:" + stationNumber, "requestedAt")).thenReturn(requestedAt);
-    }
-
-    private GeoLocation<Object> createGeoLocation(String id, double longitude, double latitude) {
-        return new GeoLocation<>(id, new Point(longitude, latitude));
-    }
-
-    @SafeVarargs
-    private GeoResults<GeoLocation<Object>> createGeoResults(GeoLocation<Object>... locations) {
-        List<GeoResult<GeoLocation<Object>>> geoResultList = Arrays.stream(locations)
-                .map(loc -> new GeoResult<>(loc, new Distance(0.1, DistanceUnit.KILOMETERS)))
-                .collect(Collectors.toList());
-        return new GeoResults<>(geoResultList, DistanceUnit.KILOMETERS);
     }
 }

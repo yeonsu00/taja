@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.taja.application.station.StationFacade;
 import com.taja.application.station.StationService;
 import com.taja.interfaces.api.station.StationController;
 import java.util.Collections;
@@ -15,10 +16,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = StationController.class)
+@ActiveProfiles("test")
+@TestPropertySource(properties = {
+        "api.bike.base-url=http://localhost:8080",
+        "api.bike.key=/test-key",
+        "api.bike.station.path=/test/station",
+        "api.bike.status.path=/test/status",
+        "api.weather.base-url=http://localhost:8080",
+        "api.weather.key=test-key"
+})
 class StationControllerTest {
 
     @Autowired
@@ -27,11 +39,14 @@ class StationControllerTest {
     @MockitoBean
     private StationService stationService;
 
+    @MockitoBean
+    private StationFacade stationFacade;
+
     @DisplayName("올바른 값으로 주변 대여소 조회를 요청하면 성공(200 OK)한다.")
     @Test
     void findNearbyStations_success() throws Exception {
         // given
-        given(stationService.findNearbyStations(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+        given(stationFacade.findNearbyStations(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
                 .willReturn(Collections.emptyList());
 
         // when & then
