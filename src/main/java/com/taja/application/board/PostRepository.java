@@ -13,4 +13,6 @@ public interface PostRepository {
     Optional<BoardInfo.PostDetailPart> findPostDetailPartByPostId(Long postId);
 
     List<BoardInfo.CommentItem> findCommentItemsByPostId(Long postId);
+
+    Optional<Post> findPostByPostIdAndMemberId(Long postId, Long memberId);
 }

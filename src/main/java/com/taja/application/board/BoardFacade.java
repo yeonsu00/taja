@@ -18,6 +18,8 @@ public class BoardFacade {
     private final AuthService authService;
     private final StationService stationService;
     private final PostService postService;
+    private final CommentService commentService;
+    private final PostLikeService postLikeService;
 
     @Transactional
     public void join(String email, Long stationId) {
@@ -61,5 +63,13 @@ public class BoardFacade {
     public BoardInfo.PostDetail findPostDetail(String email, Long postId) {
         Member member = authService.findMemberByEmail(email);
         return postService.findPostDetail(member.getMemberId(), postId);
+    }
+
+    @Transactional
+    public void deletePost(String email, Long postId) {
+        Member member = authService.findMemberByEmail(email);
+        postService.softDeletePost(member.getMemberId(), postId);
+        commentService.softDeleteComments(postId);
+        postLikeService.softDeletePostLikes(postId);
     }
 }

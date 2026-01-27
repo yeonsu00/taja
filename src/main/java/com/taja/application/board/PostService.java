@@ -56,4 +56,15 @@ public class PostService {
     public boolean hasNext(List<PostItem> fetchedItems, int size) {
         return fetchedItems.size() > size;
     }
+
+    public void softDeletePost(Long memberId, Long postId) {
+        Post post = postRepository.findPostByPostIdAndMemberId(postId, memberId)
+                .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
+
+        if (!boardMemberRepository.existsByStationIdAndMemberId(post.getStationId(), memberId)) {
+            throw new NotStationMemberException("해당 게시판의 참여자가 아닙니다.");
+        }
+
+        post.markAsDeleted();
+    }
 }

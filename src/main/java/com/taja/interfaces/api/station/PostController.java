@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,5 +30,15 @@ public class PostController {
         String email = customUserDetails.getUsername();
         PostDetailResponse response = PostDetailResponse.from(boardFacade.findPostDetail(email, postId));
         return CommonApiResponse.success(response, "게시글 상세 조회에 성공했습니다.");
+    }
+
+    @Operation(summary = "게시글 삭제", description = "게시글 ID로 게시글을 삭제합니다.")
+    @DeleteMapping("/{postId}")
+    public CommonApiResponse<String> deletePost(
+            @PathVariable("postId") Long postId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        boardFacade.deletePost(email, postId);
+        return CommonApiResponse.success("게시글 삭제에 성공했습니다.");
     }
 }

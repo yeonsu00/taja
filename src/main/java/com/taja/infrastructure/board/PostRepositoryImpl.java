@@ -34,4 +34,9 @@ public class PostRepositoryImpl implements PostRepository {
     public List<BoardInfo.CommentItem> findCommentItemsByPostId(Long postId) {
         return postQueryRepository.findCommentItemsByPostId(postId);
     }
+
+    @Override
+    public Optional<Post> findPostByPostIdAndMemberId(Long postId, Long memberId) {
+        return postJpaRepository.findByPostIdAndWriterIdAndIsDeletedFalse(postId, memberId);
+    }
 }
