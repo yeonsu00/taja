@@ -4,6 +4,7 @@ import com.taja.application.board.BoardInfo;
 import com.taja.application.board.PostRepository;
 import com.taja.domain.board.Post;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,5 +23,15 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public List<BoardInfo.PostItem> findLatestPosts(Long stationId, Long cursor, int size) {
         return postQueryRepository.findLatestPosts(stationId, cursor, size);
+    }
+
+    @Override
+    public Optional<BoardInfo.PostDetailPart> findPostDetailPartByPostId(Long postId) {
+        return postQueryRepository.findPostDetailPartByPostId(postId);
+    }
+
+    @Override
+    public List<BoardInfo.CommentItem> findCommentItemsByPostId(Long postId) {
+        return postQueryRepository.findCommentItemsByPostId(postId);
     }
 }

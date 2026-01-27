@@ -116,4 +116,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.INVALID_SORT_TYPE.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handlePostNotFoundException(PostNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.POST_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.POST_NOT_FOUND.getHttpStatus()).body(body);
+    }
 }

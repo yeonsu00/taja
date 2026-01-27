@@ -57,4 +57,9 @@ public class BoardFacade {
     public BoardInfo.PostItems findPopularPosts(String email, Long stationId, String cursor, int size) {
         return new BoardInfo.PostItems(List.of(), null);
     }
+
+    public BoardInfo.PostDetail findPostDetail(String email, Long postId) {
+        Member member = authService.findMemberByEmail(email);
+        return postService.findPostDetail(member.getMemberId(), postId);
+    }
 }
