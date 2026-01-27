@@ -117,4 +117,8 @@ public class AuthService {
     public void deleteRefreshToken(String refreshToken) {
         refreshTokenRepository.deleteByValue(refreshToken);
     }
+
+    public Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email);
+    }
 }

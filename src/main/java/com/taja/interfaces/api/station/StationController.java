@@ -1,5 +1,6 @@
 package com.taja.interfaces.api.station;
 
+import com.taja.application.board.BoardFacade;
 import com.taja.application.favorite.FavoriteStationFacade;
 import com.taja.application.favorite.FavoriteStationService;
 import com.taja.application.station.StationFacade;
@@ -39,6 +40,7 @@ public class StationController {
     private final StationFacade stationFacade;
     private final FavoriteStationService favoriteStationService;
     private final FavoriteStationFacade favoriteStationFacade;
+    private final BoardFacade boardFacade;
 
     @Operation(summary = "대여소 파일 업로드", description = "엑셀 파일을 업로드하여 대여소 정보를 등록 및 수정합니다.")
     @PostMapping("/upload")
@@ -81,6 +83,15 @@ public class StationController {
             @PathVariable("stationId") Long stationId) {
         StationDetailResponse stationDetailResponse = stationFacade.findStationDetail(stationId);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
+    }
+
+    @Operation(summary = "게시판 참여", description = "대여소 ID로 해당 대여소 게시판에 참여합니다.")
+    @PostMapping("/{stationId}/posts/join")
+    public CommonApiResponse<String> joinBoard(@PathVariable("stationId") Long stationId,
+                                               @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        boardFacade.join(email, stationId);
+        return CommonApiResponse.success("게시판 " + stationId + " 참여에 성공했습니다.");
     }
 
     @Operation(summary = "즐겨찾기 등록", description = "대여소 ID를 이용해 해당 대여소를 즐겨찾기에 등록합니다.")

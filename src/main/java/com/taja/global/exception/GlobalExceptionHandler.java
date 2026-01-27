@@ -88,4 +88,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.DUPLICATE_FAVORITE_STATION.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(AlreadyJoinedException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleAlreadyJoinedException(AlreadyJoinedException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.ALREADY_JOINED, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.ALREADY_JOINED.getHttpStatus()).body(body);
+    }
 }
