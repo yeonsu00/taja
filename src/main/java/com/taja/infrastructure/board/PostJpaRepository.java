@@ -1,0 +1,7 @@
+package com.taja.infrastructure.board;
+
+import com.taja.domain.board.Post;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PostJpaRepository extends JpaRepository<Post, Long> {
+}

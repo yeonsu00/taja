@@ -95,4 +95,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.ALREADY_JOINED.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(InvalidContentException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleInvalidContentException(InvalidContentException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INVALID_CONTENT, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.INVALID_CONTENT.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(NotStationMemberException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleNotStationMemberException(NotStationMemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.NOT_STATION_MEMBER, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.NOT_STATION_MEMBER.getHttpStatus()).body(body);
+    }
 }

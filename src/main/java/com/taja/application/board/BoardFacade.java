@@ -16,6 +16,7 @@ public class BoardFacade {
     private final BoardMemberService boardMemberService;
     private final AuthService authService;
     private final StationService stationService;
+    private final PostService postService;
 
     @Transactional
     public void join(String email, Long stationId) {
@@ -26,4 +27,11 @@ public class BoardFacade {
         boardMemberService.joinBoard(boardMember);
     }
 
+    @Transactional
+    public void createPost(String email, Long stationId, String content) {
+        Member member = authService.findMemberByEmail(email);
+        Station station = stationService.findStationByStationId(stationId);
+
+        postService.createPost(member.getMemberId(), station.getStationId(), content);
+    }
 }

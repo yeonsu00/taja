@@ -7,6 +7,7 @@ import com.taja.application.station.StationFacade;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.application.station.StationService;
+import com.taja.interfaces.api.station.request.CreatePostRequest;
 import com.taja.interfaces.api.station.request.NearbyStationRequest;
 import com.taja.interfaces.api.station.request.SearchStationRequest;
 import com.taja.interfaces.api.station.response.IsFavoriteStationResponse;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -92,6 +94,16 @@ public class StationController {
         String email = customUserDetails.getUsername();
         boardFacade.join(email, stationId);
         return CommonApiResponse.success("게시판 " + stationId + " 참여에 성공했습니다.");
+    }
+
+    @Operation(summary = "게시글 작성", description = "대여소 ID로 해당 게시판에 게시글을 작성합니다.")
+    @PostMapping("/{stationId}/posts")
+    public CommonApiResponse<String> createPost(@PathVariable("stationId") Long stationId,
+                                                 @Valid @RequestBody CreatePostRequest request,
+                                                 @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        boardFacade.createPost(email, stationId, request.content());
+        return CommonApiResponse.success("게시글 작성에 성공했습니다.");
     }
 
     @Operation(summary = "즐겨찾기 등록", description = "대여소 ID를 이용해 해당 대여소를 즐겨찾기에 등록합니다.")
