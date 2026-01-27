@@ -5,6 +5,7 @@ import com.taja.application.station.StationService;
 import com.taja.domain.board.BoardMember;
 import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,5 +34,27 @@ public class BoardFacade {
         Station station = stationService.findStationByStationId(stationId);
 
         postService.createPost(member.getMemberId(), station.getStationId(), content);
+    }
+
+    public BoardInfo.PostItems findLatestPosts(String email, Long stationId, String cursor, int size) {
+        Member member = authService.findMemberByEmail(email);
+        Station station = stationService.findStationByStationId(stationId);
+
+        List<BoardInfo.PostItem> fetchedItems = postService.findLatestPosts(
+                member.getMemberId(), station.getStationId(), cursor, size);
+
+        List<BoardInfo.PostItem> pagedItems = fetchedItems;
+        String nextCursor = null;
+
+        if (postService.hasNext(fetchedItems, size)) {
+            pagedItems = fetchedItems.subList(0, size);
+            nextCursor = PostCursor.encode(pagedItems.getLast().postId());
+        }
+
+        return new BoardInfo.PostItems(pagedItems, nextCursor);
+    }
+
+    public BoardInfo.PostItems findPopularPosts(String email, Long stationId, String cursor, int size) {
+        return new BoardInfo.PostItems(List.of(), null);
     }
 }

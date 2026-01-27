@@ -1,9 +1,12 @@
 package com.taja.interfaces.api.station;
 
 import com.taja.application.board.BoardFacade;
+import com.taja.application.board.BoardInfo;
 import com.taja.application.favorite.FavoriteStationFacade;
 import com.taja.application.favorite.FavoriteStationService;
 import com.taja.application.station.StationFacade;
+import com.taja.interfaces.api.station.PostSort;
+import com.taja.global.exception.InvalidSortTypeException;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.application.station.StationService;
@@ -12,6 +15,8 @@ import com.taja.interfaces.api.station.request.NearbyStationRequest;
 import com.taja.interfaces.api.station.request.SearchStationRequest;
 import com.taja.interfaces.api.station.response.IsFavoriteStationResponse;
 import com.taja.interfaces.api.station.response.MapStationResponse;
+import com.taja.interfaces.api.station.response.PostItemResponse;
+import com.taja.interfaces.api.station.response.PostListResponse;
 import com.taja.interfaces.api.station.response.StationSimpleResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,6 +99,30 @@ public class StationController {
         String email = customUserDetails.getUsername();
         boardFacade.join(email, stationId);
         return CommonApiResponse.success("게시판 " + stationId + " 참여에 성공했습니다.");
+    }
+
+    @Operation(summary = "게시글 목록 조회", description = "대여소 ID로 해당 게시판의 게시글 목록을 조회합니다.")
+    @GetMapping("/{stationId}/posts")
+    public CommonApiResponse<PostListResponse> getPosts(@PathVariable("stationId") Long stationId,
+                                                          @RequestParam(value = "sort", required = false) String sort,
+                                                          @RequestParam(value = "cursor", required = false) String cursor,
+                                                          @RequestParam(value = "size", defaultValue = "20") int size,
+                                                          @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        PostSort postSort = PostSort.fromValue(sort);
+
+        BoardInfo.PostItems postItems;
+        if (postSort == PostSort.LATEST) {
+            postItems = boardFacade.findLatestPosts(email, stationId, cursor, size);
+        } else if (postSort == PostSort.POPULAR) {
+            postItems = boardFacade.findPopularPosts(email, stationId, cursor, size);
+        } else {
+            throw new InvalidSortTypeException("지원하지 않는 정렬 기준입니다: " + sort);
+        }
+
+        List<PostItemResponse> postItemResponses = PostItemResponse.from(postItems.items());
+        PostListResponse response = new PostListResponse(postItemResponses, postItems.nextCursor());
+        return CommonApiResponse.success(response, "게시글 목록 조회에 성공했습니다.");
     }
 
     @Operation(summary = "게시글 작성", description = "대여소 ID로 해당 게시판에 게시글을 작성합니다.")
