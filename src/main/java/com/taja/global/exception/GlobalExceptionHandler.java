@@ -123,4 +123,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.POST_NOT_FOUND.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleCommentNotFoundException(CommentNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.COMMENT_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.COMMENT_NOT_FOUND.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(NotCommentWriterException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleNotCommentWriterException(NotCommentWriterException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.NOT_COMMENT_WRITER, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.NOT_COMMENT_WRITER.getHttpStatus()).body(body);
+    }
 }

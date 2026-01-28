@@ -2,9 +2,14 @@ package com.taja.infrastructure.board;
 
 import com.taja.domain.board.Comment;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentJpaRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByPostIdAndIsDeletedFalse(Long postId);
+
+    Optional<Comment> findByCommentIdAndIsDeletedFalse(Long commentId);
+
+    Optional<Comment> findByCommentIdAndWriterIdAndIsDeletedFalse(Long commentId, Long writerId);
 }

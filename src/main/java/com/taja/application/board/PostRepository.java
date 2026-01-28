@@ -15,4 +15,6 @@ public interface PostRepository {
     List<BoardInfo.CommentItem> findCommentItemsByPostId(Long postId);
 
     Optional<Post> findPostByPostIdAndMemberId(Long postId, Long memberId);
+
+    Optional<Post> findPostById(Long postId);
 }

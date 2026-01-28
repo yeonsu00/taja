@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostJpaRepository extends JpaRepository<Post, Long> {
 
-    Optional<Post> findByPostIdAndWriterIdAndIsDeletedFalse(Long postId, Long writerId);
+    Optional<Post> findByPostIdAndIsDeletedFalse(Long postId);
 
+    Optional<Post> findByPostIdAndWriterIdAndIsDeletedFalse(Long postId, Long writerId);
 }

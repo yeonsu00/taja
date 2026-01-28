@@ -39,4 +39,9 @@ public class PostRepositoryImpl implements PostRepository {
     public Optional<Post> findPostByPostIdAndMemberId(Long postId, Long memberId) {
         return postJpaRepository.findByPostIdAndWriterIdAndIsDeletedFalse(postId, memberId);
     }
+
+    @Override
+    public Optional<Post> findPostById(Long postId) {
+        return postJpaRepository.findByPostIdAndIsDeletedFalse(postId);
+    }
 }

@@ -72,4 +72,16 @@ public class BoardFacade {
         commentService.softDeleteComments(postId);
         postLikeService.softDeletePostLikes(postId);
     }
+
+    @Transactional
+    public void createComment(String email, Long postId, String content) {
+        Member member = authService.findMemberByEmail(email);
+        commentService.createComment(member.getMemberId(), postId, content);
+    }
+
+    @Transactional
+    public void deleteComment(String email, Long commentId) {
+        Member member = authService.findMemberByEmail(email);
+        commentService.softDeleteComment(member.getMemberId(), commentId);
+    }
 }
