@@ -44,4 +44,14 @@ public class PostRepositoryImpl implements PostRepository {
     public Optional<Post> findPostById(Long postId) {
         return postJpaRepository.findByPostIdAndIsDeletedFalse(postId);
     }
+
+    @Override
+    public int increaseLikeCount(Long postId) {
+        return postJpaRepository.increaseLikeCount(postId);
+    }
+
+    @Override
+    public int decreaseLikeCount(Long postId) {
+        return postJpaRepository.decreaseLikeCount(postId);
+    }
 }

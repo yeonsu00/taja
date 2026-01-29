@@ -67,11 +67,17 @@ public class PostService {
         post.decreaseCommentCount();
     }
 
-    public void incrementLikeCount(Post post) {
-        post.increaseLikeCount();
+    public void incrementLikeCount(Long postId) {
+        int updated = postRepository.increaseLikeCount(postId);
+        if (updated == 0) {
+            throw new PostNotFoundException("존재하지 않는 게시글입니다.");
+        }
     }
 
-    public void decrementLikeCount(Post post) {
-        post.decreaseLikeCount();
+    public void decrementLikeCount(Long postId) {
+        int updated = postRepository.decreaseLikeCount(postId);
+        if (updated == 0) {
+            throw new PostNotFoundException("존재하지 않는 게시글입니다.");
+        }
     }
 }

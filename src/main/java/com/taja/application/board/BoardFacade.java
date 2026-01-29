@@ -115,9 +115,10 @@ public class BoardFacade {
         boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postLikeService.likePost(member.getMemberId(), postId);
-        postService.incrementLikeCount(post);
+        postService.incrementLikeCount(postId);
 
-        return new BoardInfo.LikeResult(postId, post.getLikeCount());
+        Post updated = postService.findPostByPostId(postId);
+        return new BoardInfo.LikeResult(postId, updated.getLikeCount());
     }
 
     @Transactional
@@ -128,8 +129,9 @@ public class BoardFacade {
         boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postLikeService.unlikePost(member.getMemberId(), postId);
-        postService.decrementLikeCount(post);
+        postService.decrementLikeCount(postId);
 
-        return new BoardInfo.LikeResult(postId, post.getLikeCount());
+        Post updated = postService.findPostByPostId(postId);
+        return new BoardInfo.LikeResult(postId, updated.getLikeCount());
     }
 }

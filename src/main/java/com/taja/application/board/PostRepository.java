@@ -17,4 +17,8 @@ public interface PostRepository {
     Optional<Post> findPostByPostIdAndMemberId(Long postId, Long memberId);
 
     Optional<Post> findPostById(Long postId);
+
+    int increaseLikeCount(Long postId);
+
+    int decreaseLikeCount(Long postId);
 }
