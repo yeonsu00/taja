@@ -137,4 +137,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.NOT_COMMENT_WRITER.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(AlreadyLikedException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleAlreadyLikedException(AlreadyLikedException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.ALREADY_LIKED, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.ALREADY_LIKED.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(LikeNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleLikeNotFoundException(LikeNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.LIKE_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.LIKE_NOT_FOUND.getHttpStatus()).body(body);
+    }
 }

@@ -1,10 +1,12 @@
 package com.taja.interfaces.api.board;
 
 import com.taja.application.board.BoardFacade;
+import com.taja.application.board.BoardInfo;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.interfaces.api.board.request.CreateCommentRequest;
 import com.taja.interfaces.api.station.response.PostDetailResponse;
+import com.taja.interfaces.api.station.response.PostLikeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -65,5 +67,27 @@ public class BoardController {
         String email = customUserDetails.getUsername();
         boardFacade.deleteComment(email, commentId);
         return CommonApiResponse.success("댓글을 삭제했습니다.");
+    }
+
+    @Operation(summary = "게시글 좋아요 등록", description = "게시글에 좋아요를 등록합니다.")
+    @PostMapping("/{postId}/like")
+    public CommonApiResponse<PostLikeResponse> likePost(
+            @PathVariable("postId") Long postId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        BoardInfo.LikeResult result = boardFacade.likePost(email, postId);
+        PostLikeResponse response = new PostLikeResponse(result.postId(), result.likeCount());
+        return CommonApiResponse.success(response, "해당 게시글에 좋아요를 등록했습니다.");
+    }
+
+    @Operation(summary = "게시글 좋아요 취소", description = "게시글 좋아요를 취소합니다.")
+    @DeleteMapping("/{postId}/like")
+    public CommonApiResponse<PostLikeResponse> unlikePost(
+            @PathVariable("postId") Long postId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails.getUsername();
+        BoardInfo.LikeResult result = boardFacade.unlikePost(email, postId);
+        PostLikeResponse response = new PostLikeResponse(result.postId(), result.likeCount());
+        return CommonApiResponse.success(response, "해당 게시글에 좋아요를 취소했습니다.");
     }
 }

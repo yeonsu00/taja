@@ -106,4 +106,30 @@ public class BoardFacade {
         commentService.softDeleteComment(comment);
         postService.decrementCommentCount(post);
     }
+
+    @Transactional
+    public BoardInfo.LikeResult likePost(String email, Long postId) {
+        Member member = authService.findMemberByEmail(email);
+
+        Post post = postService.findPostByPostId(postId);
+        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
+
+        postLikeService.likePost(member.getMemberId(), postId);
+        postService.incrementLikeCount(post);
+
+        return new BoardInfo.LikeResult(postId, post.getLikeCount());
+    }
+
+    @Transactional
+    public BoardInfo.LikeResult unlikePost(String email, Long postId) {
+        Member member = authService.findMemberByEmail(email);
+
+        Post post = postService.findPostByPostId(postId);
+        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
+
+        postLikeService.unlikePost(member.getMemberId(), postId);
+        postService.decrementLikeCount(post);
+
+        return new BoardInfo.LikeResult(postId, post.getLikeCount());
+    }
 }

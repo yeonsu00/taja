@@ -51,4 +51,10 @@ public class BoardInfo {
             List<CommentItem> comments
     ) {
     }
+
+    public record LikeResult(
+            Long postId,
+            int likeCount
+    ) {
+    }
 }

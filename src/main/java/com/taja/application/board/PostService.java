@@ -66,4 +66,12 @@ public class PostService {
     public void decrementCommentCount(Post post) {
         post.decreaseCommentCount();
     }
+
+    public void incrementLikeCount(Post post) {
+        post.increaseLikeCount();
+    }
+
+    public void decrementLikeCount(Post post) {
+        post.decreaseLikeCount();
+    }
 }
