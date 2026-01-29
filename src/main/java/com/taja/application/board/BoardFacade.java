@@ -92,7 +92,7 @@ public class BoardFacade {
         boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         commentService.createComment(member.getMemberId(), post.getPostId(), content);
-        postService.incrementCommentCount(post);
+        postService.incrementCommentCount(postId);
     }
 
     @Transactional
@@ -104,7 +104,7 @@ public class BoardFacade {
         boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         commentService.softDeleteComment(comment);
-        postService.decrementCommentCount(post);
+        postService.decrementCommentCount(comment.getPostId());
     }
 
     @Transactional

@@ -21,4 +21,8 @@ public interface PostRepository {
     int increaseLikeCount(Long postId);
 
     int decreaseLikeCount(Long postId);
+
+    int increaseCommentCount(Long postId);
+
+    int decreaseCommentCount(Long postId);
 }

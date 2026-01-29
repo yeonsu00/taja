@@ -44,5 +44,6 @@ public class CommentService {
 
     public void softDeleteComment(Comment comment) {
         comment.markAsDeleted();
+        commentRepository.saveComment(comment);
     }
 }

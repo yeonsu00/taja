@@ -59,12 +59,18 @@ public class PostService {
                 .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
     }
 
-    public void incrementCommentCount(Post post) {
-        post.increaseCommentCount();
+    public void incrementCommentCount(Long postId) {
+        int updated = postRepository.increaseCommentCount(postId);
+        if (updated == 0) {
+            throw new PostNotFoundException("존재하지 않는 게시글입니다.");
+        }
     }
 
-    public void decrementCommentCount(Post post) {
-        post.decreaseCommentCount();
+    public void decrementCommentCount(Long postId) {
+        int updated = postRepository.decreaseCommentCount(postId);
+        if (updated == 0) {
+            throw new PostNotFoundException("존재하지 않는 게시글입니다.");
+        }
     }
 
     public void incrementLikeCount(Long postId) {
