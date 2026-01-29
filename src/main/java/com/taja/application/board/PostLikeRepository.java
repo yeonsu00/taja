@@ -8,8 +8,6 @@ public interface PostLikeRepository {
 
     List<PostLike> findByPostIdAndIsDeletedFalse(Long postId);
 
-    void saveAll(Iterable<PostLike> postLikes);
-
     boolean existsByPostIdAndMemberIdAndIsDeletedFalse(Long postId, Long memberId);
 
     Optional<PostLike> findByPostIdAndMemberIdAndIsDeletedFalse(Long postId, Long memberId);

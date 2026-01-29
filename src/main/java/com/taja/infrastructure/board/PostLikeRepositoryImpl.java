@@ -2,9 +2,11 @@ package com.taja.infrastructure.board;
 
 import com.taja.application.board.PostLikeRepository;
 import com.taja.domain.board.PostLike;
+import com.taja.global.exception.AlreadyLikedException;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -19,11 +21,6 @@ public class PostLikeRepositoryImpl implements PostLikeRepository {
     }
 
     @Override
-    public void saveAll(Iterable<PostLike> postLikes) {
-        postLikeJpaRepository.saveAll(postLikes);
-    }
-
-    @Override
     public boolean existsByPostIdAndMemberIdAndIsDeletedFalse(Long postId, Long memberId) {
         return postLikeJpaRepository.existsByPostIdAndMemberIdAndIsDeletedFalse(postId, memberId);
     }
@@ -35,6 +32,10 @@ public class PostLikeRepositoryImpl implements PostLikeRepository {
 
     @Override
     public void savePostLike(PostLike postLike) {
-        postLikeJpaRepository.save(postLike);
+        try {
+            postLikeJpaRepository.save(postLike);
+        } catch (DataIntegrityViolationException e) {
+            throw new AlreadyLikedException("이미 좋아요를 누른 게시글입니다.");
+        }
     }
 }
