@@ -21,6 +21,7 @@ import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -114,7 +115,7 @@ public class StationController {
         if (postSort == PostSort.LATEST) {
             postItems = boardFacade.findLatestPosts(email, stationId, cursor, size);
         } else if (postSort == PostSort.POPULAR) {
-            postItems = boardFacade.findPopularPosts(email, stationId, cursor, size);
+            postItems = boardFacade.findPopularPosts(email, stationId, cursor, size, LocalDate.now());
         } else {
             throw new InvalidSortTypeException("지원하지 않는 정렬 기준입니다: " + sort);
         }

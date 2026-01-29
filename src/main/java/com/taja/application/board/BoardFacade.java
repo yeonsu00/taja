@@ -7,8 +7,10 @@ import com.taja.domain.board.Comment;
 import com.taja.domain.board.Post;
 import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class BoardFacade {
     private final PostService postService;
     private final CommentService commentService;
     private final PostLikeService postLikeService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void join(String email, Long stationId) {
@@ -59,8 +62,12 @@ public class BoardFacade {
         return new BoardInfo.PostItems(pagedItems, nextCursor);
     }
 
-    public BoardInfo.PostItems findPopularPosts(String email, Long stationId, String cursor, int size) {
-        return new BoardInfo.PostItems(List.of(), null);
+    @Transactional(readOnly = true)
+    public BoardInfo.PostItems findPopularPosts(String email, Long stationId, String cursor, int size, LocalDate today) {
+        Member member = authService.findMemberByEmail(email);
+        Station station = stationService.findStationByStationId(stationId);
+        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
+        return postService.findPopularPosts(station.getStationId(), cursor, size, today);
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +76,10 @@ public class BoardFacade {
 
         BoardInfo.PostDetailPart postDetailPart = postService.findPostDetailPart(postId);
         boardMemberService.checkMemberJoined(postDetailPart.stationId(), member.getMemberId());
-        return postService.enrichWithComments(postDetailPart);
+        BoardInfo.PostDetail detail = postService.enrichWithComments(postDetailPart);
+
+        eventPublisher.publishEvent(PostRankingEvent.Viewed.from(postDetailPart.stationId(), postDetailPart.postId()));
+        return detail;
     }
 
     @Transactional
@@ -93,6 +103,8 @@ public class BoardFacade {
 
         commentService.createComment(member.getMemberId(), post.getPostId(), content);
         postService.incrementCommentCount(postId);
+
+        eventPublisher.publishEvent(PostRankingEvent.CommentCreated.from(post.getStationId(), post.getPostId()));
     }
 
     @Transactional
@@ -105,6 +117,8 @@ public class BoardFacade {
 
         commentService.softDeleteComment(comment);
         postService.decrementCommentCount(comment.getPostId());
+
+        eventPublisher.publishEvent(PostRankingEvent.CommentDeleted.from(post.getStationId(), comment.getPostId()));
     }
 
     @Transactional
@@ -118,6 +132,8 @@ public class BoardFacade {
         postService.incrementLikeCount(postId);
 
         Post updated = postService.findPostByPostId(postId);
+
+        eventPublisher.publishEvent(PostRankingEvent.Liked.from(post.getStationId(), postId));
         return new BoardInfo.LikeResult(postId, updated.getLikeCount());
     }
 
@@ -132,6 +148,8 @@ public class BoardFacade {
         postService.decrementLikeCount(postId);
 
         Post updated = postService.findPostByPostId(postId);
+
+        eventPublisher.publishEvent(PostRankingEvent.Unliked.from(post.getStationId(), postId));
         return new BoardInfo.LikeResult(postId, updated.getLikeCount());
     }
 }

@@ -3,6 +3,7 @@ package com.taja.application.board;
 import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.Post;
 import com.taja.global.exception.PostNotFoundException;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostRankingRepository postRankingRepository;
 
     public void createPost(Long memberId, Long stationId, String content) {
         Post post = Post.of(stationId, memberId, content);
@@ -19,7 +21,7 @@ public class PostService {
     }
 
     public List<BoardInfo.PostItem> findLatestPosts(Long stationId, String cursor, int size) {
-        Long cursorPostId = PostCursor.decode(cursor);
+        long cursorPostId = PostCursor.decode(cursor);
         return postRepository.findLatestPosts(stationId, cursorPostId, size);
     }
 
@@ -43,6 +45,23 @@ public class PostService {
 
     public boolean hasNext(List<PostItem> fetchedItems, int size) {
         return fetchedItems.size() > size;
+    }
+
+    public BoardInfo.PostItems findPopularPosts(Long stationId, String cursor, int size, LocalDate today) {
+        long offset = PostCursor.decode(cursor);
+        List<Long> rankedPostIds = postRankingRepository.findRankedPostIds(stationId, offset, size + 1, today);
+        if (rankedPostIds.isEmpty()) {
+            return new BoardInfo.PostItems(List.of(), null);
+        }
+        List<PostItem> fetchedPostItems = postRepository.findPostItemsByPostIds(stationId, rankedPostIds);
+
+        List<PostItem> pagedPostItems = fetchedPostItems;
+        String nextCursor = null;
+        if (fetchedPostItems.size() > size) {
+            pagedPostItems = fetchedPostItems.subList(0, size);
+            nextCursor = PostCursor.encode(offset + size);
+        }
+        return new BoardInfo.PostItems(pagedPostItems, nextCursor);
     }
 
     public Post findPostByPostAndMember(Long memberId, Long postId) {
@@ -85,5 +104,13 @@ public class PostService {
         if (updated == 0) {
             throw new PostNotFoundException("존재하지 않는 게시글입니다.");
         }
+    }
+    
+    public void addRankingScore(long stationId, long postId, double weightDelta, LocalDate today) {
+        postRankingRepository.addScore(stationId, postId, weightDelta, today);
+    }
+
+    public void updateTomorrowRankingScores(LocalDate today) {
+        postRankingRepository.carryOverTodayToTomorrow(today);
     }
 }

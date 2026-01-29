@@ -9,14 +9,14 @@ public final class PostCursor {
         return postId == null ? null : String.valueOf(postId);
     }
 
-    public static Long decode(String cursor) {
+    public static long decode(String cursor) {
         if (cursor == null || cursor.isBlank()) {
-            return null;
+            return 0;
         }
         try {
-            return Long.parseLong(cursor.trim());
+            return Math.max(0, Long.parseLong(cursor.trim()));
         } catch (NumberFormatException e) {
-            return null;
+            return 0;
         }
     }
 }

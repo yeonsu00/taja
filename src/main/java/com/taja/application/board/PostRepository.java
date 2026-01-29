@@ -8,7 +8,9 @@ public interface PostRepository {
 
     void savePost(Post post);
 
-    List<BoardInfo.PostItem> findLatestPosts(Long stationId, Long cursor, int size);
+    List<BoardInfo.PostItem> findLatestPosts(Long stationId, long cursor, int size);
+
+    List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds);
 
     Optional<BoardInfo.PostDetailPart> findPostDetailPartByPostId(Long postId);
 

@@ -7,7 +7,10 @@ import com.taja.application.board.BoardInfo;
 import com.taja.domain.board.QComment;
 import com.taja.domain.board.QPost;
 import com.taja.domain.member.QMember;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -21,7 +24,7 @@ public class PostQueryRepository {
     private static final QComment comment = QComment.comment;
     private static final QMember member = QMember.member;
 
-    public List<BoardInfo.PostItem> findLatestPosts(Long stationId, Long cursor, int size) {
+    public List<BoardInfo.PostItem> findLatestPosts(Long stationId, long cursor, int size) {
         return queryFactory
                 .select(
                         Projections.constructor(BoardInfo.PostItem.class,
@@ -89,8 +92,46 @@ public class PostQueryRepository {
                 .fetch();
     }
 
-    private BooleanExpression ltPostId(Long cursor) {
-        if (cursor == null) {
+    public List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return List.of();
+        }
+        List<BoardInfo.PostItem> fetched = queryFactory
+                .select(
+                        Projections.constructor(BoardInfo.PostItem.class,
+                                post.stationId,
+                                post.postId,
+                                member.name,
+                                post.createdAt,
+                                post.content,
+                                post.commentCount,
+                                post.likeCount
+                        )
+                )
+                .from(post)
+                .join(member).on(post.writerId.eq(member.memberId))
+                .where(
+                        post.stationId.eq(stationId),
+                        post.isDeleted.isFalse(),
+                        post.postId.in(postIds)
+                )
+                .fetch();
+        Map<Long, BoardInfo.PostItem> byId = new LinkedHashMap<>();
+        for (BoardInfo.PostItem item : fetched) {
+            byId.put(item.postId(), item);
+        }
+        List<BoardInfo.PostItem> ordered = new ArrayList<>(postIds.size());
+        for (Long id : postIds) {
+            BoardInfo.PostItem item = byId.get(id);
+            if (item != null) {
+                ordered.add(item);
+            }
+        }
+        return ordered;
+    }
+
+    private BooleanExpression ltPostId(long cursor) {
+        if (cursor <= 0) {
             return null;
         }
         return post.postId.lt(cursor);
