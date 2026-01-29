@@ -2,7 +2,6 @@ package com.taja.application.board;
 
 import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.Post;
-import com.taja.global.exception.NotStationMemberException;
 import com.taja.global.exception.PostNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,36 +11,25 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PostService {
 
-    private final BoardMemberRepository boardMemberRepository;
     private final PostRepository postRepository;
 
     public void createPost(Long memberId, Long stationId, String content) {
-        if (!boardMemberRepository.existsByStationIdAndMemberId(stationId, memberId)) {
-            throw new NotStationMemberException("해당 게시판의 참여자가 아닙니다.");
-        }
-
         Post post = Post.of(stationId, memberId, content);
         postRepository.savePost(post);
     }
 
-    public List<BoardInfo.PostItem> findLatestPosts(Long memberId, Long stationId, String cursor, int size) {
-        if (!boardMemberRepository.existsByStationIdAndMemberId(stationId, memberId)) {
-            throw new NotStationMemberException("해당 게시판의 참여자가 아닙니다.");
-        }
-
+    public List<BoardInfo.PostItem> findLatestPosts(Long stationId, String cursor, int size) {
         Long cursorPostId = PostCursor.decode(cursor);
         return postRepository.findLatestPosts(stationId, cursorPostId, size);
     }
 
-    public BoardInfo.PostDetail findPostDetail(Long memberId, Long postId) {
-        BoardInfo.PostDetailPart part = postRepository.findPostDetailPartByPostId(postId)
+    public BoardInfo.PostDetailPart findPostDetailPart(Long postId) {
+        return postRepository.findPostDetailPartByPostId(postId)
                 .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
+    }
 
-        if (!boardMemberRepository.existsByStationIdAndMemberId(part.stationId(), memberId)) {
-            throw new NotStationMemberException("해당 게시판의 참여자가 아닙니다.");
-        }
-
-        List<BoardInfo.CommentItem> comments = postRepository.findCommentItemsByPostId(postId);
+    public BoardInfo.PostDetail enrichWithComments(BoardInfo.PostDetailPart part) {
+        List<BoardInfo.CommentItem> comments = postRepository.findCommentItemsByPostId(part.postId());
         return new BoardInfo.PostDetail(
                 part.postId(),
                 part.writer(),
@@ -57,14 +45,25 @@ public class PostService {
         return fetchedItems.size() > size;
     }
 
-    public void softDeletePost(Long memberId, Long postId) {
-        Post post = postRepository.findPostByPostIdAndMemberId(postId, memberId)
+    public Post findPostByPostAndMember(Long memberId, Long postId) {
+        return postRepository.findPostByPostIdAndMemberId(postId, memberId)
                 .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
+    }
 
-        if (!boardMemberRepository.existsByStationIdAndMemberId(post.getStationId(), memberId)) {
-            throw new NotStationMemberException("해당 게시판의 참여자가 아닙니다.");
-        }
-
+    public void softDeletePost(Post post) {
         post.markAsDeleted();
+    }
+
+    public Post findPostByPostId(Long postId) {
+        return postRepository.findPostById(postId)
+                .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
+    }
+
+    public void incrementCommentCount(Post post) {
+        post.increaseCommentCount();
+    }
+
+    public void decrementCommentCount(Post post) {
+        post.decreaseCommentCount();
     }
 }

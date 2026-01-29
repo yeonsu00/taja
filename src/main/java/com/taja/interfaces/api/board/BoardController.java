@@ -1,9 +1,9 @@
-package com.taja.interfaces.api.station;
+package com.taja.interfaces.api.board;
 
 import com.taja.application.board.BoardFacade;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
-import com.taja.interfaces.api.station.request.CreateCommentRequest;
+import com.taja.interfaces.api.board.request.CreateCommentRequest;
 import com.taja.interfaces.api.station.response.PostDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/posts")
 @Tag(name = "Post", description = "Post API")
-public class PostController {
+public class BoardController {
 
     private final BoardFacade boardFacade;
 
@@ -58,7 +58,7 @@ public class PostController {
     }
 
     @Operation(summary = "댓글 삭제", description = "댓글 ID로 댓글을 삭제합니다.")
-    @DeleteMapping("/{commentId}")
+    @DeleteMapping("/comments/{commentId}")
     public CommonApiResponse<String> deleteComment(
             @PathVariable("commentId") Long commentId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {

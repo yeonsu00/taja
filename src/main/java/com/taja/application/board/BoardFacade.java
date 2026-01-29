@@ -3,6 +3,8 @@ package com.taja.application.board;
 import com.taja.application.member.AuthService;
 import com.taja.application.station.StationService;
 import com.taja.domain.board.BoardMember;
+import com.taja.domain.board.Comment;
+import com.taja.domain.board.Post;
 import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
 import java.util.List;
@@ -34,16 +36,17 @@ public class BoardFacade {
     public void createPost(String email, Long stationId, String content) {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
-
+        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
         postService.createPost(member.getMemberId(), station.getStationId(), content);
     }
 
+    @Transactional(readOnly = true)
     public BoardInfo.PostItems findLatestPosts(String email, Long stationId, String cursor, int size) {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
 
-        List<BoardInfo.PostItem> fetchedItems = postService.findLatestPosts(
-                member.getMemberId(), station.getStationId(), cursor, size);
+        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
+        List<BoardInfo.PostItem> fetchedItems = postService.findLatestPosts(station.getStationId(), cursor, size);
 
         List<BoardInfo.PostItem> pagedItems = fetchedItems;
         String nextCursor = null;
@@ -60,15 +63,23 @@ public class BoardFacade {
         return new BoardInfo.PostItems(List.of(), null);
     }
 
+    @Transactional(readOnly = true)
     public BoardInfo.PostDetail findPostDetail(String email, Long postId) {
         Member member = authService.findMemberByEmail(email);
-        return postService.findPostDetail(member.getMemberId(), postId);
+
+        BoardInfo.PostDetailPart postDetailPart = postService.findPostDetailPart(postId);
+        boardMemberService.checkMemberJoined(postDetailPart.stationId(), member.getMemberId());
+        return postService.enrichWithComments(postDetailPart);
     }
 
     @Transactional
     public void deletePost(String email, Long postId) {
         Member member = authService.findMemberByEmail(email);
-        postService.softDeletePost(member.getMemberId(), postId);
+
+        Post post = postService.findPostByPostAndMember(member.getMemberId(), postId);
+        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
+
+        postService.softDeletePost(post);
         commentService.softDeleteComments(postId);
         postLikeService.softDeletePostLikes(postId);
     }
@@ -76,12 +87,23 @@ public class BoardFacade {
     @Transactional
     public void createComment(String email, Long postId, String content) {
         Member member = authService.findMemberByEmail(email);
-        commentService.createComment(member.getMemberId(), postId, content);
+
+        Post post = postService.findPostByPostId(postId);
+        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
+
+        commentService.createComment(member.getMemberId(), post.getPostId(), content);
+        postService.incrementCommentCount(post);
     }
 
     @Transactional
     public void deleteComment(String email, Long commentId) {
         Member member = authService.findMemberByEmail(email);
-        commentService.softDeleteComment(member.getMemberId(), commentId);
+
+        Comment comment = commentService.findCommentByCommentId(commentId, member.getMemberId());
+        Post post = postService.findPostByPostId(comment.getPostId());
+        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
+
+        commentService.softDeleteComment(comment);
+        postService.decrementCommentCount(post);
     }
 }

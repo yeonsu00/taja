@@ -1,4 +1,4 @@
-package com.taja.interfaces.api.station.request;
+package com.taja.interfaces.api.board.request;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -5,7 +5,6 @@ import com.taja.application.board.BoardInfo;
 import com.taja.application.favorite.FavoriteStationFacade;
 import com.taja.application.favorite.FavoriteStationService;
 import com.taja.application.station.StationFacade;
-import com.taja.interfaces.api.station.PostSort;
 import com.taja.global.exception.InvalidSortTypeException;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
