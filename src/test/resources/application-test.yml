@@ -50,3 +50,11 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+resilience4j:
+  retry:
+    instances:
+      stationApi:
+        maxAttempts: 3
+        ignoreExceptions:
+          - com.taja.global.exception.NoRetryApiException

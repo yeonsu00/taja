@@ -48,7 +48,7 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
         void createsStatistics_whenStationStatusesAndWeatherExist() {
             // arrange
             LocalDate calculationDate = LocalDate.of(2024, 1, 1);
-            Station station = createStation(1L, "대여소1", "강남구");
+            Station station = createStation(null, "대여소1", "강남구", 1);
             station = stationRepository.upsert(List.of(station)).getFirst();
 
             // 대여소 상태 데이터 생성 및 저장
@@ -82,7 +82,8 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
         void doesNotCreateStatistics_whenWeatherDataMissing() {
             // arrange
             LocalDate calculationDate = LocalDate.of(2024, 1, 1);
-            Station station = createStation(1L, "대여소1", "강남구");
+            Station station = createStation(null, "대여소1", "강남구", 1);
+            station = stationRepository.upsert(List.of(station)).getFirst();
 
             Map<String, Map<Integer, Double>> districtHourlyTempMap = new HashMap<>();
             StationDistricts stationDistricts = StationDistricts.from(List.of(station));
@@ -92,16 +93,16 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
                     List.of(station), calculationDate, districtHourlyTempMap, stationDistricts);
 
             // assert
-            List<TemperatureStatistics> savedStats = temperatureStatisticsService.findStatisticsByStationIds(List.of(1L));
+            List<TemperatureStatistics> savedStats = temperatureStatisticsService.findStatisticsByStationIds(List.of(station.getStationId()));
             assertThat(savedStats).isEmpty();
         }
     }
 
-    private Station createStation(Long stationId, String name, String district) {
+    private Station createStation(Long stationId, String name, String district, int stationNumber) {
         return Station.builder()
                 .stationId(stationId)
                 .name(name)
-                .number(stationId.intValue())
+                .number(stationNumber)
                 .district(district)
                 .address("주소")
                 .latitude(37.5665)

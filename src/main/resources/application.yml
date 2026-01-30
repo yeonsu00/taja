@@ -80,3 +80,17 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
     display-request-duration: true
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1s
+        ignoreExceptions:
+          - com.taja.global.exception.NoRetryApiException
+    instances:
+      stationApi:
+        baseConfig: default
+      weatherApi:
+        baseConfig: default

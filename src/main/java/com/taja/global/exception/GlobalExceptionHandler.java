@@ -88,4 +88,67 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.DUPLICATE_FAVORITE_STATION.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(AlreadyJoinedException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleAlreadyJoinedException(AlreadyJoinedException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.ALREADY_JOINED, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.ALREADY_JOINED.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(InvalidContentException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleInvalidContentException(InvalidContentException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INVALID_CONTENT, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.INVALID_CONTENT.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(NotStationMemberException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleNotStationMemberException(NotStationMemberException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.NOT_STATION_MEMBER, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.NOT_STATION_MEMBER.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(InvalidSortTypeException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleInvalidSortTypeException(InvalidSortTypeException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INVALID_SORT_TYPE, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.INVALID_SORT_TYPE.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handlePostNotFoundException(PostNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.POST_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.POST_NOT_FOUND.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleCommentNotFoundException(CommentNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.COMMENT_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.COMMENT_NOT_FOUND.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(NotCommentWriterException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleNotCommentWriterException(NotCommentWriterException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.NOT_COMMENT_WRITER, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.NOT_COMMENT_WRITER.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(AlreadyLikedException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleAlreadyLikedException(AlreadyLikedException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.ALREADY_LIKED, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.ALREADY_LIKED.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(LikeNotFoundException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleLikeNotFoundException(LikeNotFoundException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.LIKE_NOT_FOUND, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.LIKE_NOT_FOUND.getHttpStatus()).body(body);
+    }
 }
