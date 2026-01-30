@@ -51,18 +51,10 @@ public class BoardFacade {
         Station station = stationService.findStationByStationId(stationId);
 
         boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
-        List<BoardInfo.PostItem> fetchedItems = postService.findLatestPosts(station.getStationId(), cursor, size);
+        BoardInfo.PostItems postItems = postService.findLatestPosts(station.getStationId(), cursor, size);
 
-        List<BoardInfo.PostItem> pagedItems = fetchedItems;
-        String nextCursor = null;
-
-        if (postService.hasNext(fetchedItems, size)) {
-            pagedItems = fetchedItems.subList(0, size);
-            nextCursor = PostCursor.encode(pagedItems.getLast().postId());
-        }
-
-        List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(pagedItems, member.getMemberId());
-        return BoardInfo.PostItems.from(itemsWithLiked, nextCursor);
+        List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(postItems.items(), member.getMemberId());
+        return BoardInfo.PostItems.from(itemsWithLiked, postItems.nextCursor());
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +62,14 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
         boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
+
+        boolean isFirstPage = cursor == null || cursor.isBlank();
         BoardInfo.PostItems postItems = postService.findPopularPosts(station.getStationId(), cursor, size, today);
+
+        if (isFirstPage && postItems.items().isEmpty()) {
+            postItems = postService.findLatestPosts(station.getStationId(), cursor, size);
+        }
+
         List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(postItems.items(), member.getMemberId());
         return BoardInfo.PostItems.from(itemsWithLiked, postItems.nextCursor());
     }

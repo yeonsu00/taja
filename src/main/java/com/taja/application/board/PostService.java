@@ -21,11 +21,6 @@ public class PostService {
         return post;
     }
 
-    public List<BoardInfo.PostItem> findLatestPosts(Long stationId, String cursor, int size) {
-        long cursorPostId = PostCursor.decode(cursor);
-        return postRepository.findLatestPosts(stationId, cursorPostId, size);
-    }
-
     public BoardInfo.PostDetailPart findPostDetailPart(Long postId) {
         return postRepository.findPostDetailPartByPostId(postId)
                 .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
@@ -36,8 +31,17 @@ public class PostService {
         return BoardInfo.PostDetail.from(part, comments, false);
     }
 
-    public boolean hasNext(List<PostItem> fetchedItems, int size) {
-        return fetchedItems.size() > size;
+    public BoardInfo.PostItems findLatestPosts(Long stationId, String cursor, int size) {
+        long cursorPostId = PostCursor.decode(cursor);
+        List<BoardInfo.PostItem> fetchedPostItems = postRepository.findLatestPosts(stationId, cursorPostId, size + 1);
+
+        List<BoardInfo.PostItem> pagedPostItems = fetchedPostItems;
+        String nextCursor = null;
+        if (fetchedPostItems.size() > size) {
+            pagedPostItems = fetchedPostItems.subList(0, size);
+            nextCursor = PostCursor.encode(pagedPostItems.getLast().postId());
+        }
+        return BoardInfo.PostItems.from(pagedPostItems, nextCursor);
     }
 
     public BoardInfo.PostItems findPopularPosts(Long stationId, String cursor, int size, LocalDate today) {
@@ -46,9 +50,9 @@ public class PostService {
         if (rankedPostIds.isEmpty()) {
             return BoardInfo.PostItems.from(List.of(), null);
         }
-        List<PostItem> fetchedPostItems = postRepository.findPostItemsByPostIds(stationId, rankedPostIds);
+        List<BoardInfo.PostItem> fetchedPostItems = postRepository.findPostItemsByPostIds(stationId, rankedPostIds);
 
-        List<PostItem> pagedPostItems = fetchedPostItems;
+        List<BoardInfo.PostItem> pagedPostItems = fetchedPostItems;
         String nextCursor = null;
         if (fetchedPostItems.size() > size) {
             pagedPostItems = fetchedPostItems.subList(0, size);
