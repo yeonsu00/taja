@@ -1,6 +1,5 @@
 package com.taja.application.board;
 
-import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.Post;
 import com.taja.global.exception.PostNotFoundException;
 import java.time.LocalDate;

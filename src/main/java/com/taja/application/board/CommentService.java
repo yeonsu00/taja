@@ -1,12 +1,9 @@
 package com.taja.application.board;
 
 import com.taja.domain.board.Comment;
-import com.taja.domain.board.Post;
 import com.taja.global.exception.CommentNotFoundException;
 import com.taja.global.exception.InvalidContentException;
 import com.taja.global.exception.NotCommentWriterException;
-import com.taja.global.exception.NotStationMemberException;
-import com.taja.global.exception.PostNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
