@@ -2,6 +2,15 @@ package com.taja.application.board;
 
 public final class PostRankingEvent {
 
+    public record Created(
+            long stationId,
+            long postId
+    ) {
+        public static Created from(Long stationId, Long postId) {
+            return new Created(stationId, postId);
+        }
+    }
+
     public record Liked(
             long stationId,
             long postId

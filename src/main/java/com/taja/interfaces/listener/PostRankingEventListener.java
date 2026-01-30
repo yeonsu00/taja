@@ -20,6 +20,18 @@ public class PostRankingEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleCreated(PostRankingEvent.Created event) {
+        try {
+            double scoreWithRecency = PostRankingWeights.registrationScoreWithRecency(event.postId());
+            postService.addRankingScore(event.stationId(), event.postId(), scoreWithRecency, LocalDate.now());
+        } catch (Exception e) {
+            log.warn("랭킹 점수 갱신 실패 (Created): stationId={}, postId={}, error={}",
+                    event.stationId(), event.postId(), e.getMessage());
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLiked(PostRankingEvent.Liked event) {
         try {
             postService.addRankingScore(event.stationId(), event.postId(), PostRankingWeights.LIKE, LocalDate.now());

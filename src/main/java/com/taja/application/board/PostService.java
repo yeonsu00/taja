@@ -15,9 +15,10 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostRankingRepository postRankingRepository;
 
-    public void createPost(Long memberId, Long stationId, String content) {
+    public Post createPost(Long memberId, Long stationId, String content) {
         Post post = Post.of(stationId, memberId, content);
         postRepository.savePost(post);
+        return post;
     }
 
     public List<BoardInfo.PostItem> findLatestPosts(Long stationId, String cursor, int size) {

@@ -41,7 +41,8 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
         boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
-        postService.createPost(member.getMemberId(), station.getStationId(), content);
+        Post post = postService.createPost(member.getMemberId(), station.getStationId(), content);
+        eventPublisher.publishEvent(PostRankingEvent.Created.from(post.getStationId(), post.getPostId()));
     }
 
     @Transactional(readOnly = true)
