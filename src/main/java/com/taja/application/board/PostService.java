@@ -32,15 +32,7 @@ public class PostService {
 
     public BoardInfo.PostDetail enrichWithComments(BoardInfo.PostDetailPart part) {
         List<BoardInfo.CommentItem> comments = postRepository.findCommentItemsByPostId(part.postId());
-        return new BoardInfo.PostDetail(
-                part.postId(),
-                part.writer(),
-                part.createdAt(),
-                part.content(),
-                part.likeCount(),
-                part.commentCount(),
-                comments
-        );
+        return BoardInfo.PostDetail.from(part, comments, false);
     }
 
     public boolean hasNext(List<PostItem> fetchedItems, int size) {
@@ -51,7 +43,7 @@ public class PostService {
         long offset = PostCursor.decode(cursor);
         List<Long> rankedPostIds = postRankingRepository.findRankedPostIds(stationId, offset, size + 1, today);
         if (rankedPostIds.isEmpty()) {
-            return new BoardInfo.PostItems(List.of(), null);
+            return BoardInfo.PostItems.from(List.of(), null);
         }
         List<PostItem> fetchedPostItems = postRepository.findPostItemsByPostIds(stationId, rankedPostIds);
 
@@ -61,7 +53,7 @@ public class PostService {
             pagedPostItems = fetchedPostItems.subList(0, size);
             nextCursor = PostCursor.encode(offset + size);
         }
-        return new BoardInfo.PostItems(pagedPostItems, nextCursor);
+        return BoardInfo.PostItems.from(pagedPostItems, nextCursor);
     }
 
     public Post findPostByPostAndMember(Long memberId, Long postId) {

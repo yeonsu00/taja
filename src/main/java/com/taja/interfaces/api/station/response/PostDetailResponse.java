@@ -11,7 +11,8 @@ public record PostDetailResponse(
         String content,
         int likeCount,
         int commentCount,
-        List<CommentItemResponse> comments
+        List<CommentItemResponse> comments,
+        boolean liked
 ) {
     public static PostDetailResponse from(PostDetail detail) {
         return new PostDetailResponse(
@@ -21,7 +22,8 @@ public record PostDetailResponse(
                 detail.content(),
                 detail.likeCount(),
                 detail.commentCount(),
-                CommentItemResponse.from(detail.comments())
+                CommentItemResponse.from(detail.comments()),
+                detail.liked()
         );
     }
 }

@@ -12,14 +12,30 @@ public class BoardInfo {
             LocalDateTime createdAt,
             String content,
             int commentCount,
-            int likeCount
+            int likeCount,
+            boolean liked
     ) {
+        public static PostItem from(PostItem item, boolean liked) {
+            return new PostItem(
+                    item.stationId(),
+                    item.postId(),
+                    item.writer(),
+                    item.createdAt(),
+                    item.content(),
+                    item.commentCount(),
+                    item.likeCount(),
+                    liked
+            );
+        }
     }
 
     public record PostItems(
             List<PostItem> items,
             String nextCursor
     ) {
+        public static PostItems from(List<PostItem> items, String nextCursor) {
+            return new PostItems(items, nextCursor);
+        }
     }
 
     public record CommentItem(
@@ -48,13 +64,42 @@ public class BoardInfo {
             String content,
             int likeCount,
             int commentCount,
-            List<CommentItem> comments
+            List<CommentItem> comments,
+            boolean liked
     ) {
+        public static PostDetail from(PostDetail postDetail, boolean liked) {
+            return new PostDetail(
+                    postDetail.postId(),
+                    postDetail.writer(),
+                    postDetail.createdAt(),
+                    postDetail.content(),
+                    postDetail.likeCount(),
+                    postDetail.commentCount(),
+                    postDetail.comments(),
+                    liked
+            );
+        }
+
+        public static PostDetail from(PostDetailPart part, List<CommentItem> comments, boolean liked) {
+            return new PostDetail(
+                    part.postId(),
+                    part.writer(),
+                    part.createdAt(),
+                    part.content(),
+                    part.likeCount(),
+                    part.commentCount(),
+                    comments,
+                    liked
+            );
+        }
     }
 
     public record LikeResult(
             Long postId,
             int likeCount
     ) {
+        public static LikeResult from(Long postId, int likeCount) {
+            return new LikeResult(postId, likeCount);
+        }
     }
 }

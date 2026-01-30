@@ -2,6 +2,7 @@ package com.taja.infrastructure.board;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.taja.application.board.BoardInfo;
 import com.taja.domain.board.QComment;
@@ -34,7 +35,8 @@ public class PostQueryRepository {
                                 post.createdAt,
                                 post.content,
                                 post.commentCount,
-                                post.likeCount
+                                post.likeCount,
+                                Expressions.constant(false)
                         )
                 )
                 .from(post)
@@ -105,7 +107,8 @@ public class PostQueryRepository {
                                 post.createdAt,
                                 post.content,
                                 post.commentCount,
-                                post.likeCount
+                                post.likeCount,
+                                Expressions.constant(false)
                         )
                 )
                 .from(post)

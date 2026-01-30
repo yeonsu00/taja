@@ -9,6 +9,7 @@ import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -59,7 +60,8 @@ public class BoardFacade {
             nextCursor = PostCursor.encode(pagedItems.getLast().postId());
         }
 
-        return new BoardInfo.PostItems(pagedItems, nextCursor);
+        List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(pagedItems, member.getMemberId());
+        return BoardInfo.PostItems.from(itemsWithLiked, nextCursor);
     }
 
     @Transactional(readOnly = true)
@@ -67,7 +69,9 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
         boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
-        return postService.findPopularPosts(station.getStationId(), cursor, size, today);
+        BoardInfo.PostItems postItems = postService.findPopularPosts(station.getStationId(), cursor, size, today);
+        List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(postItems.items(), member.getMemberId());
+        return BoardInfo.PostItems.from(itemsWithLiked, postItems.nextCursor());
     }
 
     @Transactional(readOnly = true)
@@ -77,9 +81,11 @@ public class BoardFacade {
         BoardInfo.PostDetailPart postDetailPart = postService.findPostDetailPart(postId);
         boardMemberService.checkMemberJoined(postDetailPart.stationId(), member.getMemberId());
         BoardInfo.PostDetail detail = postService.enrichWithComments(postDetailPart);
+        boolean liked = postLikeService.hasLiked(postId, member.getMemberId());
+        BoardInfo.PostDetail detailWithLiked = BoardInfo.PostDetail.from(detail, liked);
 
         eventPublisher.publishEvent(PostRankingEvent.Viewed.from(postDetailPart.stationId(), postDetailPart.postId()));
-        return detail;
+        return detailWithLiked;
     }
 
     @Transactional
@@ -134,7 +140,7 @@ public class BoardFacade {
         Post updated = postService.findPostByPostId(postId);
 
         eventPublisher.publishEvent(PostRankingEvent.Liked.from(post.getStationId(), postId));
-        return new BoardInfo.LikeResult(postId, updated.getLikeCount());
+        return BoardInfo.LikeResult.from(postId, updated.getLikeCount());
     }
 
     @Transactional
@@ -150,6 +156,17 @@ public class BoardFacade {
         Post updated = postService.findPostByPostId(postId);
 
         eventPublisher.publishEvent(PostRankingEvent.Unliked.from(post.getStationId(), postId));
-        return new BoardInfo.LikeResult(postId, updated.getLikeCount());
+        return BoardInfo.LikeResult.from(postId, updated.getLikeCount());
+    }
+
+    private List<BoardInfo.PostItem> fillLikedForMember(List<BoardInfo.PostItem> items, Long memberId) {
+        if (items.isEmpty()) {
+            return items;
+        }
+        List<Long> postIds = items.stream().map(BoardInfo.PostItem::postId).toList();
+        Set<Long> likedPostIds = postLikeService.findLikedPostIdsByMemberIdAndPostIdIn(memberId, postIds);
+        return items.stream()
+                .map(item -> BoardInfo.PostItem.from(item, likedPostIds.contains(item.postId())))
+                .toList();
     }
 }

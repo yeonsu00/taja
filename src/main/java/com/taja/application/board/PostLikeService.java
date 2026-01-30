@@ -4,6 +4,7 @@ import com.taja.domain.board.PostLike;
 import com.taja.global.exception.AlreadyLikedException;
 import com.taja.global.exception.LikeNotFoundException;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,14 @@ public class PostLikeService {
 
         like.markAsDeleted();
         postLikeRepository.savePostLike(like);
+    }
+
+    public boolean hasLiked(Long postId, Long memberId) {
+        return postLikeRepository.existsByPostIdAndMemberIdAndIsDeletedFalse(postId, memberId);
+    }
+
+    public Set<Long> findLikedPostIdsByMemberIdAndPostIdIn(Long memberId, List<Long> postIds) {
+        return postLikeRepository.findLikedPostIdsByMemberIdAndPostIdIn(memberId, postIds);
     }
 
     public void softDeletePostLikes(Long postId) {

@@ -5,6 +5,7 @@ import com.taja.domain.board.PostLike;
 import com.taja.global.exception.AlreadyLikedException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
@@ -28,6 +29,14 @@ public class PostLikeRepositoryImpl implements PostLikeRepository {
     @Override
     public Optional<PostLike> findByPostIdAndMemberIdAndIsDeletedFalse(Long postId, Long memberId) {
         return postLikeJpaRepository.findByPostIdAndMemberIdAndIsDeletedFalse(postId, memberId);
+    }
+
+    @Override
+    public Set<Long> findLikedPostIdsByMemberIdAndPostIdIn(Long memberId, List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return Set.of();
+        }
+        return postLikeJpaRepository.findPostIdsByMemberIdAndPostIdInAndIsDeletedFalse(memberId, postIds);
     }
 
     @Override

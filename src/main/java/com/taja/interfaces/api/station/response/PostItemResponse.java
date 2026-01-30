@@ -11,7 +11,8 @@ public record PostItemResponse(
         LocalDateTime createdAt,
         String content,
         int commentCount,
-        int likeCount
+        int likeCount,
+        boolean liked
 ) {
     public static List<PostItemResponse> from(List<PostItem> postItems) {
         return postItems.stream()
@@ -22,7 +23,8 @@ public record PostItemResponse(
                         postItem.createdAt(),
                         postItem.content(),
                         postItem.commentCount(),
-                        postItem.likeCount()
+                        postItem.likeCount(),
+                        postItem.liked()
                 ))
                 .toList();
     }
