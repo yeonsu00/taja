@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.ResourceAccessException;
@@ -22,10 +23,12 @@ public class Resilience4jConfig {
     public static final String STATION_API_RESILIENCE = "stationApi";
 
     @Bean
-    public RetryConfig retryConfig() {
+    public RetryConfig retryConfig(
+            @Value("${resilience4j.retry.configs.default.maxAttempts:3}") int maxAttempts,
+            @Value("${resilience4j.retry.configs.default.waitDuration:1s}") Duration waitDuration) {
         return RetryConfig.custom()
-                .maxAttempts(3)
-                .waitDuration(Duration.ofMillis(1000))
+                .maxAttempts(maxAttempts)
+                .waitDuration(waitDuration)
                 .retryOnException(throwable -> {
                     if (throwable instanceof NoRetryApiException) {
                         return false;
