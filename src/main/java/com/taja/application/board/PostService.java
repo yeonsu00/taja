@@ -1,5 +1,6 @@
 package com.taja.application.board;
 
+import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.Post;
 import com.taja.global.exception.PostNotFoundException;
 import java.time.LocalDate;
@@ -108,5 +109,9 @@ public class PostService {
 
     public void updateTomorrowRankingScores(LocalDate today) {
         postRankingRepository.carryOverTodayToTomorrow(today);
+    }
+
+    public List<PostItem> findRecentPosts(Long stationId, int recentPostsSize) {
+        return postRepository.findRecentPosts(stationId, recentPostsSize);
     }
 }

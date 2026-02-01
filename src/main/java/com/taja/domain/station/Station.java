@@ -80,13 +80,13 @@ public class Station extends BaseEntity {
         this.operationMode = station.getOperationMode();
     }
 
-    public int calculateDistanceTo(double centerLat, double centerLon) {
+    public int calculateDistanceTo(double centerLat, double centerLng) {
         double KM_PER_DEGREE_LAT = 111.0;
 
         double latDelta = this.latitude - centerLat;
-        double lonDelta = this.longitude - centerLon;
+        double lngDelta = this.longitude - centerLng;
 
-        double x = lonDelta * KM_PER_DEGREE_LAT * Math.cos(Math.toRadians(centerLat));
+        double x = lngDelta * KM_PER_DEGREE_LAT * Math.cos(Math.toRadians(centerLat));
         double y = latDelta * KM_PER_DEGREE_LAT;
 
         double distanceM = Math.sqrt(x * x + y * y) * 1000;

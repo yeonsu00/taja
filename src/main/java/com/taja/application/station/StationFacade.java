@@ -1,10 +1,15 @@
 package com.taja.application.station;
 
+import com.taja.application.board.BoardInfo;
+import com.taja.application.board.PostService;
 import com.taja.application.cache.StationCacheService;
 import com.taja.application.cache.StationInfo;
+import com.taja.application.status.StationStatusFacade;
 import com.taja.domain.station.Station;
 import com.taja.interfaces.api.station.response.MapStationResponse;
+import com.taja.interfaces.api.station.response.detail.RecentPostResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
+import com.taja.interfaces.api.station.response.detail.TodayAvailableBikeResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class StationFacade {
 
+    private static final int RECENT_POSTS_SIZE = 3;
+
     private final StationService stationService;
     private final StationCacheService stationCacheService;
+    private final PostService postService;
+    private final StationStatusFacade stationStatusFacade;
 
     @Transactional
     public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
@@ -39,7 +48,7 @@ public class StationFacade {
     }
 
     @Transactional(readOnly = true)
-    public StationDetailResponse findStationDetail(Long stationId) {
+    public StationDetailResponse findStationDetail(Long stationId, LocalDateTime requestedAt) {
         Station station = stationService.findStationByStationId(stationId);
 
         List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1);
@@ -55,6 +64,14 @@ public class StationFacade {
 
         List<Station> nearbyStations = stationService.findStationByNumbers(nearbyStationsNumber);
 
-        return StationDetailResponse.fromStation(station, nearbyStations);
+        TodayAvailableBikeResponse todayAvailableBike = stationStatusFacade.getTodayAvailableBike(
+                station.getStationId(), station.getNumber(), requestedAt);
+        List<BoardInfo.PostItem> recentPostItems = postService.findRecentPosts(station.getStationId(), RECENT_POSTS_SIZE);
+        List<RecentPostResponse> recentPosts = recentPostItems.stream()
+                .limit(RECENT_POSTS_SIZE)
+                .map(item -> new RecentPostResponse(item.writer(), item.content()))
+                .toList();
+
+        return StationDetailResponse.of(station, todayAvailableBike, recentPosts, nearbyStations);
     }
 }

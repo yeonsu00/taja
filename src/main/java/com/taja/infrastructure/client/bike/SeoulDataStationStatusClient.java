@@ -109,9 +109,15 @@ public class SeoulDataStationStatusClient implements StatusClient {
     }
 
     private Mono<List<StationStatusDto>> handleError(Throwable error, int startIndex, int endIndex) {
-        String prefix = String.format("대여소 상태 API [%d-%d] ", startIndex, endIndex);
-        String logMessage = ErrorLogStrategy.format(error, prefix);
-        log.error(logMessage);
+        String failureReason = ErrorLogStrategy.format(error, "").trim();
+        if (failureReason.isEmpty()) {
+            failureReason = error.getClass().getSimpleName() + ": " + error.getMessage();
+        }
+        String causeInfo = error.getCause() != null
+                ? " | 원인: " + error.getCause().getClass().getSimpleName() + ": " + error.getCause().getMessage()
+                : "";
+        log.error("❌ 대여소 상태 API 요청 실패 ({}-{}) | 사유: {}{} | 빈 리스트 반환",
+                startIndex, endIndex, failureReason, causeInfo, error);
         return Mono.just(List.of());
     }
 

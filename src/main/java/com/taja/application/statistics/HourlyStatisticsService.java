@@ -18,6 +18,11 @@ public class HourlyStatisticsService {
 
     private final HourlyStatisticsRepository hourlyStatisticsRepository;
 
+    @Transactional(readOnly = true)
+    public List<HourlyStatistics> findByStationIds(List<Long> stationIds) {
+        return hourlyStatisticsRepository.findAllByStationIds(stationIds);
+    }
+
     @Transactional
     public int processBatch(List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts) {
         if (stationHourlyAvgParkingBikeCounts == null || stationHourlyAvgParkingBikeCounts.isEmpty()) {

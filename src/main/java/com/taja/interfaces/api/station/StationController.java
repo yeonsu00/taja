@@ -65,7 +65,7 @@ public class StationController {
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
-                nearbyStationRequest.lonDelta()
+                nearbyStationRequest.lngDelta()
         );
 
         return CommonApiResponse.success(nearbyStations, "근처 대여소 조회에 성공했습니다.");
@@ -76,10 +76,10 @@ public class StationController {
     public CommonApiResponse<List<StationSimpleResponse>> searchStation(
             @Valid @ModelAttribute SearchStationRequest searchStationRequest) {
         double centerLat = searchStationRequest.lat();
-        double centerLon = searchStationRequest.lon();
+        double centerLng = searchStationRequest.lng();
 
         List<StationSimpleResponse> searchedStations = stationService.searchStationsByName(
-                searchStationRequest.keyword(), centerLat, centerLon);
+                searchStationRequest.keyword(), centerLat, centerLng);
 
         return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
     }
@@ -88,7 +88,8 @@ public class StationController {
     @GetMapping("/{stationId}")
     public CommonApiResponse<StationDetailResponse> findStationDetail(
             @PathVariable("stationId") Long stationId) {
-        StationDetailResponse stationDetailResponse = stationFacade.findStationDetail(stationId);
+        LocalDateTime requestedAt = LocalDateTime.now();
+        StationDetailResponse stationDetailResponse = stationFacade.findStationDetail(stationId, requestedAt);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
     }
 

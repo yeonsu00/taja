@@ -1,7 +1,6 @@
 package com.taja.application.status;
 
 import com.taja.application.station.StationRepository;
-import com.taja.application.station.event.EventPublisherHelper;
 import com.taja.application.station.event.StationEvent;
 import com.taja.application.statistics.dto.StationDailyAvg;
 import com.taja.application.statistics.dto.StationHourlyAvg;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Flux;
@@ -29,17 +29,13 @@ public class StationStatusService {
     private final StationRepository stationRepository;
     private final TransactionTemplate transactionTemplate;
     private final StatusClient statusClient;
-    private final EventPublisherHelper eventPublisherHelper;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final int TOTAL_COUNT = 3000;
     private static final int ITEMS_PER_REQUEST = 500;
 
     public List<StationStatus> findStationStatusesByDate(LocalDate calculationDate) {
         return stationStatusRepository.findByDate(calculationDate);
-    }
-
-    public List<StationStatus> findStationStatusesByDateAndStationNumbers(LocalDate calculationDate, List<Integer> stationNumbers) {
-        return stationStatusRepository.findAllByDateAndStationNumbers(calculationDate, stationNumbers);
     }
 
     public List<StationHourlyAvg> calculateHourlyAvgParkingBikeCount(List<StationStatus> stationStatuses) {
@@ -90,35 +86,38 @@ public class StationStatusService {
 
         Flux.range(0, totalPages)
                 .flatMap(page -> {
-                    int start = (page * ITEMS_PER_REQUEST) + 1;
-                    int end = (page + 1) * ITEMS_PER_REQUEST;
-
-                    if (end > TOTAL_COUNT) {
-                        end = TOTAL_COUNT;
-                    }
-
-                    return statusClient.fetchStationStatuses(start, end);
+                    int startIndex = (page * ITEMS_PER_REQUEST) + 1;
+                    int endIndex = Math.min((page + 1) * ITEMS_PER_REQUEST, TOTAL_COUNT);
+                    return statusClient.fetchStationStatuses(startIndex, endIndex)
+                            .map(dtos -> new PageResult(dtos, startIndex, endIndex));
                 })
                 .publishOn(Schedulers.boundedElastic())
-                .doOnNext(stationStatusDtos -> {
-                    if (!stationStatusDtos.isEmpty()) {
-                        saveInTransaction(stationStatusDtos, requestedAt);
+                .doOnNext(result -> {
+                    if (!result.dtos().isEmpty()) {
+                        saveInTransaction(result.dtos(), requestedAt, result.startIndex(), result.endIndex());
                     }
                 })
                 .doOnError(e -> log.error("대여소 상태 업데이트 프로세스 진행 중 오류 발생: {}", e.getMessage()))
-                .subscribe();
+                .blockLast();
+
+        eventPublisher.publishEvent(StationEvent.StationStatusesCollected.from(requestedAt));
     }
 
-    private void saveInTransaction(List<StationStatusDto> loadedStationStatuses, LocalDateTime requestedAt) {
+    private void saveInTransaction(List<StationStatusDto> loadedStationStatuses, LocalDateTime requestedAt,
+                                   int startIndex, int endIndex) {
         transactionTemplate.execute(status -> {
             List<StationStatus> stationStatuses = loadedStationStatuses.stream()
                     .map(dto -> dto.toStationStatus(requestedAt))
                     .toList();
 
-            int savedStationStatusCount = stationStatusRepository.saveAll(stationStatuses);
-            log.info("{}개의 대여소 실시간 상태를 DB에 저장했습니다. 요청 시간: {}", savedStationStatusCount, requestedAt);
-            eventPublisherHelper.publishEventAfterCommit(new StationEvent.StationStatusesUpdated(stationStatuses));
+            int savedStationStatusCount = stationStatusRepository.saveAllStationStatus(stationStatuses);
+            log.info("{}개의 대여소 실시간 상태를 DB에 저장했습니다. ({}-{}) 요청 시간: {}",
+                    savedStationStatusCount, startIndex, endIndex, requestedAt);
+            eventPublisher.publishEvent(StationEvent.StationStatusesUpdated.from(stationStatuses, startIndex, endIndex));
             return null;
         });
+    }
+
+    private record PageResult(List<StationStatusDto> dtos, int startIndex, int endIndex) {
     }
 }

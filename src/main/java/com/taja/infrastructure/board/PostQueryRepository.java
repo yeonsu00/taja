@@ -25,6 +25,31 @@ public class PostQueryRepository {
     private static final QComment comment = QComment.comment;
     private static final QMember member = QMember.member;
 
+    public List<BoardInfo.PostItem> findRecentPosts(Long stationId, int recentPostsSize) {
+        return queryFactory
+                .select(
+                        Projections.constructor(BoardInfo.PostItem.class,
+                                post.stationId,
+                                post.postId,
+                                member.name,
+                                post.createdAt,
+                                post.content,
+                                post.commentCount,
+                                post.likeCount,
+                                Expressions.constant(false)
+                        )
+                )
+                .from(post)
+                .join(member).on(post.writerId.eq(member.memberId))
+                .where(
+                        post.stationId.eq(stationId),
+                        post.isDeleted.isFalse()
+                )
+                .orderBy(post.createdAt.desc(), post.postId.desc())
+                .limit(recentPostsSize)
+                .fetch();
+    }
+
     public List<BoardInfo.PostItem> findLatestPosts(Long stationId, long cursor, int size) {
         return queryFactory
                 .select(

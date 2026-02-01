@@ -2,44 +2,54 @@ package com.taja.interfaces.api.station.response.detail;
 
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
-import com.taja.interfaces.api.station.response.StationSimpleResponse;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Comparator;
 import java.util.List;
 
 public record StationDetailResponse(
         Long stationId,
+        String number,
         String name,
         String address,
         double latitude,
         double longitude,
         List<OperationModeResponse> operationMode,
         TodayAvailableBikeResponse todayAvailableBike,
-        List<ChatRoomRecentMessageResponse> chatRoomRecentMessages,
-        List<StationSimpleResponse> nearbyAvailableStations
+        List<RecentPostResponse> recentPosts,
+        List<NearbyAvailableStationDetailResponse> nearbyAvailableStations
 ) {
 
-    public static StationDetailResponse fromStation(Station station, List<Station> nearbyStations) {
+    public static StationDetailResponse of(
+            Station station,
+            TodayAvailableBikeResponse todayAvailableBike,
+            List<RecentPostResponse> recentPosts,
+            List<Station> nearbyStations
+    ) {
         List<OperationModeResponse> operationModes = getOperationModeResponses(station);
 
-        List<StationSimpleResponse> nearbyAvailableStations = nearbyStations.stream()
-                .map(nearbyStation -> StationSimpleResponse.fromStation(
-                        nearbyStation,
-                        station.getLatitude(),
-                        station.getLongitude()
+        List<NearbyAvailableStationDetailResponse> nearbyAvailableStations = nearbyStations.stream()
+                .map(nearbyStation -> new NearbyAvailableStationDetailResponse(
+                        nearbyStation.getStationId(),
+                        String.valueOf(nearbyStation.getNumber()),
+                        nearbyStation.getName(),
+                        nearbyStation.getLatitude(),
+                        nearbyStation.getLongitude(),
+                        nearbyStation.calculateDistanceTo(station.getLatitude(), station.getLongitude())
                 ))
-                .sorted(Comparator.comparingInt(StationSimpleResponse::distance))
+                .sorted(Comparator.comparingInt(NearbyAvailableStationDetailResponse::distance))
                 .toList();
 
         return new StationDetailResponse(
                 station.getStationId(),
+                String.valueOf(station.getNumber()),
                 station.getName(),
                 station.getAddress(),
                 station.getLatitude(),
                 station.getLongitude(),
                 operationModes,
-                null,
-                List.of(),
+                todayAvailableBike,
+                recentPosts,
                 nearbyAvailableStations
         );
     }

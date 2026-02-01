@@ -53,7 +53,7 @@ public class SeoulDataStationInfoClient implements StationClient {
 
         if (SUCCESS_RESULT_CODE.equals(resultCode)) {
             List<StationDto> loadedStations = response.stationInfo().stations();
-            log.info("✅ API 요청 성공 ({}-{}) | 수집된 데이터 수: {}", startIndex, endIndex, loadedStations.size());
+            log.info("✅ 대여소 정보 API 요청 성공 ({}-{}) | 수집된 데이터 수: {}", startIndex, endIndex, loadedStations.size());
             return StationDto.toStations(loadedStations);
         }
 

@@ -1,6 +1,7 @@
 package com.taja.application.statistics;
 
 import com.taja.application.station.StationService;
+import com.taja.application.status.StationStatusHourlyAvgService;
 import com.taja.domain.station.Station;
 import com.taja.application.statistics.dto.StationDailyAvg;
 import com.taja.application.statistics.dto.StationDistricts;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StatisticsFacade {
 
     private final StationStatusService stationStatusService;
+    private final StationStatusHourlyAvgService stationStatusHourlyAvgService;
     private final HourlyStatisticsService hourlyStatisticsService;
     private final DayOfWeekStatisticsService dayOfWeekStatisticsService;
     private final TemperatureStatisticsBatchService temperatureStatisticsBatchService;
@@ -34,9 +36,8 @@ public class StatisticsFacade {
     public int calculateHourlyStatistics(LocalDate requestedAt) {
         LocalDate calculationDate = getCalculationDate(requestedAt);
 
-        List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDate(calculationDate);
-        List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts = stationStatusService.calculateHourlyAvgParkingBikeCount(
-                stationStatuses);
+        List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts =
+                stationStatusHourlyAvgService.findStationHourlyAvgsByDate(calculationDate);
 
         log.info("시간대별 통계 변환 완료 - 대여소 수: {}", stationHourlyAvgParkingBikeCounts.size());
 

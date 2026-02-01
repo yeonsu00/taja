@@ -1,5 +1,6 @@
 package com.taja.application.station;
 
+import com.taja.application.status.StationStatusFacade;
 import com.taja.application.station.event.EventPublisherHelper;
 import com.taja.application.station.event.StationEvent;
 import com.taja.domain.station.Station;
@@ -34,7 +35,7 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
-    public List<StationSimpleResponse> searchStationsByName(String keyword, double centerLat, double centerLon) {
+    public List<StationSimpleResponse> searchStationsByName(String keyword, double centerLat, double centerLng) {
         List<Station> searchedStations = stationRepository.findByNameContaining(keyword);
 
         return searchedStations.stream()
@@ -45,7 +46,7 @@ public class StationService {
                         station.getLatitude(),
                         station.getLongitude(),
                         station.getAddress(),
-                        station.calculateDistanceTo(centerLat, centerLon)
+                        station.calculateDistanceTo(centerLat, centerLng)
                 ))
                 .sorted(Comparator.comparingDouble(StationSimpleResponse::distance))
                 .toList();

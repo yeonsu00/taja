@@ -16,6 +16,7 @@ import com.taja.application.station.StationService;
 import com.taja.application.statistics.dto.StationDailyAvg;
 import com.taja.application.statistics.dto.StationDistricts;
 import com.taja.application.statistics.dto.StationHourlyAvg;
+import com.taja.application.status.StationStatusHourlyAvgService;
 import com.taja.application.status.StationStatusService;
 import com.taja.application.weather.WeatherService;
 import com.taja.domain.station.OperationMode;
@@ -46,6 +47,9 @@ class StatisticsFacadeIntegrationTest {
     private StationStatusService stationStatusService;
 
     @MockitoSpyBean
+    private StationStatusHourlyAvgService stationStatusHourlyAvgService;
+
+    @MockitoSpyBean
     private HourlyStatisticsService hourlyStatisticsService;
 
     @MockitoSpyBean
@@ -71,12 +75,6 @@ class StatisticsFacadeIntegrationTest {
             LocalDate requestedAt = LocalDate.of(2024, 1, 2);
             LocalDate calculationDate = requestedAt.minusDays(1);
 
-            StationStatus status1 = createStationStatus(1, 10, calculationDate, LocalTime.of(9, 0));
-            StationStatus status2 = createStationStatus(1, 15, calculationDate, LocalTime.of(10, 0));
-            StationStatus status3 = createStationStatus(2, 20, calculationDate, LocalTime.of(9, 0));
-
-            List<StationStatus> stationStatuses = List.of(status1, status2, status3);
-
             Map<Integer, Integer> hourlyAvg1 = new HashMap<>();
             hourlyAvg1.put(9, 10);
             hourlyAvg1.put(10, 15);
@@ -87,8 +85,7 @@ class StatisticsFacadeIntegrationTest {
             StationHourlyAvg stationHourlyAvg2 = new StationHourlyAvg(2L, hourlyAvg2);
             List<StationHourlyAvg> stationHourlyAvgs = List.of(stationHourlyAvg1, stationHourlyAvg2);
 
-            doReturn(stationStatuses).when(stationStatusService).findStationStatusesByDate(calculationDate);
-            doReturn(stationHourlyAvgs).when(stationStatusService).calculateHourlyAvgParkingBikeCount(stationStatuses);
+            doReturn(stationHourlyAvgs).when(stationStatusHourlyAvgService).findStationHourlyAvgsByDate(calculationDate);
             doReturn(2).when(hourlyStatisticsService).processBatch(anyList());
 
             // act
@@ -98,8 +95,7 @@ class StatisticsFacadeIntegrationTest {
             assertThat(result).isEqualTo(2);
 
             // verify
-            verify(stationStatusService, times(1)).findStationStatusesByDate(calculationDate);
-            verify(stationStatusService, times(1)).calculateHourlyAvgParkingBikeCount(stationStatuses);
+            verify(stationStatusHourlyAvgService, times(1)).findStationHourlyAvgsByDate(calculationDate);
             verify(hourlyStatisticsService, times(1)).processBatch(anyList());
         }
 
@@ -110,8 +106,7 @@ class StatisticsFacadeIntegrationTest {
             LocalDate requestedAt = LocalDate.of(2024, 1, 2);
             LocalDate calculationDate = requestedAt.minusDays(1);
 
-            doReturn(List.of()).when(stationStatusService).findStationStatusesByDate(calculationDate);
-            doReturn(List.of()).when(stationStatusService).calculateHourlyAvgParkingBikeCount(anyList());
+            doReturn(List.of()).when(stationStatusHourlyAvgService).findStationHourlyAvgsByDate(calculationDate);
             doReturn(0).when(hourlyStatisticsService).processBatch(anyList());
 
             // act
@@ -121,8 +116,7 @@ class StatisticsFacadeIntegrationTest {
             assertThat(result).isEqualTo(0);
 
             // verify
-            verify(stationStatusService, times(1)).findStationStatusesByDate(calculationDate);
-            verify(stationStatusService, times(1)).calculateHourlyAvgParkingBikeCount(anyList());
+            verify(stationStatusHourlyAvgService, times(1)).findStationHourlyAvgsByDate(calculationDate);
         }
 
         @DisplayName("배치 처리 시 여러 배치로 나누어 처리된다.")
@@ -132,11 +126,9 @@ class StatisticsFacadeIntegrationTest {
             LocalDate requestedAt = LocalDate.of(2024, 1, 2);
             LocalDate calculationDate = requestedAt.minusDays(1);
 
-            List<StationStatus> stationStatuses = List.of();
             List<StationHourlyAvg> stationHourlyAvgs = createStationHourlyAvgs(250); // BATCH_SIZE(100)보다 큰 데이터
 
-            doReturn(stationStatuses).when(stationStatusService).findStationStatusesByDate(calculationDate);
-            doReturn(stationHourlyAvgs).when(stationStatusService).calculateHourlyAvgParkingBikeCount(stationStatuses);
+            doReturn(stationHourlyAvgs).when(stationStatusHourlyAvgService).findStationHourlyAvgsByDate(calculationDate);
             doReturn(100).when(hourlyStatisticsService).processBatch(anyList());
 
             // act
@@ -146,7 +138,7 @@ class StatisticsFacadeIntegrationTest {
             assertThat(result).isEqualTo(300); // 100 * 3 batches
 
             // verify
-            verify(stationStatusService, times(1)).findStationStatusesByDate(calculationDate);
+            verify(stationStatusHourlyAvgService, times(1)).findStationHourlyAvgsByDate(calculationDate);
             verify(hourlyStatisticsService, times(3)).processBatch(anyList()); // 3 batches
         }
 
@@ -157,9 +149,8 @@ class StatisticsFacadeIntegrationTest {
             LocalDate requestedAt = LocalDate.of(2024, 1, 2);
             LocalDate calculationDate = requestedAt.minusDays(1);
 
-            doReturn(List.of()).when(stationStatusService).findStationStatusesByDate(calculationDate);
             doThrow(new RuntimeException("집계 실패"))
-                    .when(stationStatusService).calculateHourlyAvgParkingBikeCount(anyList());
+                    .when(stationStatusHourlyAvgService).findStationHourlyAvgsByDate(calculationDate);
 
             // act & assert
             RuntimeException exception = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> {
@@ -169,7 +160,7 @@ class StatisticsFacadeIntegrationTest {
             assertThat(exception.getMessage()).contains("집계 실패");
 
             // verify
-            verify(stationStatusService, times(1)).findStationStatusesByDate(calculationDate);
+            verify(stationStatusHourlyAvgService, times(1)).findStationHourlyAvgsByDate(calculationDate);
             verify(hourlyStatisticsService, never()).processBatch(anyList());
         }
     }
