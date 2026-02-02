@@ -8,5 +8,5 @@ public interface HourlyStatisticsRepository {
 
     void saveAllHourlyStatistics(List<HourlyStatistics> hourlyStatisticsList);
 
-    List<HourlyStatistics> findByStationId(Long stationId);
+    List<HourlyStatistics> findHourlyStatisticsByStationId(Long stationId);
 }

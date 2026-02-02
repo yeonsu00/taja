@@ -1,11 +1,14 @@
 package com.taja.interfaces.station;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.taja.application.board.BoardFacade;
@@ -17,7 +20,15 @@ import com.taja.infrastructure.jwt.CustomAuthenticationEntryPoint;
 import com.taja.infrastructure.jwt.JwtExceptionFilter;
 import com.taja.infrastructure.jwt.JwtTokenProvider;
 import com.taja.interfaces.api.station.StationController;
+import com.taja.interfaces.api.station.response.detail.DailyAvailableItemResponse;
+import com.taja.interfaces.api.station.response.detail.HourlyAvailableItemResponse;
+import com.taja.interfaces.api.station.response.detail.OperationModeResponse;
+import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
+import com.taja.interfaces.api.station.response.detail.TemperatureAvailableItemResponse;
+import com.taja.interfaces.api.station.response.detail.TodayAvailableBikeResponse;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,6 +78,57 @@ class StationControllerTest {
 
     @MockitoBean
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @DisplayName("대여소 상세 조회 시 이용 통계(hourlyAvailable, dailyAvailable, temperatureAvailable)가 포함된 응답을 반환한다.")
+    @Test
+    @WithMockUser
+    void findStationDetail_returnsResponseWithUtilizationStatistics() throws Exception {
+        // given
+        StationDetailResponse detailResponse = createStationDetailResponseWithStatistics();
+        given(stationFacade.findStationDetail(anyLong(), any(LocalDateTime.class)))
+                .willReturn(detailResponse);
+
+        // when & then
+        mockMvc.perform(get("/stations/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.stationId").value(1))
+                .andExpect(jsonPath("$.data.hourlyAvailable").isArray())
+                .andExpect(jsonPath("$.data.dailyAvailable").isArray())
+                .andExpect(jsonPath("$.data.temperatureAvailable").isArray());
+    }
+
+    private static StationDetailResponse createStationDetailResponseWithStatistics() {
+        TodayAvailableBikeResponse todayAvailableBike = new TodayAvailableBikeResponse(
+                LocalDateTime.now(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+        List<HourlyAvailableItemResponse> hourlyAvailable = List.of(
+                new HourlyAvailableItemResponse(9, 5, "2025-02-02")
+        );
+        List<DailyAvailableItemResponse> dailyAvailable = List.of(
+                new DailyAvailableItemResponse("월", 10, "2025-02-02")
+        );
+        List<TemperatureAvailableItemResponse> temperatureAvailable = List.of(
+                new TemperatureAvailableItemResponse(20.0, 8, "2025-02-02")
+        );
+        return new StationDetailResponse(
+                1L,
+                "1",
+                "테스트 대여소",
+                "서울시 강남구",
+                37.5,
+                127.0,
+                List.of(new OperationModeResponse("LCD", 10)),
+                todayAvailableBike,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                hourlyAvailable,
+                dailyAvailable,
+                temperatureAvailable
+        );
+    }
 
     @DisplayName("올바른 값으로 주변 대여소 조회를 요청하면 성공(200 OK)한다.")
     @Test

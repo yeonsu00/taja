@@ -29,7 +29,7 @@ public class HourlyStatisticsRepositoryImpl implements HourlyStatisticsRepositor
     }
 
     @Override
-    public List<HourlyStatistics> findByStationId(Long stationId) {
+    public List<HourlyStatistics> findHourlyStatisticsByStationId(Long stationId) {
         return hourlyStatisticsJpaRepository.findByStationId(stationId);
     }
 }

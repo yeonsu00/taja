@@ -19,8 +19,8 @@ public class DayOfWeekStatisticsService {
 
     private final DayOfWeekStatisticsRepository dayOfWeekStatisticsRepository;
 
-    public List<DayOfWeekStatistics> findByStationId(Long stationId) {
-        return dayOfWeekStatisticsRepository.findByStationId(stationId);
+    public List<DayOfWeekStatistics> findDayOfWeekStatisticsByStationId(Long stationId) {
+        return dayOfWeekStatisticsRepository.findDayOfWeekStatisticsByStationId(stationId);
     }
 
     @Transactional

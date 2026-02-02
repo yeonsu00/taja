@@ -21,8 +21,8 @@ public class TemperatureStatisticsService {
         return temperatureStatisticsRepository.findAllByStationIds(stationIds);
     }
 
-    public List<TemperatureStatistics> findByStationId(Long stationId) {
-        return temperatureStatisticsRepository.findByStationId(stationId);
+    public List<TemperatureStatistics> findTemperatureStatisticsByStationId(Long stationId) {
+        return temperatureStatisticsRepository.findTemperatureStatisticsByStationId(stationId);
     }
 }
 

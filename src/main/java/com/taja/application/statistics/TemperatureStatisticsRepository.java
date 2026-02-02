@@ -8,5 +8,5 @@ public interface TemperatureStatisticsRepository {
 
     List<TemperatureStatistics> findAllByStationIds(List<Long> stationIds);
 
-    List<TemperatureStatistics> findByStationId(Long stationId);
+    List<TemperatureStatistics> findTemperatureStatisticsByStationId(Long stationId);
 }

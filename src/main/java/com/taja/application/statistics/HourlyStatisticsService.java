@@ -77,8 +77,8 @@ public class HourlyStatisticsService {
         return stationId + ":" + hour;
     }
 
-    public List<HourlyStatistics> findByStationId(Long stationId) {
-        return hourlyStatisticsRepository.findByStationId(stationId);
+    public List<HourlyStatistics> findHourlyStatisticsByStationId(Long stationId) {
+        return hourlyStatisticsRepository.findHourlyStatisticsByStationId(stationId);
     }
 }
 

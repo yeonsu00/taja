@@ -5,7 +5,7 @@ import java.time.DayOfWeek;
 import java.util.List;
 
 public interface DayOfWeekStatisticsRepository {
-    List<DayOfWeekStatistics> findByStationId(Long stationId);
+    List<DayOfWeekStatistics> findDayOfWeekStatisticsByStationId(Long stationId);
 
     List<DayOfWeekStatistics> findAllByStationIdsAndDayOfWeek(List<Long> stationIds, DayOfWeek dayOfWeek);
 

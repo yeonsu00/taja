@@ -14,7 +14,7 @@ public class DayOfWeekStatisticsRepositoryImpl implements DayOfWeekStatisticsRep
     private final DayOfWeekStatisticsJpaRepository dayOfWeekStatisticsJpaRepository;
 
     @Override
-    public List<DayOfWeekStatistics> findByStationId(Long stationId) {
+    public List<DayOfWeekStatistics> findDayOfWeekStatisticsByStationId(Long stationId) {
         return dayOfWeekStatisticsJpaRepository.findByStationId(stationId);
     }
 

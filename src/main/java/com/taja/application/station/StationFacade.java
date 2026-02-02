@@ -81,9 +81,9 @@ public class StationFacade {
                 .map(item -> new RecentPostResponse(item.writer(), item.content()))
                 .toList();
 
-        List<HourlyStatistics> hourlyStatistics = hourlyStatisticsService.findByStationId(station.getStationId());
-        List<DayOfWeekStatistics> dayOfWeekStatistics = dayOfWeekStatisticsService.findByStationId(station.getStationId());
-        List<TemperatureStatistics> temperatureStatistics = temperatureStatisticsService.findByStationId(station.getStationId());
+        List<HourlyStatistics> hourlyStatistics = hourlyStatisticsService.findHourlyStatisticsByStationId(station.getStationId());
+        List<DayOfWeekStatistics> dayOfWeekStatistics = dayOfWeekStatisticsService.findDayOfWeekStatisticsByStationId(station.getStationId());
+        List<TemperatureStatistics> temperatureStatistics = temperatureStatisticsService.findTemperatureStatisticsByStationId(station.getStationId());
 
         return StationDetailResponse.of(station, todayAvailableBike, recentPosts, nearbyStations,
                 hourlyStatistics, dayOfWeekStatistics, temperatureStatistics);
