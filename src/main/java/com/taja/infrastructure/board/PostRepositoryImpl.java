@@ -31,6 +31,11 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public Optional<String> findLatestPostContentByStationId(Long stationId) {
+        return postQueryRepository.findLatestPostContentByStationId(stationId);
+    }
+
+    @Override
     public List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds) {
         return postQueryRepository.findPostItemsByPostIds(stationId, postIds);
     }

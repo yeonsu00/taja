@@ -2,6 +2,7 @@ package com.taja.application.board;
 
 import com.taja.domain.board.BoardMember;
 import com.taja.global.exception.AlreadyJoinedException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,5 +18,9 @@ public class BoardMemberService {
         }
 
         boardMemberRepository.saveBoardMember(boardMember);
+    }
+
+    public List<BoardMember> findByMemberId(Long memberId) {
+        return boardMemberRepository.findByMemberId(memberId);
     }
 }

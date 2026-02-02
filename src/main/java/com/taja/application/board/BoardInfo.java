@@ -102,4 +102,19 @@ public class BoardInfo {
             return new LikeResult(postId, likeCount);
         }
     }
+
+    public record JoinedBoardItem(
+            Long stationId,
+            String name,
+            String lastContent
+    ) {
+    }
+
+    public record JoinedBoards(
+            List<JoinedBoardItem> items
+    ) {
+        public static JoinedBoards from(List<JoinedBoardItem> items) {
+            return new JoinedBoards(items);
+        }
+    }
 }

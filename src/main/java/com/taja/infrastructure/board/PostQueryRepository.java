@@ -76,6 +76,21 @@ public class PostQueryRepository {
                 .fetch();
     }
 
+    public Optional<String> findLatestPostContentByStationId(Long stationId) {
+        return Optional.ofNullable(
+                queryFactory
+                        .select(post.content)
+                        .from(post)
+                        .where(
+                                post.stationId.eq(stationId),
+                                post.isDeleted.isFalse()
+                        )
+                        .orderBy(post.postId.desc())
+                        .limit(1)
+                        .fetchFirst()
+        );
+    }
+
     public Optional<BoardInfo.PostDetailPart> findPostDetailPartByPostId(Long postId) {
         List<BoardInfo.PostDetailPart> list = queryFactory
                 .select(

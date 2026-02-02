@@ -9,7 +9,9 @@ import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,27 @@ public class BoardFacade {
 
         BoardMember boardMember = BoardMember.of(station.getStationId(), member.getMemberId());
         boardMemberService.joinBoard(boardMember);
+    }
+
+    @Transactional(readOnly = true)
+    public BoardInfo.JoinedBoards findJoinedBoards(String email) {
+        Member member = authService.findMemberByEmail(email);
+        List<BoardMember> boardMembers = boardMemberService.findByMemberId(member.getMemberId());
+        if (boardMembers.isEmpty()) {
+            return BoardInfo.JoinedBoards.from(List.of());
+        }
+        List<Long> stationIds = boardMembers.stream().map(BoardMember::getStationId).toList();
+        List<Station> stations = stationService.findStationsByIds(stationIds);
+        Map<Long, Station> stationMap = stations.stream().collect(Collectors.toMap(Station::getStationId, s -> s));
+        List<BoardInfo.JoinedBoardItem> items = boardMembers.stream()
+                .map(bm -> {
+                    Station station = stationMap.get(bm.getStationId());
+                    String name = station != null ? station.getName() : "";
+                    String lastContent = postService.findLatestPostContentByStationId(bm.getStationId()).orElse(null);
+                    return new BoardInfo.JoinedBoardItem(bm.getStationId(), name, lastContent);
+                })
+                .toList();
+        return BoardInfo.JoinedBoards.from(items);
     }
 
     @Transactional

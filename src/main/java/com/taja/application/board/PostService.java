@@ -5,6 +5,7 @@ import com.taja.domain.board.Post;
 import com.taja.global.exception.PostNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -113,5 +114,9 @@ public class PostService {
 
     public List<PostItem> findRecentPosts(Long stationId, int recentPostsSize) {
         return postRepository.findRecentPosts(stationId, recentPostsSize);
+    }
+
+    public Optional<String> findLatestPostContentByStationId(Long stationId) {
+        return postRepository.findLatestPostContentByStationId(stationId);
     }
 }

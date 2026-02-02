@@ -12,6 +12,8 @@ public interface PostRepository {
 
     List<BoardInfo.PostItem> findRecentPosts(Long stationId, int recentPostsSize);
 
+    Optional<String> findLatestPostContentByStationId(Long stationId);
+
     List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds);
 
     Optional<BoardInfo.PostDetailPart> findPostDetailPartByPostId(Long postId);

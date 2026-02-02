@@ -50,6 +50,14 @@ public class StationRepositoryImpl implements StationRepository {
     }
 
     @Override
+    public List<Station> findStationsByIds(List<Long> stationIds) {
+        if (stationIds == null || stationIds.isEmpty()) {
+            return List.of();
+        }
+        return stationJpaRepository.findAllById(stationIds);
+    }
+
+    @Override
     public List<Station> findByNumbers(List<Integer> nearbyStationsNumber) {
         return stationJpaRepository.findAllByNumberIn(nearbyStationsNumber);
     }

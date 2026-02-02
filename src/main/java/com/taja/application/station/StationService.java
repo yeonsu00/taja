@@ -1,6 +1,5 @@
 package com.taja.application.station;
 
-import com.taja.application.status.StationStatusFacade;
 import com.taja.application.station.event.EventPublisherHelper;
 import com.taja.application.station.event.StationEvent;
 import com.taja.domain.station.Station;
@@ -54,6 +53,10 @@ public class StationService {
 
     public Station findStationByStationId(Long stationId) {
         return stationRepository.findStationById(stationId);
+    }
+
+    public List<Station> findStationsByIds(List<Long> stationIds) {
+        return stationRepository.findStationsByIds(stationIds);
     }
 
     public List<Station> findStationByNumbers(List<Integer> stationNumbers) {

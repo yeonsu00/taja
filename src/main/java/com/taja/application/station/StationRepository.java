@@ -10,6 +10,8 @@ public interface StationRepository {
 
     Station findStationById(Long stationId);
 
+    List<Station> findStationsByIds(List<Long> stationIds);
+
     List<Station> findByNumbers(List<Integer> nearbyStationsNumber);
 
     Station findById(Long stationId);
