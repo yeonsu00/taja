@@ -40,7 +40,6 @@ public class BoardFacade {
     public void createPost(String email, Long stationId, String content) {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
-        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
         Post post = postService.createPost(member.getMemberId(), station.getStationId(), content);
         eventPublisher.publishEvent(PostRankingEvent.Created.from(post.getStationId(), post.getPostId()));
     }
@@ -50,7 +49,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
 
-        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
         BoardInfo.PostItems postItems = postService.findLatestPosts(station.getStationId(), cursor, size);
 
         List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(postItems.items(), member.getMemberId());
@@ -61,7 +59,6 @@ public class BoardFacade {
     public BoardInfo.PostItems findPopularPosts(String email, Long stationId, String cursor, int size, LocalDate today) {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
-        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
 
         boolean isFirstPage = cursor == null || cursor.isBlank();
         BoardInfo.PostItems postItems = postService.findPopularPosts(station.getStationId(), cursor, size, today);
@@ -79,7 +76,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         BoardInfo.PostDetailPart postDetailPart = postService.findPostDetailPart(postId);
-        boardMemberService.checkMemberJoined(postDetailPart.stationId(), member.getMemberId());
         BoardInfo.PostDetail detail = postService.enrichWithComments(postDetailPart);
         boolean liked = postLikeService.hasLiked(postId, member.getMemberId());
         BoardInfo.PostDetail detailWithLiked = BoardInfo.PostDetail.from(detail, liked);
@@ -93,7 +89,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostAndMember(member.getMemberId(), postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postService.softDeletePost(post);
         commentService.softDeleteComments(postId);
@@ -105,7 +100,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         commentService.createComment(member.getMemberId(), post.getPostId(), content);
         postService.incrementCommentCount(postId);
@@ -119,7 +113,6 @@ public class BoardFacade {
 
         Comment comment = commentService.findCommentByCommentId(commentId, member.getMemberId());
         Post post = postService.findPostByPostId(comment.getPostId());
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         commentService.softDeleteComment(comment);
         postService.decrementCommentCount(comment.getPostId());
@@ -132,7 +125,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postLikeService.likePost(member.getMemberId(), postId);
         postService.incrementLikeCount(postId);
@@ -148,7 +140,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postLikeService.unlikePost(member.getMemberId(), postId);
         postService.decrementLikeCount(postId);

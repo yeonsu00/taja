@@ -8,7 +8,6 @@ import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
 import com.taja.global.exception.AlreadyLikedException;
 import com.taja.global.exception.LikeNotFoundException;
-import com.taja.global.exception.NotStationMemberException;
 import com.taja.global.exception.PostNotFoundException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,10 +84,13 @@ class BoardIntegrationTest {
         }
 
         @Test
-        @DisplayName("참여하지 않은 게시판에서 게시글 작성 시 NotStationMemberException 예외를 던진다")
-        void createPost_withoutJoin_throws() {
-            assertThatThrownBy(() -> boardFacade.createPost("nomember@test.com", stationId, "글"))
-                    .isInstanceOf(NotStationMemberException.class);
+        @DisplayName("참여하지 않은 멤버도 게시글 작성이 가능하다")
+        void createPost_withoutJoin_success() {
+            boardFacade.createPost("nomember@test.com", stationId, "비참여 멤버 글");
+
+            BoardInfo.PostItems latest = boardFacade.findLatestPosts("nomember@test.com", stationId, null, 10);
+            assertThat(latest.items()).hasSize(1);
+            assertThat(latest.items().getFirst().content()).isEqualTo("비참여 멤버 글");
         }
 
         @Test

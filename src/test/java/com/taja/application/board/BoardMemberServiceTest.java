@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import com.taja.domain.board.BoardMember;
 import com.taja.global.exception.AlreadyJoinedException;
-import com.taja.global.exception.NotStationMemberException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,29 +52,6 @@ class BoardMemberServiceTest {
                     .hasMessageContaining("이미 참여한 게시판");
 
             verify(boardMemberRepository, never()).saveBoardMember(boardMember);
-        }
-    }
-
-    @Nested
-    @DisplayName("참여한 멤버인지 확인")
-    class CheckMemberJoined {
-
-        @Test
-        @DisplayName("참여한 멤버면 예외 없이 통과한다")
-        void joined_success() {
-            when(boardMemberRepository.existsByStationIdAndMemberId(1L, 1L)).thenReturn(true);
-
-            boardMemberService.checkMemberJoined(1L, 1L);
-        }
-
-        @Test
-        @DisplayName("참여하지 않은 멤버면 NotStationMemberException 발생")
-        void notJoined_throwsNotStationMemberException() {
-            when(boardMemberRepository.existsByStationIdAndMemberId(1L, 1L)).thenReturn(false);
-
-            assertThatThrownBy(() -> boardMemberService.checkMemberJoined(1L, 1L))
-                    .isInstanceOf(NotStationMemberException.class)
-                    .hasMessageContaining("참여자가 아닙니다");
         }
     }
 }
