@@ -1,9 +1,12 @@
 package com.taja.infrastructure.cache;
 
 import com.taja.application.cache.StationInfo;
+import com.taja.application.cache.StationInfo.BikeCountInfo;
 import com.taja.application.cache.StationRedisRepository;
+import com.taja.application.status.StationStatusRepository;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
+import com.taja.global.exception.StationNotFoundException;
 import com.taja.infrastructure.station.StationJpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +25,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     private final StationHashRepository stationHashRepository;
     private final StationGeoRepository stationGeoRepository;
     private final StationJpaRepository stationJpaRepository;
+    private final StationStatusRepository stationStatusRepository;
 
     @Override
     public void saveStations(List<Station> stations, LocalDateTime requestedAt) {
@@ -53,6 +57,20 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 .map(s -> getOrRefresh(s.getNumber(), s.getLatitude(), s.getLongitude()))
                 .flatMap(Optional::stream)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public BikeCountInfo getStationStatusByNumber(Integer stationNumber) {
+        Station station = stationJpaRepository.findByNumber(stationNumber)
+                .orElseThrow(() -> new StationNotFoundException(stationNumber + " 번 대여소를 찾을 수 없습니다."));
+        Long stationId = station.getStationId();
+        return stationHashRepository.fetchBikeCountByNumber(stationNumber)
+                .orElseGet(() -> stationStatusRepository.findLatestByStationNumber(stationNumber)
+                        .map(status -> new BikeCountInfo(
+                                stationId,
+                                status.getParkingBikeCount(),
+                                LocalDateTime.of(status.getRequestedDate(), status.getRequestedTime())))
+                        .orElse(new BikeCountInfo(stationId, 0, LocalDateTime.now())));
     }
 
     private Optional<StationInfo.StationFullInfo> getOrRefresh(Integer number, double lat, double lon) {

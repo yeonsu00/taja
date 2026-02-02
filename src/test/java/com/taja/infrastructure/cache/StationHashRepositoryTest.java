@@ -228,4 +228,76 @@ class StationHashRepositoryTest {
         assertThat(result).isPresent();
         assertThat(result.get().bikeCount()).isEqualTo(0);
     }
+
+    @DisplayName("fetchBikeCountByNumber는 Redis에서 남은 자전거 수를 조회한다")
+    @Test
+    void fetchBikeCountByNumber_retrievesFromCache() {
+        // given
+        Integer number = 101;
+        String hashKey = "stations:101";
+        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        when(hashOperations.multiGet(eq(hashKey), anyList()))
+                .thenReturn(List.of("7", "2025-08-20T14:39:00", "1"));
+
+        // when
+        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
+
+        // then
+        assertThat(result).isPresent();
+        assertThat(result.get().stationId()).isEqualTo(1L);
+        assertThat(result.get().availableBikeCount()).isEqualTo(7);
+        assertThat(result.get().requestedAt()).isEqualTo(
+                java.time.LocalDateTime.parse("2025-08-20T14:39:00"));
+    }
+
+    @DisplayName("fetchBikeCountByNumber는 Redis에 stationId가 없으면 빈 Optional을 반환한다")
+    @Test
+    void fetchBikeCountByNumber_whenStationIdIsNull_returnsEmpty() {
+        // given (List.of does not allow null; use Arrays.asList)
+        Integer number = 102;
+        String hashKey = "stations:102";
+        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        when(hashOperations.multiGet(eq(hashKey), anyList()))
+                .thenReturn(Arrays.asList("3", "2025-08-20T14:39:00", null));
+
+        // when
+        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @DisplayName("fetchBikeCountByNumber는 Redis에 requestedAt이 없으면 빈 Optional을 반환한다")
+    @Test
+    void fetchBikeCountByNumber_whenRequestedAtIsNull_returnsEmpty() {
+        // given (List.of does not allow null; use Arrays.asList)
+        Integer number = 103;
+        String hashKey = "stations:103";
+        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        when(hashOperations.multiGet(eq(hashKey), anyList()))
+                .thenReturn(Arrays.asList("5", null, "1"));
+
+        // when
+        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @DisplayName("fetchBikeCountByNumber는 파싱 실패 시 빈 Optional을 반환한다")
+    @Test
+    void fetchBikeCountByNumber_whenParsingFails_returnsEmpty() {
+        // given
+        Integer number = 104;
+        String hashKey = "stations:104";
+        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        when(hashOperations.multiGet(eq(hashKey), anyList()))
+                .thenReturn(List.of("invalid", "invalid-date", "1"));
+
+        // when
+        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
+
+        // then
+        assertThat(result).isEmpty();
+    }
 }

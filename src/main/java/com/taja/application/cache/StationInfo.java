@@ -6,6 +6,13 @@ import java.util.List;
 
 public class StationInfo {
 
+    public record BikeCountInfo(
+            Long stationId,
+            int availableBikeCount,
+            LocalDateTime requestedAt
+    ) {
+    }
+
     public record StationGeoInfo(
             Integer number,
             double latitude,

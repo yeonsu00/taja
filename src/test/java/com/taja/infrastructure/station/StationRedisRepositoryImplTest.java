@@ -1,15 +1,22 @@
 package com.taja.infrastructure.station;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 import com.taja.application.cache.StationInfo;
+import com.taja.application.cache.StationInfo.BikeCountInfo;
+import com.taja.application.status.StationStatusRepository;
+import com.taja.domain.status.StationStatus;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
+import com.taja.global.exception.StationNotFoundException;
 import com.taja.infrastructure.cache.StationGeoRepository;
 import com.taja.infrastructure.cache.StationHashRepository;
 import com.taja.infrastructure.cache.StationRedisRepositoryImpl;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +37,9 @@ class StationRedisRepositoryImplTest {
 
     @Mock
     private StationJpaRepository stationJpaRepository;
+
+    @Mock
+    private StationStatusRepository stationStatusRepository;
 
     @InjectMocks
     private StationRedisRepositoryImpl stationRedisRepository;
@@ -190,5 +200,115 @@ class StationRedisRepositoryImplTest {
 
         // then
         assertThat(results).isNotNull().isEmpty();
+    }
+
+    @DisplayName("getStationStatusByNumber는 Redis에 데이터가 있으면 Redis 값을 반환한다")
+    @Test
+    void getStationStatusByNumber_whenRedisHasData_returnsFromRedis() {
+        // given
+        Integer stationNumber = 101;
+        Station station = Station.builder()
+                .stationId(1L)
+                .number(stationNumber)
+                .name("테스트 대여소")
+                .district("강남구")
+                .address("테스트 주소")
+                .latitude(37.6)
+                .longitude(127.1)
+                .operationMode(OperationMode.LCD_QR)
+                .build();
+        LocalDateTime requestedAt = LocalDateTime.of(2025, 8, 20, 14, 39, 0);
+        BikeCountInfo redisInfo = new BikeCountInfo(1L, 7, requestedAt);
+
+        when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.of(station));
+        when(stationHashRepository.fetchBikeCountByNumber(stationNumber)).thenReturn(Optional.of(redisInfo));
+
+        // when
+        BikeCountInfo result = stationRedisRepository.getStationStatusByNumber(stationNumber);
+
+        // then
+        assertThat(result.stationId()).isEqualTo(1L);
+        assertThat(result.availableBikeCount()).isEqualTo(7);
+        assertThat(result.requestedAt()).isEqualTo(requestedAt);
+        verify(stationStatusRepository, never()).findLatestByStationNumber(anyInt());
+    }
+
+    @DisplayName("getStationStatusByNumber는 Redis에 없고 DB에 있으면 DB 값을 반환한다")
+    @Test
+    void getStationStatusByNumber_whenRedisMiss_returnsFromDb() {
+        // given
+        Integer stationNumber = 102;
+        Station station = Station.builder()
+                .stationId(2L)
+                .number(stationNumber)
+                .name("테스트 대여소2")
+                .district("서초구")
+                .address("테스트 주소2")
+                .latitude(37.5)
+                .longitude(127.0)
+                .operationMode(OperationMode.LCD_QR)
+                .build();
+        StationStatus dbStatus = StationStatus.builder()
+                .stationNumber(stationNumber)
+                .parkingBikeCount(5)
+                .requestedDate(LocalDate.of(2025, 8, 20))
+                .requestedTime(LocalTime.of(14, 39, 0))
+                .build();
+
+        when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.of(station));
+        when(stationHashRepository.fetchBikeCountByNumber(stationNumber)).thenReturn(Optional.empty());
+        when(stationStatusRepository.findLatestByStationNumber(stationNumber))
+                .thenReturn(Optional.of(dbStatus));
+
+        // when
+        BikeCountInfo result = stationRedisRepository.getStationStatusByNumber(stationNumber);
+
+        // then
+        assertThat(result.stationId()).isEqualTo(2L);
+        assertThat(result.availableBikeCount()).isEqualTo(5);
+        assertThat(result.requestedAt()).isEqualTo(
+                LocalDateTime.of(2025, 8, 20, 14, 39, 0));
+    }
+
+    @DisplayName("getStationStatusByNumber는 Redis와 DB 모두 없으면 0과 현재 시각으로 반환한다")
+    @Test
+    void getStationStatusByNumber_whenRedisAndDbBothEmpty_returnsZeroAndNow() {
+        // given
+        Integer stationNumber = 103;
+        Station station = Station.builder()
+                .stationId(3L)
+                .number(stationNumber)
+                .name("테스트 대여소3")
+                .district("송파구")
+                .address("테스트 주소3")
+                .latitude(37.5)
+                .longitude(127.0)
+                .operationMode(OperationMode.LCD_QR)
+                .build();
+
+        when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.of(station));
+        when(stationHashRepository.fetchBikeCountByNumber(stationNumber)).thenReturn(Optional.empty());
+        when(stationStatusRepository.findLatestByStationNumber(stationNumber)).thenReturn(Optional.empty());
+
+        // when
+        BikeCountInfo result = stationRedisRepository.getStationStatusByNumber(stationNumber);
+
+        // then
+        assertThat(result.stationId()).isEqualTo(3L);
+        assertThat(result.availableBikeCount()).isEqualTo(0);
+        assertThat(result.requestedAt()).isNotNull();
+    }
+
+    @DisplayName("getStationStatusByNumber는 대여소 번호가 없으면 StationNotFoundException을 던진다")
+    @Test
+    void getStationStatusByNumber_whenStationNotFound_throwsException() {
+        // given
+        Integer stationNumber = 999;
+        when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> stationRedisRepository.getStationStatusByNumber(stationNumber))
+                .isInstanceOf(StationNotFoundException.class)
+                .hasMessageContaining("999");
     }
 }

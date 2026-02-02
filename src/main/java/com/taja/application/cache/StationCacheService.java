@@ -1,5 +1,6 @@
 package com.taja.application.cache;
 
+import com.taja.application.cache.StationInfo.BikeCountInfo;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
 import java.time.LocalDateTime;
@@ -31,5 +32,9 @@ public class StationCacheService {
 
     public List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos) {
         return stationRedisRepository.findStationInfos(geoInfos);
+    }
+
+    public BikeCountInfo getStationStatusByNumber(Integer stationNumber) {
+        return stationRedisRepository.getStationStatusByNumber(stationNumber);
     }
 }

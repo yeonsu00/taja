@@ -15,4 +15,6 @@ public interface StationRedisRepository {
     List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos);
 
     List<StationInfo.StationFullInfo> findStationStatus(List<Station> favoriteStations);
+
+    StationInfo.BikeCountInfo getStationStatusByNumber(Integer stationNumber);
 }

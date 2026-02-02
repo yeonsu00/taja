@@ -1,6 +1,7 @@
 package com.taja.infrastructure.cache;
 
 import com.taja.application.cache.StationInfo;
+import com.taja.application.cache.StationInfo.BikeCountInfo;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
 import java.time.Duration;
@@ -98,6 +99,29 @@ public class StationHashRepository {
 
         log.info("Redis 데이터 조회: number={}, values={}", number, values);
         return parseFullInfo(number, lat, lon, values);
+    }
+
+    public Optional<BikeCountInfo> fetchBikeCountByNumber(Integer number) {
+        String hashKey = STATION_KEY_PREFIX + number;
+        List<Object> values = redisTemplate.opsForHash().multiGet(hashKey, List.of("bikeCount", "requestedAt", "stationId"));
+
+        if (values == null || values.size() < 3 || values.get(2) == null) {
+            return Optional.empty();
+        }
+
+        try {
+            int bikeCount = values.get(0) != null ? Integer.parseInt(values.get(0).toString()) : 0;
+            LocalDateTime requestedAt = values.get(1) != null ? LocalDateTime.parse(values.get(1).toString()) : null;
+            Long stationId = values.get(2) != null ? Long.parseLong(values.get(2).toString()) : null;
+
+            if (stationId == null || requestedAt == null) {
+                return Optional.empty();
+            }
+            return Optional.of(new BikeCountInfo(stationId, bikeCount, requestedAt));
+        } catch (Exception e) {
+            log.warn("Redis 남은 자전거 수 파싱 실패: number={}, error={}", number, e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public boolean isThresholdReached(Integer number) {

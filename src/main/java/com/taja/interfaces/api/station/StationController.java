@@ -8,12 +8,14 @@ import com.taja.application.station.StationFacade;
 import com.taja.global.exception.InvalidSortTypeException;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
+import com.taja.application.cache.StationCacheService;
 import com.taja.application.station.StationService;
 import com.taja.interfaces.api.station.request.CreatePostRequest;
 import com.taja.interfaces.api.station.request.NearbyStationRequest;
 import com.taja.interfaces.api.station.request.SearchStationRequest;
 import com.taja.interfaces.api.station.response.IsFavoriteStationResponse;
 import com.taja.interfaces.api.station.response.MapStationResponse;
+import com.taja.interfaces.api.station.response.StationStatusResponse;
 import com.taja.interfaces.api.station.response.PostItemResponse;
 import com.taja.interfaces.api.station.response.PostListResponse;
 import com.taja.interfaces.api.station.response.StationSimpleResponse;
@@ -45,6 +47,7 @@ public class StationController {
 
     private final StationService stationService;
     private final StationFacade stationFacade;
+    private final StationCacheService stationCacheService;
     private final FavoriteStationService favoriteStationService;
     private final FavoriteStationFacade favoriteStationFacade;
     private final BoardFacade boardFacade;
@@ -82,6 +85,15 @@ public class StationController {
                 searchStationRequest.keyword(), centerLat, centerLng);
 
         return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
+    }
+
+    @Operation(summary = "실시간 남은 자전거 수 조회", description = "대여소 번호로 실시간 남은 자전거 수를 조회합니다.")
+    @GetMapping("/status/{stationNumber}")
+    public CommonApiResponse<StationStatusResponse> getStationStatus(
+            @PathVariable("stationNumber") Integer stationNumber) {
+        StationStatusResponse response = StationStatusResponse.from(
+                stationCacheService.getStationStatusByNumber(stationNumber));
+        return CommonApiResponse.success(response, "실시간 남은 자전거 수 조회에 성공했습니다.");
     }
 
     @Operation(summary = "대여소 상세 조회", description = "대여소 ID를 이용해 대여소의 상세 정보를 조회합니다.")

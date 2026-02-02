@@ -20,4 +20,7 @@ public interface StationStatusJpaRepository extends JpaRepository<StationStatus,
             @Param("requestedDate") LocalDate requestedDate,
             @Param("requestedTime") LocalTime requestedTime
     );
+
+    java.util.Optional<StationStatus> findTop1ByStationNumberOrderByRequestedDateDescRequestedTimeDesc(
+            Integer stationNumber);
 }
