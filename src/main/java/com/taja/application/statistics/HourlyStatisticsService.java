@@ -18,7 +18,6 @@ public class HourlyStatisticsService {
 
     private final HourlyStatisticsRepository hourlyStatisticsRepository;
 
-    @Transactional(readOnly = true)
     public List<HourlyStatistics> findByStationIds(List<Long> stationIds) {
         return hourlyStatisticsRepository.findAllByStationIds(stationIds);
     }
@@ -76,6 +75,10 @@ public class HourlyStatisticsService {
 
     private String createKey(Long stationId, Integer hour) {
         return stationId + ":" + hour;
+    }
+
+    public List<HourlyStatistics> findByStationId(Long stationId) {
+        return hourlyStatisticsRepository.findByStationId(stationId);
     }
 }
 

@@ -25,4 +25,9 @@ public class TemperatureStatisticsRepositoryImpl implements TemperatureStatistic
         }
         return temperatureStatisticsJpaRepository.findAllByStationIdIn(stationIds);
     }
+
+    @Override
+    public List<TemperatureStatistics> findByStationId(Long stationId) {
+        return temperatureStatisticsJpaRepository.findByStationId(stationId);
+    }
 }

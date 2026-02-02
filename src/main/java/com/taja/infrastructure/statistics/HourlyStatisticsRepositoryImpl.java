@@ -27,4 +27,9 @@ public class HourlyStatisticsRepositoryImpl implements HourlyStatisticsRepositor
         }
         hourlyStatisticsJpaRepository.saveAll(hourlyStatisticsList);
     }
+
+    @Override
+    public List<HourlyStatistics> findByStationId(Long stationId) {
+        return hourlyStatisticsJpaRepository.findByStationId(stationId);
+    }
 }

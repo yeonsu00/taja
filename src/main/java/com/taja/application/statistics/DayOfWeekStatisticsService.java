@@ -19,6 +19,10 @@ public class DayOfWeekStatisticsService {
 
     private final DayOfWeekStatisticsRepository dayOfWeekStatisticsRepository;
 
+    public List<DayOfWeekStatistics> findByStationId(Long stationId) {
+        return dayOfWeekStatisticsRepository.findByStationId(stationId);
+    }
+
     @Transactional
     public int processBatch(DayOfWeek dayOfWeek, List<StationDailyAvg> stationDailyAvgParkingBikeCounts) {
         if (stationDailyAvgParkingBikeCounts == null || stationDailyAvgParkingBikeCounts.isEmpty()) {

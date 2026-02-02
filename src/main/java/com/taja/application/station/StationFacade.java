@@ -4,8 +4,14 @@ import com.taja.application.board.BoardInfo;
 import com.taja.application.board.PostService;
 import com.taja.application.cache.StationCacheService;
 import com.taja.application.cache.StationInfo;
+import com.taja.application.statistics.DayOfWeekStatisticsService;
+import com.taja.application.statistics.HourlyStatisticsService;
+import com.taja.application.statistics.TemperatureStatisticsService;
 import com.taja.application.status.StationStatusFacade;
 import com.taja.domain.station.Station;
+import com.taja.domain.statistics.DayOfWeekStatistics;
+import com.taja.domain.statistics.HourlyStatistics;
+import com.taja.domain.statistics.TemperatureStatistics;
 import com.taja.interfaces.api.station.response.MapStationResponse;
 import com.taja.interfaces.api.station.response.detail.RecentPostResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
@@ -27,6 +33,9 @@ public class StationFacade {
     private final StationCacheService stationCacheService;
     private final PostService postService;
     private final StationStatusFacade stationStatusFacade;
+    private final HourlyStatisticsService hourlyStatisticsService;
+    private final DayOfWeekStatisticsService dayOfWeekStatisticsService;
+    private final TemperatureStatisticsService temperatureStatisticsService;
 
     @Transactional
     public int uploadStationsFromFile(MultipartFile file, LocalDateTime requestedAt) {
@@ -72,6 +81,11 @@ public class StationFacade {
                 .map(item -> new RecentPostResponse(item.writer(), item.content()))
                 .toList();
 
-        return StationDetailResponse.of(station, todayAvailableBike, recentPosts, nearbyStations);
+        List<HourlyStatistics> hourlyStatistics = hourlyStatisticsService.findByStationId(station.getStationId());
+        List<DayOfWeekStatistics> dayOfWeekStatistics = dayOfWeekStatisticsService.findByStationId(station.getStationId());
+        List<TemperatureStatistics> temperatureStatistics = temperatureStatisticsService.findByStationId(station.getStationId());
+
+        return StationDetailResponse.of(station, todayAvailableBike, recentPosts, nearbyStations,
+                hourlyStatistics, dayOfWeekStatistics, temperatureStatistics);
     }
 }

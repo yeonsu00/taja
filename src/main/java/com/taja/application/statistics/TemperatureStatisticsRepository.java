@@ -7,4 +7,6 @@ public interface TemperatureStatisticsRepository {
     void saveTemperatureStatistics(List<TemperatureStatistics> temperatureStatistics);
 
     List<TemperatureStatistics> findAllByStationIds(List<Long> stationIds);
+
+    List<TemperatureStatistics> findByStationId(Long stationId);
 }
