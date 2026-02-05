@@ -121,7 +121,7 @@ public class StationController {
                                                           @RequestParam(value = "cursor", required = false) String cursor,
                                                           @RequestParam(value = "size", defaultValue = "20") int size,
                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        String email = customUserDetails.getUsername();
+        String email = customUserDetails != null ? customUserDetails.getUsername() : null;
         PostSort postSort = PostSort.fromValue(sort);
 
         BoardInfo.PostItems postItems;
