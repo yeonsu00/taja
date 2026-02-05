@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class PostRankingRedisRepository implements PostRankingRepository {
 
-    private static final String KEY_PREFIX = "ranking:";
+    private static final String KEY_PREFIX = "ranking:station:";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.BASIC_ISO_DATE;
     private static final long TTL_SECONDS = 2 * 24 * 60 * 60;
     private static final double CARRY_OVER_WEIGHT = 0.1;

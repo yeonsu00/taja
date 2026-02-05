@@ -31,7 +31,7 @@ class PostRankingRedisRepositoryTest {
 
     @AfterEach
     void tearDown() {
-        String key = "ranking:" + TEST_STATION_ID + ":" + TODAY.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+        String key = "ranking:station:" + TEST_STATION_ID + ":" + TODAY.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
         redisTemplate.delete(key);
     }
 
