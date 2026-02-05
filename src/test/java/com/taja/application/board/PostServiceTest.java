@@ -29,6 +29,9 @@ class PostServiceTest {
     @MockitoBean
     private PostRankingRepository postRankingRepository;
 
+    @MockitoBean
+    private AllPostRankingRepository allPostRankingRepository;
+
     @Autowired
     private PostService postService;
 
@@ -86,7 +89,7 @@ class PostServiceTest {
                     postItem(1L, 8L)
             );
             when(postRankingRepository.findRankedPostIds(1L, 0L, 3, today)).thenReturn(rankedIds);
-            when(postRepository.findPostItemsByPostIds(1L, rankedIds)).thenReturn(items);
+            when(postRepository.findPostItemsByStationIdAndPostIds(1L, rankedIds)).thenReturn(items);
 
             BoardInfo.PostItems result = postService.findPopularPosts(1L, null, 2, today);
 

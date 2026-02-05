@@ -8,6 +8,7 @@ import com.taja.domain.board.Post;
 import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,8 +47,7 @@ public class BoardFacade {
             return BoardInfo.JoinedBoards.from(List.of());
         }
         List<Long> stationIds = boardMembers.stream().map(BoardMember::getStationId).toList();
-        List<Station> stations = stationService.findStationsByIds(stationIds);
-        Map<Long, Station> stationMap = stations.stream().collect(Collectors.toMap(Station::getStationId, s -> s));
+        Map<Long, Station> stationMap = stationService.findStationMapByIds(stationIds);
         List<BoardInfo.JoinedBoardItem> items = boardMembers.stream()
                 .map(bm -> {
                     Station station = stationMap.get(bm.getStationId());
@@ -171,6 +171,33 @@ public class BoardFacade {
 
         eventPublisher.publishEvent(PostRankingEvent.Unliked.from(post.getStationId(), postId));
         return BoardInfo.LikeResult.from(postId, updated.getLikeCount());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardInfo.DailyRankPostItem> findDailyRankedPosts(String email, LocalDate today) {
+        List<Long> rankedPostIds = postService.findDailyRankedPostIds(today);
+        if (rankedPostIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<BoardInfo.PostItem> postItems = postService.findPostItemsByPostIds(rankedPostIds);
+        List<Long> stationIds = postItems.stream().map(BoardInfo.PostItem::stationId).distinct().toList();
+        Map<Long, Station> stationMap = stationService.findStationMapByIds(stationIds);
+
+        if (email != null && !email.isBlank()) {
+            Member member = authService.findMemberByEmail(email);
+            postItems = fillLikedForMember(postItems, member.getMemberId());
+        }
+
+        List<BoardInfo.DailyRankPostItem> dailyRankPostItems = new ArrayList<>(postItems.size());
+        for (int i = 0; i < postItems.size(); i++) {
+            BoardInfo.PostItem item = postItems.get(i);
+            Station station = stationMap.get(item.stationId());
+            String stationName = station != null ? station.getName() : "";
+
+            dailyRankPostItems.add(BoardInfo.DailyRankPostItem.from(item, stationName, i + 1));
+        }
+        return dailyRankPostItems;
     }
 
     private List<BoardInfo.PostItem> fillLikedForMember(List<BoardInfo.PostItem> items, Long memberId) {

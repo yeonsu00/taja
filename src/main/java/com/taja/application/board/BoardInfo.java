@@ -117,4 +117,32 @@ public class BoardInfo {
             return new JoinedBoards(items);
         }
     }
+
+    public record DailyRankPostItem(
+            Long stationId,
+            String stationName,
+            int rank,
+            Long postId,
+            String writer,
+            LocalDateTime createdAt,
+            String content,
+            int commentCount,
+            int likeCount,
+            boolean liked
+    ) {
+        public static DailyRankPostItem from(PostItem item, String stationName, int rank) {
+            return new DailyRankPostItem(
+                    item.stationId(),
+                    stationName,
+                    rank,
+                    item.postId(),
+                    item.writer(),
+                    item.createdAt(),
+                    item.content(),
+                    item.commentCount(),
+                    item.likeCount(),
+                    item.liked()
+            );
+        }
+    }
 }

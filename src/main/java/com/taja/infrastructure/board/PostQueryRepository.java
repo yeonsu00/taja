@@ -5,9 +5,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.taja.application.board.BoardInfo;
+import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.QComment;
 import com.taja.domain.board.QPost;
 import com.taja.domain.member.QMember;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -134,7 +136,7 @@ public class PostQueryRepository {
                 .fetch();
     }
 
-    public List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds) {
+    public List<BoardInfo.PostItem> findPostItemsByStationIdAndPostIds(Long stationId, List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return List.of();
         }
@@ -159,13 +161,45 @@ public class PostQueryRepository {
                         post.postId.in(postIds)
                 )
                 .fetch();
-        Map<Long, BoardInfo.PostItem> byId = new LinkedHashMap<>();
-        for (BoardInfo.PostItem item : fetched) {
+        return getPostItems(postIds, fetched);
+    }
+
+    public List<BoardInfo.PostItem> findPostItemsByStationIdAndPostIds(List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return List.of();
+        }
+        List<BoardInfo.PostItem> fetched = queryFactory
+                .select(
+                        Projections.constructor(BoardInfo.PostItem.class,
+                                post.stationId,
+                                post.postId,
+                                member.name,
+                                post.createdAt,
+                                post.content,
+                                post.commentCount,
+                                post.likeCount,
+                                Expressions.constant(false)
+                        )
+                )
+                .from(post)
+                .join(member).on(post.writerId.eq(member.memberId))
+                .where(
+                        post.isDeleted.isFalse(),
+                        post.postId.in(postIds)
+                )
+                .fetch();
+        return getPostItems(postIds, fetched);
+    }
+
+    @NotNull
+    private List<PostItem> getPostItems(List<Long> postIds, List<PostItem> fetched) {
+        Map<Long, PostItem> byId = new LinkedHashMap<>();
+        for (PostItem item : fetched) {
             byId.put(item.postId(), item);
         }
-        List<BoardInfo.PostItem> ordered = new ArrayList<>(postIds.size());
+        List<PostItem> ordered = new ArrayList<>(postIds.size());
         for (Long id : postIds) {
-            BoardInfo.PostItem item = byId.get(id);
+            PostItem item = byId.get(id);
             if (item != null) {
                 ordered.add(item);
             }

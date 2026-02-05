@@ -7,6 +7,8 @@ import com.taja.interfaces.api.station.response.StationSimpleResponse;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,8 +57,9 @@ public class StationService {
         return stationRepository.findStationById(stationId);
     }
 
-    public List<Station> findStationsByIds(List<Long> stationIds) {
-        return stationRepository.findStationsByIds(stationIds);
+    public Map<Long, Station> findStationMapByIds(List<Long> stationIds) {
+        return stationRepository.findStationsByIds(stationIds).stream()
+                .collect(Collectors.toMap(Station::getStationId, s -> s));
     }
 
     public List<Station> findStationByNumbers(List<Integer> stationNumbers) {
