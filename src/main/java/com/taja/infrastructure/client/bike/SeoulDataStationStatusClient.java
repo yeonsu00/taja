@@ -94,6 +94,7 @@ public class SeoulDataStationStatusClient implements StatusClient {
         BikeStatusDto rentBikeStatus = response.rentBikeStatus();
         String resultCode = rentBikeStatus.result().code();
         String resultMessage = rentBikeStatus.result().message();
+        log.info("{} - {} : resultCode: {}, resultMessage: {}", startIndex, endIndex, resultCode, resultMessage);
 
         if (SUCCESS_RESULT_CODE.equals(resultCode)) {
             List<StationStatusDto> stationStatuses = rentBikeStatus.stationStatuses();
