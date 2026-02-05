@@ -20,6 +20,7 @@ import com.taja.interfaces.api.station.response.PostItemResponse;
 import com.taja.interfaces.api.station.response.PostListResponse;
 import com.taja.interfaces.api.station.response.StationSimpleResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -52,6 +53,7 @@ public class StationController {
     private final FavoriteStationFacade favoriteStationFacade;
     private final BoardFacade boardFacade;
 
+    @Hidden
     @Operation(summary = "대여소 파일 업로드", description = "엑셀 파일을 업로드하여 대여소 정보를 등록 및 수정합니다.")
     @PostMapping("/upload")
     public CommonApiResponse<String> readStationFile(@RequestParam("file") MultipartFile file) {
