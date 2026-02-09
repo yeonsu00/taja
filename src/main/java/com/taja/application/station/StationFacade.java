@@ -45,12 +45,12 @@ public class StationFacade {
     }
 
     @Transactional(readOnly = true)
-    public List<MapStationResponse> findNearbyStations(double centerLat, double centerLon,
-                                                       double latDelta, double lonDelta) {
-        double height = latDelta * 2;
-        double width = lonDelta * 2;
+    public List<MapStationResponse> findStationsInBounds(double centerLat, double centerLon,
+                                                         double latDelta, double lonDelta) {
+        double height = (latDelta * 2) * 111.0;
+        double width = (lonDelta * 2) * 88.8;
 
-        List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findNearbyStations(centerLat, centerLon, height, width);
+        List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findStationsInBounds(centerLat, centerLon, height, width);
         List<StationInfo.StationFullInfo> stationInfos = stationCacheService.findStationInfos(geoInfos);
 
         return StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
@@ -60,7 +60,7 @@ public class StationFacade {
     public StationDetailResponse findStationDetail(Long stationId, LocalDateTime requestedAt) {
         Station station = stationService.findStationByStationId(stationId);
 
-        List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findNearbyStations(station.getLatitude(), station.getLongitude(), 1, 1);
+        List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findStationsInBounds(station.getLatitude(), station.getLongitude(), 1, 1);
         List<StationInfo.StationFullInfo> stationInfos = stationCacheService.findStationInfos(geoInfos);
 
         List<MapStationResponse> nearbyStationsResponse = StationInfo.StationFullInfo.toMapStationResponses(stationInfos);

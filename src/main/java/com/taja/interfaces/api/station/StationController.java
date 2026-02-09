@@ -62,18 +62,18 @@ public class StationController {
         return CommonApiResponse.success(count + "개 대여소가 등록 및 수정되었습니다.");
     }
 
-    @Operation(summary = "근처 대여소 조회", description = "지도 중심 좌표와 화면에 보이는 영역의 위도, 경도 차이를 이용해 근처 대여소를 조회합니다.")
+    @Operation(summary = "지도 화면 영역 내 대여소 조회", description = "지도 중심 좌표와 화면에 보이는 영역의 위도, 경도 차이를 이용해 근처 대여소를 조회합니다.")
     @GetMapping("/map/nearby")
-    public CommonApiResponse<List<MapStationResponse>> findNearbyStations(
+    public CommonApiResponse<List<MapStationResponse>> findStationsInBounds(
             @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
-        List<MapStationResponse> nearbyStations = stationFacade.findNearbyStations(
+        List<MapStationResponse> stationsInBounds = stationFacade.findStationsInBounds(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
                 nearbyStationRequest.lngDelta()
         );
 
-        return CommonApiResponse.success(nearbyStations, "근처 대여소 조회에 성공했습니다.");
+        return CommonApiResponse.success(stationsInBounds, "근처 대여소 조회에 성공했습니다.");
     }
 
     @Operation(summary = "대여소 검색", description = "키워드와 지도 중심 좌표를 이용해 대여소를 검색합니다.")

@@ -2,13 +2,11 @@ package com.taja.infrastructure.cache;
 
 import com.taja.application.cache.StationInfo;
 import com.taja.domain.station.Station;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
@@ -43,7 +41,7 @@ public class StationGeoRepository {
         });
     }
 
-    public List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width) {
+    public List<StationInfo.StationGeoInfo> findStationsWithinShape(double centerLat, double centerLon, double height, double width) {
         Point center = new Point(centerLon, centerLat);
         GeoShape shape = GeoShape.byBox(width, height, DistanceUnit.KILOMETERS);
 

@@ -26,8 +26,8 @@ public class StationCacheService {
         return stationRedisRepository.findStationStatus(favoriteStations);
     }
 
-    public List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width) {
-        return stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
+    public List<StationInfo.StationGeoInfo> findStationsInBounds(double centerLat, double centerLon, double height, double width) {
+        return stationRedisRepository.findStationsWithinShape(centerLat, centerLon, height, width);
     }
 
     public List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos) {

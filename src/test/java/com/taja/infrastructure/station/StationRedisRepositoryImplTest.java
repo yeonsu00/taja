@@ -46,17 +46,17 @@ class StationRedisRepositoryImplTest {
 
     @DisplayName("주변 대여소의 GEO 정보를 성공적으로 조회한다.")
     @Test
-    void findNearbyStations_success() {
+    void findStations_WithinShape_success() {
         // given
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(101, 37.501, 127.001),
                 new StationInfo.StationGeoInfo(102, 37.502, 127.002)
         );
-        when(stationGeoRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0))
+        when(stationGeoRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0))
                 .thenReturn(geoInfos);
 
         // when
-        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(2);
@@ -107,13 +107,13 @@ class StationRedisRepositoryImplTest {
 
     @DisplayName("GEO 검색 결과가 null일 경우 빈 리스트를 반환한다.")
     @Test
-    void findNearbyStations_whenGeoResultIsNull() {
+    void findStations_WithinShape_whenGeoResultIsNull() {
         // given
-        when(stationGeoRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0))
+        when(stationGeoRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0))
                 .thenReturn(List.of());
 
         // when
-        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).isNotNull().isEmpty();
@@ -164,17 +164,17 @@ class StationRedisRepositoryImplTest {
 
     @DisplayName("대여소 번호가 숫자가 아닐 때, 해당 대여소를 결과에서 제외한다.")
     @Test
-    void findNearbyStations_excludeStation_whenMemberIsNotNumeric() {
+    void findStations_WithinShape_excludeStation_whenMemberIsNotNumeric() {
         // given
         // StationGeoRepository에서 이미 필터링된 결과를 반환한다고 가정
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(101, 37.501, 127.001)
         );
-        when(stationGeoRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0))
+        when(stationGeoRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0))
                 .thenReturn(geoInfos);
 
         // when
-        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findNearbyStations(37.5, 127.0, 1.0, 1.0);
+        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(1);

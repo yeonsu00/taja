@@ -10,7 +10,7 @@ public interface StationRedisRepository {
 
     void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses);
 
-    List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width);
+    List<StationInfo.StationGeoInfo> findStationsWithinShape(double centerLat, double centerLon, double height, double width);
 
     List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos);
 

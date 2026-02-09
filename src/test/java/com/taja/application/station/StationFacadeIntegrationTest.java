@@ -66,7 +66,7 @@ class StationFacadeIntegrationTest {
         Long stationId = saved.getFirst().getStationId();
         assertThat(stationId).isNotNull();
 
-        given(stationCacheService.findNearbyStations(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+        given(stationCacheService.findStationsInBounds(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
                 .willReturn(Collections.emptyList());
         given(stationCacheService.findStationInfos(any()))
                 .willReturn(Collections.emptyList());

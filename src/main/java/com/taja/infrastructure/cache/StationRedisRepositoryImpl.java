@@ -39,8 +39,8 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     }
 
     @Override
-    public List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width) {
-        return stationGeoRepository.findNearbyStations(centerLat, centerLon, height, width);
+    public List<StationInfo.StationGeoInfo> findStationsWithinShape(double centerLat, double centerLon, double height, double width) {
+        return stationGeoRepository.findStationsWithinShape(centerLat, centerLon, height, width);
     }
 
     @Override
