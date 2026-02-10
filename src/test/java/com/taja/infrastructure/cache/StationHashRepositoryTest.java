@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import com.taja.application.cache.StationInfo;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,44 +46,44 @@ class StationHashRepositoryTest {
         ReflectionTestUtils.setField(stationHashRepository, "refreshThresholdSec", 10L);
     }
 
-    @DisplayName("fetchFullInfo는 캐시에서 대여소 정보를 조회한다")
+    @DisplayName("fetchAllFields는 캐시에서 대여소 전체 정보를 조회한다")
     @Test
-    void fetchFullInfo_retrievesFromCache() {
+    void fetchAllFields_retrievesFromCache() {
         // given
         Integer number = 101;
-        double lat = 37.5665;
-        double lon = 126.9780;
         String hashKey = "stations:101";
+        Map<Object, Object> entries = new HashMap<>();
+        entries.put("stationId", "1");
+        entries.put("name", "테스트 대여소");
+        entries.put("bikeCount", "5");
+        entries.put("requestedAt", "2025-01-27T14:30:00");
 
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(List.of("5", "2025-01-27T14:30:00", "1"));
+        when(hashOperations.entries(hashKey)).thenReturn(entries);
 
         // when
-        Optional<StationInfo.StationFullInfo> result = stationHashRepository.fetchFullInfo(number, lat, lon);
+        Optional<StationInfo.StationHashInfo> result = stationHashRepository.fetchAllFields(number);
 
         // then
         assertThat(result).isPresent();
         assertThat(result.get().number()).isEqualTo(number);
-        assertThat(result.get().bikeCount()).isEqualTo(5);
         assertThat(result.get().stationId()).isEqualTo(1L);
+        assertThat(result.get().name()).isEqualTo("테스트 대여소");
+        assertThat(result.get().bikeCount()).isEqualTo(5);
     }
 
-    @DisplayName("fetchFullInfo는 캐시에 데이터가 없으면 빈 Optional을 반환한다")
+    @DisplayName("fetchAllFields는 캐시에 데이터가 없으면 빈 Optional을 반환한다")
     @Test
-    void fetchFullInfo_whenCacheMiss_returnsEmpty() {
+    void fetchAllFields_whenCacheMiss_returnsEmpty() {
         // given
         Integer number = 102;
-        double lat = 37.5665;
-        double lon = 126.9780;
         String hashKey = "stations:102";
 
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(Arrays.asList(null, null, null));  // stationId가 null
+        when(hashOperations.entries(hashKey)).thenReturn(new HashMap<>());
 
         // when
-        Optional<StationInfo.StationFullInfo> result = stationHashRepository.fetchFullInfo(number, lat, lon);
+        Optional<StationInfo.StationHashInfo> result = stationHashRepository.fetchAllFields(number);
 
         // then
         assertThat(result).isEmpty();
@@ -188,116 +188,71 @@ class StationHashRepositoryTest {
         verify(redisTemplateMaster).delete(lockKey);
     }
 
-    @DisplayName("parseFullInfo는 파싱 실패 시 빈 Optional을 반환한다")
+    @DisplayName("fetchAllFields는 파싱 실패 시 빈 Optional을 반환한다")
     @Test
-    void parseFullInfo_whenParsingFails_returnsEmpty() {
+    void fetchAllFields_whenParsingFails_returnsEmpty() {
         // given
         Integer number = 109;
-        double lat = 37.5665;
-        double lon = 126.9780;
         String hashKey = "stations:109";
+        Map<Object, Object> entries = new HashMap<>();
+        entries.put("stationId", "invalid-id");
+        entries.put("name", "테스트");
+        entries.put("bikeCount", "invalid");
+        entries.put("requestedAt", "invalid-date");
 
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(List.of("invalid", "invalid-date", "invalid-id"));  // 파싱 불가능한 값
+        when(hashOperations.entries(hashKey)).thenReturn(entries);
 
         // when
-        Optional<StationInfo.StationFullInfo> result = stationHashRepository.fetchFullInfo(number, lat, lon);
+        Optional<StationInfo.StationHashInfo> result = stationHashRepository.fetchAllFields(number);
 
         // then
         assertThat(result).isEmpty();
     }
 
-    @DisplayName("fetchFullInfo는 bikeCount가 null이면 0으로 처리한다")
+    @DisplayName("fetchAllFields는 bikeCount가 없으면 0으로 처리한다")
     @Test
-    void fetchFullInfo_whenBikeCountIsNull_usesZero() {
+    void fetchAllFields_whenBikeCountIsNull_usesZero() {
         // given
         Integer number = 110;
-        double lat = 37.5665;
-        double lon = 126.9780;
         String hashKey = "stations:110";
+        Map<Object, Object> entries = new HashMap<>();
+        entries.put("stationId", "1");
+        entries.put("name", "테스트 대여소");
+        entries.put("requestedAt", "2025-01-27T14:30:00");
+        // bikeCount 없음
 
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(Arrays.asList(null, "2025-01-27T14:30:00", "1"));  // bikeCount가 null
+        when(hashOperations.entries(hashKey)).thenReturn(entries);
 
         // when
-        Optional<StationInfo.StationFullInfo> result = stationHashRepository.fetchFullInfo(number, lat, lon);
+        Optional<StationInfo.StationHashInfo> result = stationHashRepository.fetchAllFields(number);
 
         // then
         assertThat(result).isPresent();
         assertThat(result.get().bikeCount()).isEqualTo(0);
     }
 
-    @DisplayName("fetchBikeCountByNumber는 Redis에서 남은 자전거 수를 조회한다")
+    @DisplayName("fetchAllFields는 requestedAt이 없으면 null로 처리한다")
     @Test
-    void fetchBikeCountByNumber_retrievesFromCache() {
+    void fetchAllFields_whenRequestedAtIsNull_usesNull() {
         // given
-        Integer number = 101;
-        String hashKey = "stations:101";
+        Integer number = 111;
+        String hashKey = "stations:111";
+        Map<Object, Object> entries = new HashMap<>();
+        entries.put("stationId", "1");
+        entries.put("name", "테스트 대여소");
+        entries.put("bikeCount", "5");
+        // requestedAt 없음
+
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(List.of("7", "2025-08-20T14:39:00", "1"));
+        when(hashOperations.entries(hashKey)).thenReturn(entries);
 
         // when
-        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
+        Optional<StationInfo.StationHashInfo> result = stationHashRepository.fetchAllFields(number);
 
         // then
         assertThat(result).isPresent();
-        assertThat(result.get().stationId()).isEqualTo(1L);
-        assertThat(result.get().availableBikeCount()).isEqualTo(7);
-        assertThat(result.get().requestedAt()).isEqualTo(
-                java.time.LocalDateTime.parse("2025-08-20T14:39:00"));
-    }
-
-    @DisplayName("fetchBikeCountByNumber는 Redis에 stationId가 없으면 빈 Optional을 반환한다")
-    @Test
-    void fetchBikeCountByNumber_whenStationIdIsNull_returnsEmpty() {
-        // given (List.of does not allow null; use Arrays.asList)
-        Integer number = 102;
-        String hashKey = "stations:102";
-        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(Arrays.asList("3", "2025-08-20T14:39:00", null));
-
-        // when
-        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
-
-        // then
-        assertThat(result).isEmpty();
-    }
-
-    @DisplayName("fetchBikeCountByNumber는 Redis에 requestedAt이 없으면 빈 Optional을 반환한다")
-    @Test
-    void fetchBikeCountByNumber_whenRequestedAtIsNull_returnsEmpty() {
-        // given (List.of does not allow null; use Arrays.asList)
-        Integer number = 103;
-        String hashKey = "stations:103";
-        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(Arrays.asList("5", null, "1"));
-
-        // when
-        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
-
-        // then
-        assertThat(result).isEmpty();
-    }
-
-    @DisplayName("fetchBikeCountByNumber는 파싱 실패 시 빈 Optional을 반환한다")
-    @Test
-    void fetchBikeCountByNumber_whenParsingFails_returnsEmpty() {
-        // given
-        Integer number = 104;
-        String hashKey = "stations:104";
-        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        when(hashOperations.multiGet(eq(hashKey), anyList()))
-                .thenReturn(List.of("invalid", "invalid-date", "1"));
-
-        // when
-        Optional<StationInfo.BikeCountInfo> result = stationHashRepository.fetchBikeCountByNumber(number);
-
-        // then
-        assertThat(result).isEmpty();
+        assertThat(result.get().requestedAt()).isNull();
     }
 }

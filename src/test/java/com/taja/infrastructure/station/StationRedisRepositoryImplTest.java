@@ -52,11 +52,11 @@ class StationRedisRepositoryImplTest {
                 new StationInfo.StationGeoInfo(101, 37.501, 127.001),
                 new StationInfo.StationGeoInfo(102, 37.502, 127.002)
         );
-        when(stationGeoRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0))
+        when(stationGeoRepository.findStationsWithinBox(37.5, 127.0, 1.0, 1.0))
                 .thenReturn(geoInfos);
 
         // when
-        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0);
+        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinBox(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(2);
@@ -81,14 +81,14 @@ class StationRedisRepositoryImplTest {
 
         String requestedAtStr = "2025-09-09T14:30:00";
         LocalDateTime requestedAt = LocalDateTime.parse(requestedAtStr);
-        
-        StationInfo.StationFullInfo fullInfo1 = new StationInfo.StationFullInfo(1L, 101, 37.501, 127.001, 10, requestedAt);
-        StationInfo.StationFullInfo fullInfo2 = new StationInfo.StationFullInfo(2L, 102, 37.502, 127.002, 5, requestedAt);
 
-        when(stationHashRepository.fetchFullInfo(101, 37.501, 127.001))
-                .thenReturn(Optional.of(fullInfo1));
-        when(stationHashRepository.fetchFullInfo(102, 37.502, 127.002))
-                .thenReturn(Optional.of(fullInfo2));
+        StationInfo.StationHashInfo hashInfo1 = new StationInfo.StationHashInfo(101, 1L, "대여소1", 10, requestedAt);
+        StationInfo.StationHashInfo hashInfo2 = new StationInfo.StationHashInfo(102, 2L, "대여소2", 5, requestedAt);
+
+        when(stationHashRepository.fetchAllFields(101))
+                .thenReturn(Optional.of(hashInfo1));
+        when(stationHashRepository.fetchAllFields(102))
+                .thenReturn(Optional.of(hashInfo2));
         when(stationHashRepository.isThresholdReached(anyInt())).thenReturn(false);
 
         // when
@@ -109,11 +109,11 @@ class StationRedisRepositoryImplTest {
     @Test
     void findStations_WithinShape_whenGeoResultIsNull() {
         // given
-        when(stationGeoRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0))
+        when(stationGeoRepository.findStationsWithinBox(37.5, 127.0, 1.0, 1.0))
                 .thenReturn(List.of());
 
         // when
-        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0);
+        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinBox(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).isNotNull().isEmpty();
@@ -127,9 +127,11 @@ class StationRedisRepositoryImplTest {
                 new StationInfo.StationGeoInfo(201, 37.6, 127.1)
         );
 
-        // 캐시에 데이터가 없음
-        when(stationHashRepository.fetchFullInfo(201, 37.6, 127.1))
-                .thenReturn(Optional.empty());
+        // 캐시에 데이터가 없음 → 저장 후 재조회
+        StationInfo.StationHashInfo cachedHashInfo = new StationInfo.StationHashInfo(201, 1L, "테스트 대여소", 0, null);
+        when(stationHashRepository.fetchAllFields(201))
+                .thenReturn(Optional.empty())  // 첫 번째 호출: 캐시 미스
+                .thenReturn(Optional.of(cachedHashInfo));  // 두 번째 호출: 캐시 저장 후 조회
 
         // DB에서 조회
         Station station = Station.builder()
@@ -144,12 +146,6 @@ class StationRedisRepositoryImplTest {
                 .build();
         when(stationJpaRepository.findByNumber(201))
                 .thenReturn(Optional.of(station));
-
-        // 캐시 저장 후 조회
-        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(1L, 201, 37.6, 127.1, 0, null);
-        when(stationHashRepository.fetchFullInfo(201, 37.6, 127.1))
-                .thenReturn(Optional.empty())  // 첫 번째 호출: 캐시 미스
-                .thenReturn(Optional.of(cachedInfo));  // 두 번째 호출: 캐시 저장 후 조회
 
         // when
         List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
@@ -170,36 +166,37 @@ class StationRedisRepositoryImplTest {
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(101, 37.501, 127.001)
         );
-        when(stationGeoRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0))
+        when(stationGeoRepository.findStationsWithinBox(37.5, 127.0, 1.0, 1.0))
                 .thenReturn(geoInfos);
 
         // when
-        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinShape(37.5, 127.0, 1.0, 1.0);
+        List<StationInfo.StationGeoInfo> results = stationRedisRepository.findStationsWithinBox(37.5, 127.0, 1.0, 1.0);
 
         // then
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().number()).isEqualTo(101);
     }
 
-    @DisplayName("날짜 형식이 잘못되었을 때, 해당 대여소를 결과에서 제외한다.")
+    @DisplayName("날짜 형식이 잘못되었을 때, 예외가 발생한다.")
     @Test
-    void findStationInfos_excludeStation_whenDateFormatIsInvalid() {
+    void findStationInfos_whenDateFormatIsInvalid_throwsException() {
         // given
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(102, 37.503, 127.003)
         );
 
         // StationHashRepository에서 파싱 실패로 Optional.empty() 반환
-        when(stationHashRepository.fetchFullInfo(102, 37.503, 127.003))
+        when(stationHashRepository.fetchAllFields(102))
                 .thenReturn(Optional.empty());
         when(stationJpaRepository.findByNumber(102))
                 .thenReturn(Optional.empty());
 
-        // when
-        List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
-
-        // then
-        assertThat(results).isNotNull().isEmpty();
+        // when & then
+        assertThatThrownBy(() -> stationRedisRepository.findStationInfos(geoInfos))
+                .isInstanceOf(StationNotFoundException.class)
+                .hasMessageContaining("102 번 대여소를 찾을 수 없습니다");
+        verify(stationJpaRepository).findByNumber(102);
+        verify(stationHashRepository, never()).saveStationInfosWithPipeline(anyList(), any());
     }
 
     @DisplayName("getStationStatusByNumber는 Redis에 데이터가 있으면 Redis 값을 반환한다")
@@ -218,10 +215,10 @@ class StationRedisRepositoryImplTest {
                 .operationMode(OperationMode.LCD_QR)
                 .build();
         LocalDateTime requestedAt = LocalDateTime.of(2025, 8, 20, 14, 39, 0);
-        BikeCountInfo redisInfo = new BikeCountInfo(1L, 7, requestedAt);
+        StationInfo.StationHashInfo hashInfo = new StationInfo.StationHashInfo(stationNumber, 1L, "테스트 대여소", 7, requestedAt);
 
         when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.of(station));
-        when(stationHashRepository.fetchBikeCountByNumber(stationNumber)).thenReturn(Optional.of(redisInfo));
+        when(stationHashRepository.fetchAllFields(stationNumber)).thenReturn(Optional.of(hashInfo));
 
         // when
         BikeCountInfo result = stationRedisRepository.getStationStatusByNumber(stationNumber);
@@ -256,7 +253,7 @@ class StationRedisRepositoryImplTest {
                 .build();
 
         when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.of(station));
-        when(stationHashRepository.fetchBikeCountByNumber(stationNumber)).thenReturn(Optional.empty());
+        when(stationHashRepository.fetchAllFields(stationNumber)).thenReturn(Optional.empty());
         when(stationStatusRepository.findLatestByStationNumber(stationNumber))
                 .thenReturn(Optional.of(dbStatus));
 
@@ -287,7 +284,7 @@ class StationRedisRepositoryImplTest {
                 .build();
 
         when(stationJpaRepository.findByNumber(stationNumber)).thenReturn(Optional.of(station));
-        when(stationHashRepository.fetchBikeCountByNumber(stationNumber)).thenReturn(Optional.empty());
+        when(stationHashRepository.fetchAllFields(stationNumber)).thenReturn(Optional.empty());
         when(stationStatusRepository.findLatestByStationNumber(stationNumber)).thenReturn(Optional.empty());
 
         // when
