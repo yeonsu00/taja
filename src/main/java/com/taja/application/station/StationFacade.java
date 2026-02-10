@@ -60,18 +60,8 @@ public class StationFacade {
     public StationDetailResponse findStationDetail(Long stationId, LocalDateTime requestedAt) {
         Station station = stationService.findStationByStationId(stationId);
 
-        List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findStationsInBounds(station.getLatitude(), station.getLongitude(), 1, 1);
-        List<StationInfo.StationFullInfo> stationInfos = stationCacheService.findStationInfos(geoInfos);
-
-        List<MapStationResponse> nearbyStationsResponse = StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
-
-        List<Integer> nearbyStationsNumber =
-                MapStationResponse.extractAvailableNumbers(
-                        nearbyStationsResponse,
-                        station.getNumber()
-                );
-
-        List<Station> nearbyStations = stationService.findStationByNumbers(nearbyStationsNumber);
+        List<StationInfo.NearbyAvailableStation> nearbyAvailableStations =
+                stationCacheService.findNearbyAvailableStations(station.getLatitude(), station.getLongitude(), 1.0, station.getNumber());
 
         TodayAvailableBikeResponse todayAvailableBike = stationStatusFacade.getTodayAvailableBike(
                 station.getStationId(), station.getNumber(), requestedAt);
@@ -85,7 +75,7 @@ public class StationFacade {
         List<DayOfWeekStatistics> dayOfWeekStatistics = dayOfWeekStatisticsService.findDayOfWeekStatisticsByStationId(station.getStationId());
         List<TemperatureStatistics> temperatureStatistics = temperatureStatisticsService.findTemperatureStatisticsByStationId(station.getStationId());
 
-        return StationDetailResponse.of(station, todayAvailableBike, recentPosts, nearbyStations,
+        return StationDetailResponse.of(station, todayAvailableBike, recentPosts, nearbyAvailableStations,
                 hourlyStatistics, dayOfWeekStatistics, temperatureStatistics);
     }
 }

@@ -27,7 +27,11 @@ public class StationCacheService {
     }
 
     public List<StationInfo.StationGeoInfo> findStationsInBounds(double centerLat, double centerLon, double height, double width) {
-        return stationRedisRepository.findStationsWithinShape(centerLat, centerLon, height, width);
+        return stationRedisRepository.findStationsWithinBox(centerLat, centerLon, height, width);
+    }
+
+    public List<StationInfo.NearbyAvailableStation> findNearbyAvailableStations(double centerLat, double centerLon, double radiusKm, Integer excludeNumber) {
+        return stationRedisRepository.findNearbyAvailableStations(centerLat, centerLon, radiusKm, excludeNumber);
     }
 
     public List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos) {

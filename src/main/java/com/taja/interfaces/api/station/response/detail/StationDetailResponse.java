@@ -1,5 +1,6 @@
 package com.taja.interfaces.api.station.response.detail;
 
+import com.taja.application.cache.StationInfo;
 import com.taja.domain.statistics.DayOfWeekStatistics;
 import com.taja.domain.statistics.HourlyStatistics;
 import com.taja.domain.statistics.TemperatureStatistics;
@@ -44,7 +45,7 @@ public record StationDetailResponse(
             Station station,
             TodayAvailableBikeResponse todayAvailableBike,
             List<RecentPostResponse> recentPosts,
-            List<Station> nearbyStations,
+            List<StationInfo.NearbyAvailableStation> nearbyStations,
             List<HourlyStatistics> hourlyStatistics,
             List<DayOfWeekStatistics> dayOfWeekStatistics,
             List<TemperatureStatistics> temperatureStatistics
@@ -52,15 +53,14 @@ public record StationDetailResponse(
         List<OperationModeResponse> operationModes = getOperationModeResponses(station);
 
         List<NearbyAvailableStationDetailResponse> nearbyAvailableStations = nearbyStations.stream()
-                .map(nearbyStation -> new NearbyAvailableStationDetailResponse(
-                        nearbyStation.getStationId(),
-                        String.valueOf(nearbyStation.getNumber()),
-                        nearbyStation.getName(),
-                        nearbyStation.getLatitude(),
-                        nearbyStation.getLongitude(),
-                        nearbyStation.calculateDistanceTo(station.getLatitude(), station.getLongitude())
+                .map(nearby -> new NearbyAvailableStationDetailResponse(
+                        nearby.stationId(),
+                        String.valueOf(nearby.number()),
+                        nearby.name(),
+                        nearby.latitude(),
+                        nearby.longitude(),
+                        nearby.distanceMeters()
                 ))
-                .sorted(Comparator.comparingInt(NearbyAvailableStationDetailResponse::distance))
                 .toList();
 
         List<HourlyAvailableItemResponse> hourlyAvailable = toHourlyAvailable(hourlyStatistics);
