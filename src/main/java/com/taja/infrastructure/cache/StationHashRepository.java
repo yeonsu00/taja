@@ -1,7 +1,6 @@
 package com.taja.infrastructure.cache;
 
 import com.taja.application.cache.StationInfo;
-import com.taja.application.cache.StationInfo.BikeCountInfo;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
 import java.time.Duration;
@@ -55,6 +54,7 @@ public class StationHashRepository {
 
                     Map<String, Object> updateValues = new HashMap<>();
                     updateValues.put("stationId", station.getStationId());
+                    updateValues.put("name", station.getName());
                     updateValues.put("requestedAt", formattedTime);
                     updateValues.put("district", station.getDistrict());
 
@@ -89,37 +89,42 @@ public class StationHashRepository {
         });
     }
 
-    public Optional<StationInfo.StationFullInfo> fetchFullInfo(Integer number, double lat, double lon) {
+    public Optional<StationInfo.StationHashInfo> fetchAllFields(Integer number) {
         String hashKey = STATION_KEY_PREFIX + number;
-        List<Object> values = redisTemplate.opsForHash().multiGet(hashKey, List.of("bikeCount", "requestedAt", "stationId"));
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(hashKey);
 
-        if (values.get(2) == null) {
-            return Optional.empty();
-        }
-
-        log.info("Redis 데이터 조회: number={}, values={}", number, values);
-        return parseFullInfo(number, lat, lon, values);
-    }
-
-    public Optional<BikeCountInfo> fetchBikeCountByNumber(Integer number) {
-        String hashKey = STATION_KEY_PREFIX + number;
-        List<Object> values = redisTemplate.opsForHash().multiGet(hashKey, List.of("bikeCount", "requestedAt", "stationId"));
-
-        if (values == null || values.size() < 3 || values.get(2) == null) {
+        if (entries.isEmpty()) {
             return Optional.empty();
         }
 
         try {
-            int bikeCount = values.get(0) != null ? Integer.parseInt(values.get(0).toString()) : 0;
-            LocalDateTime requestedAt = values.get(1) != null ? LocalDateTime.parse(values.get(1).toString()) : null;
-            Long stationId = values.get(2) != null ? Long.parseLong(values.get(2).toString()) : null;
+            Long stationId = entries.get("stationId") != null ? Long.parseLong(entries.get("stationId").toString()) : null;
+            String name = entries.get("name") != null ? entries.get("name").toString() : "";
+            int bikeCount = entries.get("bikeCount") != null ? Integer.parseInt(entries.get("bikeCount").toString()) : 0;
+            LocalDateTime requestedAt = entries.get("requestedAt") != null ? LocalDateTime.parse(entries.get("requestedAt").toString()) : null;
 
-            if (stationId == null || requestedAt == null) {
-                return Optional.empty();
-            }
-            return Optional.of(new BikeCountInfo(stationId, bikeCount, requestedAt));
+            return Optional.of(StationInfo.StationHashInfo.from(number, stationId, name, bikeCount, requestedAt));
         } catch (Exception e) {
-            log.warn("Redis 남은 자전거 수 파싱 실패: number={}, error={}", number, e.getMessage());
+            log.warn("Redis 데이터 파싱 실패: number={}, error={}", number, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public Optional<StationInfo.NearbyStationHashInfo> fetchStationIdAndNameAndBikeCount(Integer number) {
+        String hashKey = STATION_KEY_PREFIX + number;
+        List<Object> values = redisTemplate.opsForHash().multiGet(hashKey, List.of("stationId", "name", "bikeCount"));
+
+        if (values.get(0) == null) {
+            return Optional.empty();
+        }
+
+        try {
+            Long stationId = Long.parseLong(values.get(0).toString());
+            String name = values.get(1) != null ? values.get(1).toString() : "";
+            int bikeCount = values.get(2) != null ? Integer.parseInt(values.get(2).toString()) : 0;
+            return Optional.of(StationInfo.NearbyStationHashInfo.from(stationId, name, bikeCount));
+        } catch (Exception e) {
+            log.warn("Redis 데이터 파싱 실패: number={}, error={}", number, e.getMessage());
             return Optional.empty();
         }
     }
@@ -138,16 +143,4 @@ public class StationHashRepository {
         redisTemplateMaster.delete(LOCK_PREFIX + number);
     }
 
-    private Optional<StationInfo.StationFullInfo> parseFullInfo(Integer number, double lat, double lon, List<Object> values) {
-        try {
-            int bikeCount = values.get(0) != null ? Integer.parseInt(values.get(0).toString()) : 0;
-            LocalDateTime requestedAt = values.get(1) != null ? LocalDateTime.parse(values.get(1).toString()) : null;
-            Long stationId = values.get(2) != null ? Long.parseLong(values.get(2).toString()) : null;
-
-            return Optional.of(new StationInfo.StationFullInfo(stationId, number, lat, lon, bikeCount, requestedAt));
-        } catch (Exception e) {
-            log.warn("Redis 데이터 파싱 실패: number={}, error={}", number, e.getMessage());
-            return Optional.empty();
-        }
-    }
 }
