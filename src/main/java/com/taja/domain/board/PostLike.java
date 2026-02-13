@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Builder;
@@ -16,6 +17,9 @@ import lombok.RequiredArgsConstructor;
         name = "post_likes",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_post_like_member", columnNames = {"post_id", "member_id"})
+        },
+        indexes = {
+                @Index(name = "idx_post_like_member_post_deleted", columnList = "member_id, post_id, is_deleted")
         }
 )
 @Getter

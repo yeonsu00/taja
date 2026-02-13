@@ -6,13 +6,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "posts")
+@Table(name = "posts",
+        indexes = {
+                @Index(name = "idx_post_station_deleted_postid", columnList = "station_id, is_deleted, post_id DESC")
+        }
+)
 @Getter
 @RequiredArgsConstructor
 public class Post extends BaseEntity {

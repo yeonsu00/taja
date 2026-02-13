@@ -6,13 +6,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments",
+        indexes = {
+                @Index(name = "idx_comment_post_deleted", columnList = "post_id, is_deleted")
+        }
+)
 @Getter
 @RequiredArgsConstructor
 public class Comment extends BaseEntity {
