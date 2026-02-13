@@ -56,9 +56,9 @@ public class AllPostRankingRedisRepository implements AllPostRankingRepository {
             log.debug("랭킹 carry-over(전체): 오늘 키 없음, key={}", fromKey);
             return;
         }
+        List<String> otherKeys = Collections.singletonList(toKey);
         ZSetOperations<String, String> zSetOps = redisTemplate.opsForZSet();
-        zSetOps.unionAndStore(fromKey, Collections.emptyList(), toKey,
-                Aggregate.SUM, Weights.of(CARRY_OVER_WEIGHT));
+        zSetOps.unionAndStore(fromKey, otherKeys, toKey, Aggregate.SUM, Weights.of(CARRY_OVER_WEIGHT, 0));
         redisTemplate.expire(toKey, Duration.ofSeconds(TTL_SECONDS));
         log.info("랭킹 carry-over(전체) 완료: fromDate={}, toDate={}", today, tomorrow);
     }

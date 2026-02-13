@@ -63,8 +63,9 @@ public class PostRankingRedisRepository implements PostRankingRepository {
                 continue;
             }
             String toKey = key(stationId, tomorrow);
-            zSetOps.unionAndStore(fromKey, Collections.emptyList(), toKey,
-                    Aggregate.SUM, Weights.of(CARRY_OVER_WEIGHT));
+            List<String> otherKeys = Collections.singletonList(toKey);
+            zSetOps.unionAndStore(fromKey, otherKeys, toKey,
+                    Aggregate.SUM, Weights.of(CARRY_OVER_WEIGHT, 0));
             redisTemplate.expire(toKey, Duration.ofSeconds(TTL_SECONDS));
         }
         log.info("랭킹 carry-over 완료: fromDate={}, toDate={}, keys={}", today, tomorrow, todayKeys.size());

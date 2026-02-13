@@ -6,7 +6,7 @@ import com.taja.application.board.PostRankingRepository;
 import com.taja.application.board.PostRankingWeights;
 import java.time.LocalDate;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,8 +29,8 @@ class PostRankingRedisRepositoryTest {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    @AfterEach
-    void tearDown() {
+    @BeforeEach
+    void setUp() {
         String key = "ranking:station:" + TEST_STATION_ID + ":" + TODAY.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
         redisTemplate.delete(key);
     }
