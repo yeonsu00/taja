@@ -1,7 +1,6 @@
 package com.taja.interfaces.scheduler;
 
 import com.taja.application.station.StationService;
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +13,11 @@ import org.springframework.stereotype.Component;
 public class StationScheduler {
 
     private final StationService stationService;
+    private final StationInitializationHolder stationInitializationHolder;
 
-    @PostConstruct
     public void initializeStationCollection() {
-        log.info("===== 서버 시작 시 대여소 정보 수집 실행 =====");
         executeStationCollection();
+        stationInitializationHolder.setInitialized();
     }
 
     @Scheduled(cron = "0 12 3 1 * *")

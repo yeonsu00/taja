@@ -1,5 +1,7 @@
 package com.taja.application.board;
 
+import com.taja.application.board.BoardInfo.PostItem;
+import com.taja.application.board.BoardInfo.PostItems;
 import com.taja.application.member.AuthService;
 import com.taja.application.station.StationService;
 import com.taja.domain.board.BoardMember;
@@ -7,8 +9,11 @@ import com.taja.domain.board.Comment;
 import com.taja.domain.board.Post;
 import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,33 +41,45 @@ public class BoardFacade {
         boardMemberService.joinBoard(boardMember);
     }
 
+    @Transactional(readOnly = true)
+    public BoardInfo.JoinedBoards findJoinedBoards(String email) {
+        Member member = authService.findMemberByEmail(email);
+        List<BoardMember> boardMembers = boardMemberService.findByMemberId(member.getMemberId());
+        if (boardMembers.isEmpty()) {
+            return BoardInfo.JoinedBoards.from(List.of());
+        }
+        List<Long> stationIds = boardMembers.stream().map(BoardMember::getStationId).toList();
+        Map<Long, Station> stationMap = stationService.findStationMapByIds(stationIds);
+        List<BoardInfo.JoinedBoardItem> items = boardMembers.stream()
+                .map(bm -> {
+                    Station station = stationMap.get(bm.getStationId());
+                    String name = station != null ? station.getName() : "";
+                    String lastContent = postService.findLatestPostContentByStationId(bm.getStationId()).orElse(null);
+                    return new BoardInfo.JoinedBoardItem(bm.getStationId(), name, lastContent);
+                })
+                .toList();
+        return BoardInfo.JoinedBoards.from(items);
+    }
+
     @Transactional
     public void createPost(String email, Long stationId, String content) {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
-        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
         Post post = postService.createPost(member.getMemberId(), station.getStationId(), content);
         eventPublisher.publishEvent(PostRankingEvent.Created.from(post.getStationId(), post.getPostId()));
     }
 
     @Transactional(readOnly = true)
     public BoardInfo.PostItems findLatestPosts(String email, Long stationId, String cursor, int size) {
-        Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
-
-        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
         BoardInfo.PostItems postItems = postService.findLatestPosts(station.getStationId(), cursor, size);
 
-        List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(postItems.items(), member.getMemberId());
-        return BoardInfo.PostItems.from(itemsWithLiked, postItems.nextCursor());
+        return getPostItems(email, postItems);
     }
 
     @Transactional(readOnly = true)
     public BoardInfo.PostItems findPopularPosts(String email, Long stationId, String cursor, int size, LocalDate today) {
-        Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
-        boardMemberService.checkMemberJoined(station.getStationId(), member.getMemberId());
-
         boolean isFirstPage = cursor == null || cursor.isBlank();
         BoardInfo.PostItems postItems = postService.findPopularPosts(station.getStationId(), cursor, size, today);
 
@@ -70,8 +87,20 @@ public class BoardFacade {
             postItems = postService.findLatestPosts(station.getStationId(), cursor, size);
         }
 
-        List<BoardInfo.PostItem> itemsWithLiked = fillLikedForMember(postItems.items(), member.getMemberId());
-        return BoardInfo.PostItems.from(itemsWithLiked, postItems.nextCursor());
+        return getPostItems(email, postItems);
+    }
+
+    @NotNull
+    private BoardInfo.PostItems getPostItems(String email, PostItems postItems) {
+        List<PostItem> itemsWithLiked;
+        if (isLoggedIn(email)) {
+            Long memberId = authService.findMemberByEmail(email).getMemberId();
+            itemsWithLiked = fillLikedForMember(postItems.items(), memberId);
+        } else {
+            itemsWithLiked = postItems.items();
+        }
+
+        return PostItems.from(itemsWithLiked, postItems.nextCursor());
     }
 
     @Transactional(readOnly = true)
@@ -79,7 +108,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         BoardInfo.PostDetailPart postDetailPart = postService.findPostDetailPart(postId);
-        boardMemberService.checkMemberJoined(postDetailPart.stationId(), member.getMemberId());
         BoardInfo.PostDetail detail = postService.enrichWithComments(postDetailPart);
         boolean liked = postLikeService.hasLiked(postId, member.getMemberId());
         BoardInfo.PostDetail detailWithLiked = BoardInfo.PostDetail.from(detail, liked);
@@ -93,7 +121,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostAndMember(member.getMemberId(), postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postService.softDeletePost(post);
         commentService.softDeleteComments(postId);
@@ -105,7 +132,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         commentService.createComment(member.getMemberId(), post.getPostId(), content);
         postService.incrementCommentCount(postId);
@@ -119,7 +145,6 @@ public class BoardFacade {
 
         Comment comment = commentService.findCommentByCommentId(commentId, member.getMemberId());
         Post post = postService.findPostByPostId(comment.getPostId());
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         commentService.softDeleteComment(comment);
         postService.decrementCommentCount(comment.getPostId());
@@ -132,7 +157,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postLikeService.likePost(member.getMemberId(), postId);
         postService.incrementLikeCount(postId);
@@ -148,7 +172,6 @@ public class BoardFacade {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
-        boardMemberService.checkMemberJoined(post.getStationId(), member.getMemberId());
 
         postLikeService.unlikePost(member.getMemberId(), postId);
         postService.decrementLikeCount(postId);
@@ -157,6 +180,33 @@ public class BoardFacade {
 
         eventPublisher.publishEvent(PostRankingEvent.Unliked.from(post.getStationId(), postId));
         return BoardInfo.LikeResult.from(postId, updated.getLikeCount());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardInfo.DailyRankPostItem> findDailyRankedPosts(String email, LocalDate today) {
+        List<Long> rankedPostIds = postService.findDailyRankedPostIds(today);
+        if (rankedPostIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<BoardInfo.PostItem> postItems = postService.findPostItemsByPostIds(rankedPostIds);
+        List<Long> stationIds = postItems.stream().map(BoardInfo.PostItem::stationId).distinct().toList();
+        Map<Long, Station> stationMap = stationService.findStationMapByIds(stationIds);
+
+        if (isLoggedIn(email)) {
+            Member member = authService.findMemberByEmail(email);
+            postItems = fillLikedForMember(postItems, member.getMemberId());
+        }
+
+        List<BoardInfo.DailyRankPostItem> dailyRankPostItems = new ArrayList<>(postItems.size());
+        for (int i = 0; i < postItems.size(); i++) {
+            BoardInfo.PostItem item = postItems.get(i);
+            Station station = stationMap.get(item.stationId());
+            String stationName = station != null ? station.getName() : "";
+
+            dailyRankPostItems.add(BoardInfo.DailyRankPostItem.from(item, stationName, i + 1));
+        }
+        return dailyRankPostItems;
     }
 
     private List<BoardInfo.PostItem> fillLikedForMember(List<BoardInfo.PostItem> items, Long memberId) {
@@ -168,5 +218,9 @@ public class BoardFacade {
         return items.stream()
                 .map(item -> BoardInfo.PostItem.from(item, likedPostIds.contains(item.postId())))
                 .toList();
+    }
+
+    private static boolean isLoggedIn(String email) {
+        return email != null && !email.isBlank();
     }
 }

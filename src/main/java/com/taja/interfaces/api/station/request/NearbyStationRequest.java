@@ -15,7 +15,7 @@ public record NearbyStationRequest(
         @DecimalMin(value = "0.0", message = "latDelta는 0 이상이어야 합니다.")
         double latDelta,
 
-        @DecimalMin(value = "0.0", message = "lonDelta는 0 이상이어야 합니다.")
-        double lonDelta
+        @DecimalMin(value = "0.0", message = "lngDelta는 0 이상이어야 합니다.")
+        double lngDelta
 ) {
 }

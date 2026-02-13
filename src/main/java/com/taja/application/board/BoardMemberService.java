@@ -2,7 +2,7 @@ package com.taja.application.board;
 
 import com.taja.domain.board.BoardMember;
 import com.taja.global.exception.AlreadyJoinedException;
-import com.taja.global.exception.NotStationMemberException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +20,7 @@ public class BoardMemberService {
         boardMemberRepository.saveBoardMember(boardMember);
     }
 
-    public void checkMemberJoined(Long stationId, Long memberId) {
-        if (!boardMemberRepository.existsByStationIdAndMemberId(stationId, memberId)) {
-            throw new NotStationMemberException("해당 게시판의 참여자가 아닙니다.");
-        }
+    public List<BoardMember> findByMemberId(Long memberId) {
+        return boardMemberRepository.findByMemberId(memberId);
     }
 }

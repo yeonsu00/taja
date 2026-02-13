@@ -3,7 +3,9 @@ package com.taja.infrastructure.status;
 import com.taja.application.status.StationStatusRepository;
 import com.taja.domain.status.StationStatus;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +16,7 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
     private final StationStatusJpaRepository stationStatusJpaRepository;
 
     @Override
-    public int saveAll(List<StationStatus> stationStatuses) {
+    public int saveAllStationStatus(List<StationStatus> stationStatuses) {
         return stationStatusJpaRepository.saveAll(stationStatuses).size();
     }
 
@@ -24,10 +26,16 @@ public class StationStatusRepositoryImpl implements StationStatusRepository {
     }
 
     @Override
-    public List<StationStatus> findAllByDateAndStationNumbers(LocalDate calculationDate, List<Integer> stationNumbers) {
-        if (stationNumbers.isEmpty()) {
-            return List.of();
-        }
-        return stationStatusJpaRepository.findAllByDateAndStationNumbers(calculationDate, stationNumbers);
+    public List<StationStatus> findByRequestedAt(LocalDateTime requestedAt) {
+        return stationStatusJpaRepository.findByRequestedDateAndRequestedTime(
+                requestedAt.toLocalDate(),
+                requestedAt.toLocalTime()
+        );
+    }
+
+    @Override
+    public Optional<StationStatus> findLatestByStationNumber(Integer stationNumber) {
+        return stationStatusJpaRepository.findTop1ByStationNumberOrderByRequestedDateDescRequestedTimeDesc(
+                stationNumber);
     }
 }

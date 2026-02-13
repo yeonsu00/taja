@@ -8,7 +8,6 @@ import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
 import com.taja.global.exception.AlreadyLikedException;
 import com.taja.global.exception.LikeNotFoundException;
-import com.taja.global.exception.NotStationMemberException;
 import com.taja.global.exception.PostNotFoundException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,10 +84,13 @@ class BoardIntegrationTest {
         }
 
         @Test
-        @DisplayName("참여하지 않은 게시판에서 게시글 작성 시 NotStationMemberException 예외를 던진다")
-        void createPost_withoutJoin_throws() {
-            assertThatThrownBy(() -> boardFacade.createPost("nomember@test.com", stationId, "글"))
-                    .isInstanceOf(NotStationMemberException.class);
+        @DisplayName("참여하지 않은 멤버도 게시글 작성이 가능하다")
+        void createPost_withoutJoin_success() {
+            boardFacade.createPost("nomember@test.com", stationId, "비참여 멤버 글");
+
+            BoardInfo.PostItems latest = boardFacade.findLatestPosts("nomember@test.com", stationId, null, 10);
+            assertThat(latest.items()).hasSize(1);
+            assertThat(latest.items().getFirst().content()).isEqualTo("비참여 멤버 글");
         }
 
         @Test
@@ -190,6 +192,73 @@ class BoardIntegrationTest {
 
             assertThatThrownBy(() -> boardFacade.unlikePost(EMAIL, postId))
                     .isInstanceOf(LikeNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("참여한 게시판 목록 조회")
+    class FindJoinedBoards {
+
+        @Test
+        @DisplayName("참여한 게시판이 없으면 빈 목록을 반환한다")
+        void noJoinedBoards_returnsEmpty() {
+            authService.signup("noboards", "noboards@test.com", PASSWORD);
+
+            BoardInfo.JoinedBoards result = boardFacade.findJoinedBoards("noboards@test.com");
+
+            assertThat(result.items()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("참여한 게시판이 있으면 대여소 정보와 마지막 게시글 내용을 반환한다")
+        void withJoinedBoard_returnsBoardWithLastContent() {
+            boardFacade.createPost(EMAIL, stationId, "마지막 글");
+
+            BoardInfo.JoinedBoards result = boardFacade.findJoinedBoards(EMAIL);
+
+            assertThat(result.items()).hasSize(1);
+            assertThat(result.items().getFirst().stationId()).isEqualTo(stationId);
+            assertThat(result.items().getFirst().name()).isEqualTo("테스트 대여소");
+            assertThat(result.items().getFirst().lastContent()).isEqualTo("마지막 글");
+        }
+
+        @Test
+        @DisplayName("참여한 게시판에 게시글이 없으면 lastContent는 null이다")
+        void joinedBoardWithoutPost_lastContentIsNull() {
+            BoardInfo.JoinedBoards result = boardFacade.findJoinedBoards(EMAIL);
+
+            assertThat(result.items()).hasSize(1);
+            assertThat(result.items().getFirst().stationId()).isEqualTo(stationId);
+            assertThat(result.items().getFirst().name()).isEqualTo("테스트 대여소");
+            assertThat(result.items().getFirst().lastContent()).isNull();
+        }
+
+        @Test
+        @DisplayName("여러 게시판에 참여한 경우 참여한 순서(최신순)로 목록을 반환한다")
+        void multipleJoinedBoards_returnsInJoinOrder() {
+            Station station2 = Station.builder()
+                    .name("두 번째 대여소")
+                    .number(88888)
+                    .district("서초")
+                    .address("주소2")
+                    .latitude(37.6)
+                    .longitude(127.1)
+                    .operationMode(OperationMode.LCD)
+                    .build();
+            List<Station> saved2 = stationRepository.upsert(List.of(station2));
+            Long stationId2 = saved2.getFirst().getStationId();
+            boardFacade.join(EMAIL, stationId2);
+            boardFacade.createPost(EMAIL, stationId2, "두 번째 대여소 글");
+
+            BoardInfo.JoinedBoards result = boardFacade.findJoinedBoards(EMAIL);
+
+            assertThat(result.items()).hasSize(2);
+            // 최근 참여한 게시판이 먼저 (BoardMemberId 내림차순)
+            assertThat(result.items().getFirst().stationId()).isEqualTo(stationId2);
+            assertThat(result.items().get(0).name()).isEqualTo("두 번째 대여소");
+            assertThat(result.items().get(0).lastContent()).isEqualTo("두 번째 대여소 글");
+            assertThat(result.items().get(1).stationId()).isEqualTo(stationId);
+            assertThat(result.items().get(1).name()).isEqualTo("테스트 대여소");
         }
     }
 }

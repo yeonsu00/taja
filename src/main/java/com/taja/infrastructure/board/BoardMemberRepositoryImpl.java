@@ -3,6 +3,7 @@ package com.taja.infrastructure.board;
 import com.taja.application.board.BoardMemberRepository;
 import com.taja.domain.board.BoardMember;
 import com.taja.global.exception.AlreadyJoinedException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
@@ -25,5 +26,10 @@ public class BoardMemberRepositoryImpl implements BoardMemberRepository {
         } catch (DataIntegrityViolationException e) {
             throw new AlreadyJoinedException("이미 참여한 게시판입니다.");
         }
+    }
+
+    @Override
+    public List<BoardMember> findByMemberId(Long memberId) {
+        return boardMemberJpaRepository.findByMemberIdOrderByBoardMemberIdDesc(memberId);
     }
 }

@@ -26,8 +26,23 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds) {
-        return postQueryRepository.findPostItemsByPostIds(stationId, postIds);
+    public List<BoardInfo.PostItem> findRecentPosts(Long stationId, int recentPostsSize) {
+        return postQueryRepository.findRecentPosts(stationId, recentPostsSize);
+    }
+
+    @Override
+    public Optional<String> findLatestPostContentByStationId(Long stationId) {
+        return postQueryRepository.findLatestPostContentByStationId(stationId);
+    }
+
+    @Override
+    public List<BoardInfo.PostItem> findPostItemsByStationIdAndPostIds(Long stationId, List<Long> postIds) {
+        return postQueryRepository.findPostItemsByStationIdAndPostIds(stationId, postIds);
+    }
+
+    @Override
+    public List<BoardInfo.PostItem> findPostItemsByStationIdAndPostIds(List<Long> postIds) {
+        return postQueryRepository.findPostItemsByStationIdAndPostIds(postIds);
     }
 
     @Override

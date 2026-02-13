@@ -5,8 +5,11 @@ import com.taja.application.board.BoardInfo;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.interfaces.api.board.request.CreateCommentRequest;
+import com.taja.interfaces.api.board.response.DailyRankPostResponse;
 import com.taja.interfaces.api.station.response.PostDetailResponse;
 import com.taja.interfaces.api.station.response.PostLikeResponse;
+import java.time.LocalDate;
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,6 +30,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class BoardController {
 
     private final BoardFacade boardFacade;
+
+    @Operation(summary = "전체 게시글 일간 랭킹 조회", description = "전체 게시글 중 일간 인기순 Top 10 랭킹을 조회합니다. 액세스 토큰은 선택입니다.")
+    @GetMapping("/rank/daily")
+    public CommonApiResponse<DailyRankPostResponse.ListResponse> getDailyRankedPosts(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String email = customUserDetails != null ? customUserDetails.getUsername() : null;
+        List<DailyRankPostResponse.Item> posts = DailyRankPostResponse.Item.from(boardFacade.findDailyRankedPosts(email, LocalDate.now()));
+        return CommonApiResponse.success(DailyRankPostResponse.ListResponse.from(posts), "일간 랭킹 조회에 성공했습니다.");
+    }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 게시글 상세 정보를 조회합니다.")
     @GetMapping("/{postId}")

@@ -1,9 +1,12 @@
 package com.taja.infrastructure.cache;
 
 import com.taja.application.cache.StationInfo;
+import com.taja.application.cache.StationInfo.BikeCountInfo;
 import com.taja.application.cache.StationRedisRepository;
+import com.taja.application.status.StationStatusRepository;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
+import com.taja.global.exception.StationNotFoundException;
 import com.taja.infrastructure.station.StationJpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +25,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     private final StationHashRepository stationHashRepository;
     private final StationGeoRepository stationGeoRepository;
     private final StationJpaRepository stationJpaRepository;
+    private final StationStatusRepository stationStatusRepository;
 
     @Override
     public void saveStations(List<Station> stations, LocalDateTime requestedAt) {
@@ -35,8 +39,31 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
     }
 
     @Override
-    public List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width) {
-        return stationGeoRepository.findNearbyStations(centerLat, centerLon, height, width);
+    public List<StationInfo.StationGeoInfo> findStationsWithinBox(double centerLat, double centerLon, double height, double width) {
+        return stationGeoRepository.findStationsWithinBox(centerLat, centerLon, height, width);
+    }
+
+    @Override
+    public List<StationInfo.NearbyAvailableStation> findNearbyAvailableStations(
+            double centerLat, double centerLon, double radiusKm, Integer excludeNumber) {
+        List<StationInfo.NearbyStationGeoInfo> geoInfos =
+                stationGeoRepository.findStationsWithinRadius(centerLat, centerLon, radiusKm);
+
+        return geoInfos.stream()
+                .filter(geo -> !geo.number().equals(excludeNumber))
+                .map(geo -> {
+                    Optional<StationInfo.NearbyStationHashInfo> hashInfo =
+                            stationHashRepository.fetchStationIdAndNameAndBikeCount(geo.number());
+                    if (hashInfo.isEmpty() || hashInfo.get().bikeCount() < 1) {
+                        return null;
+                    }
+                    StationInfo.NearbyStationHashInfo info = hashInfo.get();
+                    return new StationInfo.NearbyAvailableStation(
+                            info.stationId(), geo.number(), info.name(),
+                            geo.latitude(), geo.longitude(), (int) geo.distanceMeters());
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -55,20 +82,35 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public BikeCountInfo getStationStatusByNumber(Integer stationNumber) {
+        Station station = stationJpaRepository.findByNumber(stationNumber)
+                .orElseThrow(() -> new StationNotFoundException(stationNumber + " 번 대여소를 찾을 수 없습니다."));
+        Long stationId = station.getStationId();
+        return stationHashRepository.fetchAllFields(stationNumber)
+                .map(info -> new BikeCountInfo(info.stationId(), info.bikeCount(), info.requestedAt()))
+                .orElseGet(() -> stationStatusRepository.findLatestByStationNumber(stationNumber)
+                        .map(status -> new BikeCountInfo(
+                                stationId,
+                                status.getParkingBikeCount(),
+                                LocalDateTime.of(status.getRequestedDate(), status.getRequestedTime())))
+                        .orElse(new BikeCountInfo(stationId, 0, LocalDateTime.now())));
+    }
+
     private Optional<StationInfo.StationFullInfo> getOrRefresh(Integer number, double lat, double lon) {
-        Optional<StationInfo.StationFullInfo> stationFullInfo = stationHashRepository.fetchFullInfo(number, lat, lon);
+        Optional<StationInfo.StationHashInfo> hashInfoOpt = stationHashRepository.fetchAllFields(number);
+        Optional<StationInfo.StationFullInfo> stationFullInfo = StationInfo.StationFullInfo.from(hashInfoOpt.orElse(null), lat, lon);
 
-        if (stationFullInfo.isEmpty()) {
-            Optional<Station> stationOpt = stationJpaRepository.findByNumber(number);
-            if (stationOpt.isEmpty()) {
-                return Optional.empty();
-            }
-
-            Station station = stationOpt.get();
+        if (hashInfoOpt.isEmpty()) {
+            Station station = stationJpaRepository.findByNumber(number)
+                    .orElseThrow(() -> new StationNotFoundException(number + " 번 대여소를 찾을 수 없습니다."));
             LocalDateTime now = LocalDateTime.now();
             stationHashRepository.saveStationInfosWithPipeline(List.of(station), now);
-            
-            return stationHashRepository.fetchFullInfo(number, lat, lon);
+
+            StationInfo.StationHashInfo hashInfo = stationHashRepository.fetchAllFields(number).orElseThrow(
+                    () -> new StationNotFoundException(number + " 번 대여소 해시 정보를 찾을 수 없습니다.")
+            );
+            return StationInfo.StationFullInfo.from(hashInfo, lat, lon);
         }
 
         if (stationHashRepository.isThresholdReached(number)) {
@@ -94,7 +136,7 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
             Station station = stationOpt.get();
             LocalDateTime now = LocalDateTime.now();
             stationHashRepository.saveStationInfosWithPipeline(List.of(station), now);
-            
+
             log.debug("캐시 갱신 완료: number={}", number);
         } catch (Exception e) {
             log.error("캐시 갱신 중 오류 발생: number={}, error={}", number, e.getMessage(), e);

@@ -8,16 +8,19 @@ import com.taja.application.station.StationFacade;
 import com.taja.global.exception.InvalidSortTypeException;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
+import com.taja.application.cache.StationCacheService;
 import com.taja.application.station.StationService;
 import com.taja.interfaces.api.station.request.CreatePostRequest;
 import com.taja.interfaces.api.station.request.NearbyStationRequest;
 import com.taja.interfaces.api.station.request.SearchStationRequest;
 import com.taja.interfaces.api.station.response.IsFavoriteStationResponse;
 import com.taja.interfaces.api.station.response.MapStationResponse;
+import com.taja.interfaces.api.station.response.StationStatusResponse;
 import com.taja.interfaces.api.station.response.PostItemResponse;
 import com.taja.interfaces.api.station.response.PostListResponse;
 import com.taja.interfaces.api.station.response.StationSimpleResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -45,10 +48,12 @@ public class StationController {
 
     private final StationService stationService;
     private final StationFacade stationFacade;
+    private final StationCacheService stationCacheService;
     private final FavoriteStationService favoriteStationService;
     private final FavoriteStationFacade favoriteStationFacade;
     private final BoardFacade boardFacade;
 
+    @Hidden
     @Operation(summary = "대여소 파일 업로드", description = "엑셀 파일을 업로드하여 대여소 정보를 등록 및 수정합니다.")
     @PostMapping("/upload")
     public CommonApiResponse<String> readStationFile(@RequestParam("file") MultipartFile file) {
@@ -57,18 +62,18 @@ public class StationController {
         return CommonApiResponse.success(count + "개 대여소가 등록 및 수정되었습니다.");
     }
 
-    @Operation(summary = "근처 대여소 조회", description = "지도 중심 좌표와 화면에 보이는 영역의 위도, 경도 차이를 이용해 근처 대여소를 조회합니다.")
+    @Operation(summary = "지도 화면 영역 내 대여소 조회", description = "지도 중심 좌표와 화면에 보이는 영역의 위도, 경도 차이를 이용해 근처 대여소를 조회합니다.")
     @GetMapping("/map/nearby")
-    public CommonApiResponse<List<MapStationResponse>> findNearbyStations(
+    public CommonApiResponse<List<MapStationResponse>> findStationsInBounds(
             @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
-        List<MapStationResponse> nearbyStations = stationFacade.findNearbyStations(
+        List<MapStationResponse> stationsInBounds = stationFacade.findStationsInBounds(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
-                nearbyStationRequest.lonDelta()
+                nearbyStationRequest.lngDelta()
         );
 
-        return CommonApiResponse.success(nearbyStations, "근처 대여소 조회에 성공했습니다.");
+        return CommonApiResponse.success(stationsInBounds, "근처 대여소 조회에 성공했습니다.");
     }
 
     @Operation(summary = "대여소 검색", description = "키워드와 지도 중심 좌표를 이용해 대여소를 검색합니다.")
@@ -76,19 +81,29 @@ public class StationController {
     public CommonApiResponse<List<StationSimpleResponse>> searchStation(
             @Valid @ModelAttribute SearchStationRequest searchStationRequest) {
         double centerLat = searchStationRequest.lat();
-        double centerLon = searchStationRequest.lon();
+        double centerLng = searchStationRequest.lng();
 
         List<StationSimpleResponse> searchedStations = stationService.searchStationsByName(
-                searchStationRequest.keyword(), centerLat, centerLon);
+                searchStationRequest.keyword(), centerLat, centerLng);
 
         return CommonApiResponse.success(searchedStations, "대여소 검색에 성공했습니다.");
+    }
+
+    @Operation(summary = "실시간 남은 자전거 수 조회", description = "대여소 번호로 실시간 남은 자전거 수를 조회합니다.")
+    @GetMapping("/status/{stationNumber}")
+    public CommonApiResponse<StationStatusResponse> getStationStatus(
+            @PathVariable("stationNumber") Integer stationNumber) {
+        StationStatusResponse response = StationStatusResponse.from(
+                stationCacheService.getStationStatusByNumber(stationNumber));
+        return CommonApiResponse.success(response, "실시간 남은 자전거 수 조회에 성공했습니다.");
     }
 
     @Operation(summary = "대여소 상세 조회", description = "대여소 ID를 이용해 대여소의 상세 정보를 조회합니다.")
     @GetMapping("/{stationId}")
     public CommonApiResponse<StationDetailResponse> findStationDetail(
             @PathVariable("stationId") Long stationId) {
-        StationDetailResponse stationDetailResponse = stationFacade.findStationDetail(stationId);
+        LocalDateTime requestedAt = LocalDateTime.now();
+        StationDetailResponse stationDetailResponse = stationFacade.findStationDetail(stationId, requestedAt);
         return CommonApiResponse.success(stationDetailResponse, "대여소 상세 조회에 성공했습니다.");
     }
 
@@ -108,7 +123,7 @@ public class StationController {
                                                           @RequestParam(value = "cursor", required = false) String cursor,
                                                           @RequestParam(value = "size", defaultValue = "20") int size,
                                                           @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        String email = customUserDetails.getUsername();
+        String email = customUserDetails != null ? customUserDetails.getUsername() : null;
         PostSort postSort = PostSort.fromValue(sort);
 
         BoardInfo.PostItems postItems;

@@ -45,10 +45,12 @@ public class StationCacheEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleStationStatusesUpdated(StationEvent.StationStatusesUpdated event) {
-        log.info("대여소 상태 업데이트 이벤트 수신: {}개 대여소 상태 캐시 갱신 시작", event.stationStatuses().size());
+        log.info("대여소 상태 업데이트 이벤트 수신: {}개 대여소 상태 캐시 갱신 시작 ({}-{})",
+                event.stationStatuses().size(), event.startIndex(), event.endIndex());
         try {
             stationCacheService.updateBikeCountAndRequestedAt(event.stationStatuses());
-            log.info("대여소 상태 캐시 갱신 완료: {}개", event.stationStatuses().size());
+            log.info("대여소 상태 캐시 갱신 완료: {}개 ({}-{})",
+                    event.stationStatuses().size(), event.startIndex(), event.endIndex());
         } catch (Exception e) {
             log.error("대여소 상태 캐시 갱신 중 오류 발생: {}", e.getMessage(), e);
         }

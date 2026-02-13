@@ -10,7 +10,13 @@ public interface PostRepository {
 
     List<BoardInfo.PostItem> findLatestPosts(Long stationId, long cursor, int size);
 
-    List<BoardInfo.PostItem> findPostItemsByPostIds(Long stationId, List<Long> postIds);
+    List<BoardInfo.PostItem> findRecentPosts(Long stationId, int recentPostsSize);
+
+    Optional<String> findLatestPostContentByStationId(Long stationId);
+
+    List<BoardInfo.PostItem> findPostItemsByStationIdAndPostIds(Long stationId, List<Long> postIds);
+
+    List<BoardInfo.PostItem> findPostItemsByStationIdAndPostIds(List<Long> postIds);
 
     Optional<BoardInfo.PostDetailPart> findPostDetailPartByPostId(Long postId);
 

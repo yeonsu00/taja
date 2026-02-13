@@ -1,5 +1,6 @@
 package com.taja.application.cache;
 
+import com.taja.application.cache.StationInfo.BikeCountInfo;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
 import java.time.LocalDateTime;
@@ -25,11 +26,19 @@ public class StationCacheService {
         return stationRedisRepository.findStationStatus(favoriteStations);
     }
 
-    public List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width) {
-        return stationRedisRepository.findNearbyStations(centerLat, centerLon, height, width);
+    public List<StationInfo.StationGeoInfo> findStationsInBounds(double centerLat, double centerLon, double height, double width) {
+        return stationRedisRepository.findStationsWithinBox(centerLat, centerLon, height, width);
+    }
+
+    public List<StationInfo.NearbyAvailableStation> findNearbyAvailableStations(double centerLat, double centerLon, double radiusKm, Integer excludeNumber) {
+        return stationRedisRepository.findNearbyAvailableStations(centerLat, centerLon, radiusKm, excludeNumber);
     }
 
     public List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos) {
         return stationRedisRepository.findStationInfos(geoInfos);
+    }
+
+    public BikeCountInfo getStationStatusByNumber(Integer stationNumber) {
+        return stationRedisRepository.getStationStatusByNumber(stationNumber);
     }
 }

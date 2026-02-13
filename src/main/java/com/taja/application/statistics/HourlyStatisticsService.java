@@ -18,6 +18,10 @@ public class HourlyStatisticsService {
 
     private final HourlyStatisticsRepository hourlyStatisticsRepository;
 
+    public List<HourlyStatistics> findByStationIds(List<Long> stationIds) {
+        return hourlyStatisticsRepository.findAllByStationIds(stationIds);
+    }
+
     @Transactional
     public int processBatch(List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts) {
         if (stationHourlyAvgParkingBikeCounts == null || stationHourlyAvgParkingBikeCounts.isEmpty()) {
@@ -71,6 +75,10 @@ public class HourlyStatisticsService {
 
     private String createKey(Long stationId, Integer hour) {
         return stationId + ":" + hour;
+    }
+
+    public List<HourlyStatistics> findHourlyStatisticsByStationId(Long stationId) {
+        return hourlyStatisticsRepository.findHourlyStatisticsByStationId(stationId);
     }
 }
 

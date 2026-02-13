@@ -3,10 +3,9 @@ package com.taja.application.statistics;
 import com.taja.application.statistics.dto.StationDistricts;
 import com.taja.application.statistics.dto.StationHourlyAvg;
 import com.taja.application.statistics.dto.StationTempGroup;
+import com.taja.application.status.StationStatusHourlyAvgService;
 import com.taja.domain.statistics.TemperatureStatistics;
 import com.taja.domain.station.Station;
-import com.taja.application.status.StationStatusService;
-import com.taja.domain.status.StationStatus;
 import com.taja.application.weather.WeatherService;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class TemperatureStatisticsBatchService {
 
-    private final StationStatusService stationStatusService;
+    private final StationStatusHourlyAvgService stationStatusHourlyAvgService;
     private final TemperatureStatisticsService temperatureStatisticsService;
     private final WeatherService weatherService;
 
@@ -36,11 +35,9 @@ public class TemperatureStatisticsBatchService {
 
         log.info("배치 처리 시작 - 대여소 수: {}", batchStations.size());
 
-        List<StationStatus> stationStatuses = stationStatusService.findStationStatusesByDateAndStationNumbers(
-                calculationDate, stationNumbers);
-
-        List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts = stationStatusService.calculateHourlyAvgParkingBikeCount(
-                stationStatuses);
+        List<StationHourlyAvg> stationHourlyAvgParkingBikeCounts =
+                stationStatusHourlyAvgService.findStationHourlyAvgsByDateAndStationNumbers(calculationDate,
+                        stationNumbers);
         List<TemperatureStatistics> temperatureStatistics = temperatureStatisticsService.findStatisticsByStationIds(
                 stationIds);
         Map<StationTempGroup, TemperatureStatistics> existingStatsMap = temperatureStatistics.stream()

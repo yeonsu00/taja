@@ -3,6 +3,7 @@ package com.taja.interfaces.api.statistics;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.application.statistics.StatisticsFacade;
 import com.taja.interfaces.api.statistics.request.StatisticsRequest;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Hidden
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/statistics")

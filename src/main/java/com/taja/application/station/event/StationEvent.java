@@ -14,7 +14,20 @@ public class StationEvent {
     }
 
     public record StationStatusesUpdated(
-            List<StationStatus> stationStatuses
+            List<StationStatus> stationStatuses,
+            int startIndex,
+            int endIndex
     ) {
+        public static StationStatusesUpdated from(List<StationStatus> stationStatuses, int startIndex, int endIndex) {
+            return new StationStatusesUpdated(stationStatuses, startIndex, endIndex);
+        }
+    }
+
+    public record StationStatusesCollected(
+            LocalDateTime requestedAt
+    ) {
+        public static StationStatusesCollected from(LocalDateTime requestedAt) {
+            return new StationStatusesCollected(requestedAt);
+        }
     }
 }

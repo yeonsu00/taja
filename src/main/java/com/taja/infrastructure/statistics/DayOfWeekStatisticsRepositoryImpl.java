@@ -14,6 +14,11 @@ public class DayOfWeekStatisticsRepositoryImpl implements DayOfWeekStatisticsRep
     private final DayOfWeekStatisticsJpaRepository dayOfWeekStatisticsJpaRepository;
 
     @Override
+    public List<DayOfWeekStatistics> findDayOfWeekStatisticsByStationId(Long stationId) {
+        return dayOfWeekStatisticsJpaRepository.findByStationId(stationId);
+    }
+
+    @Override
     public List<DayOfWeekStatistics> findAllByStationIdsAndDayOfWeek(List<Long> stationIds, DayOfWeek dayOfWeek) {
         if (stationIds == null || stationIds.isEmpty()) {
             return List.of();
@@ -28,4 +33,5 @@ public class DayOfWeekStatisticsRepositoryImpl implements DayOfWeekStatisticsRep
         }
         dayOfWeekStatisticsJpaRepository.saveAll(dayOfWeekStatisticsList);
     }
+
 }

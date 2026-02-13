@@ -4,13 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.taja.application.station.StationRepository;
 import com.taja.application.statistics.dto.StationDistricts;
-import com.taja.application.status.StationStatusRepository;
+import com.taja.application.status.StationStatusHourlyAvgRepository;
+import com.taja.domain.status.StationStatusHourlyAvg;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
 import com.taja.domain.statistics.TemperatureStatistics;
-import com.taja.domain.status.StationStatus;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
     private TemperatureStatisticsService temperatureStatisticsService;
 
     @Autowired
-    private StationStatusRepository stationStatusRepository;
+    private StationStatusHourlyAvgRepository stationStatusHourlyAvgRepository;
 
     @Autowired
     private StationRepository stationRepository;
@@ -51,14 +50,10 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
             Station station = createStation(null, "대여소1", "강남구", 1);
             station = stationRepository.upsert(List.of(station)).getFirst();
 
-            // 대여소 상태 데이터 생성 및 저장
-            StationStatus status1 = StationStatus.builder()
-                    .stationNumber(1)
-                    .parkingBikeCount(10)
-                    .requestedDate(calculationDate)
-                    .requestedTime(LocalTime.of(9, 0))
-                    .build();
-            stationStatusRepository.saveAll(List.of(status1));
+            // 일별시간별 평균 데이터 생성 및 저장
+            StationStatusHourlyAvg hourlyAvg = StationStatusHourlyAvg.create(
+                    station.getNumber(), calculationDate, 9, 10);
+            stationStatusHourlyAvgRepository.saveAllHourlyAvgs(List.of(hourlyAvg));
 
             // 기온 데이터
             Map<String, Map<Integer, Double>> districtHourlyTempMap = new HashMap<>();
@@ -84,6 +79,10 @@ class TemperatureStatisticsBatchServiceIntegrationTest {
             LocalDate calculationDate = LocalDate.of(2024, 1, 1);
             Station station = createStation(null, "대여소1", "강남구", 1);
             station = stationRepository.upsert(List.of(station)).getFirst();
+
+            StationStatusHourlyAvg hourlyAvg = StationStatusHourlyAvg.create(
+                    station.getNumber(), calculationDate, 9, 10);
+            stationStatusHourlyAvgRepository.saveAllHourlyAvgs(List.of(hourlyAvg));
 
             Map<String, Map<Integer, Double>> districtHourlyTempMap = new HashMap<>();
             StationDistricts stationDistricts = StationDistricts.from(List.of(station));

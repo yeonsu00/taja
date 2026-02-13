@@ -29,6 +29,9 @@ class PostServiceTest {
     @MockitoBean
     private PostRankingRepository postRankingRepository;
 
+    @MockitoBean
+    private AllPostRankingRepository allPostRankingRepository;
+
     @Autowired
     private PostService postService;
 
@@ -72,7 +75,7 @@ class PostServiceTest {
     }
 
     @Nested
-    @DisplayName("인기순 게시물 조회")
+    @DisplayName("게시판별 인기순 게시물 조회")
     class FindPopularPosts {
 
         @Test
@@ -86,7 +89,7 @@ class PostServiceTest {
                     postItem(1L, 8L)
             );
             when(postRankingRepository.findRankedPostIds(1L, 0L, 3, today)).thenReturn(rankedIds);
-            when(postRepository.findPostItemsByPostIds(1L, rankedIds)).thenReturn(items);
+            when(postRepository.findPostItemsByStationIdAndPostIds(1L, rankedIds)).thenReturn(items);
 
             BoardInfo.PostItems result = postService.findPopularPosts(1L, null, 2, today);
 
@@ -111,7 +114,7 @@ class PostServiceTest {
     }
 
     @Nested
-    @DisplayName("인기순 랭킹 점수 추가")
+    @DisplayName("게시판별 인기순 랭킹 점수 추가")
     class AddRankingScore {
 
         @Test
@@ -121,6 +124,44 @@ class PostServiceTest {
             postService.addRankingScore(1L, 2L, 0.5, today);
 
             verify(postRankingRepository).addScore(1L, 2L, 0.5, today);
+        }
+    }
+
+    @Nested
+    @DisplayName("전체 게시글 일간 랭킹")
+    class DailyRankedPosts {
+
+        @Test
+        @DisplayName("findDailyRankedPostIds는 AllPostRankingRepository.findRankedPostIds(0, 10) 결과를 반환한다")
+        void findDailyRankedPostIds_delegatesToRepository() {
+            LocalDate today = LocalDate.now();
+            List<Long> rankedIds = List.of(10L, 9L, 8L);
+            when(allPostRankingRepository.findRankedPostIds(0, 10, today)).thenReturn(rankedIds);
+
+            List<Long> result = postService.findDailyRankedPostIds(today);
+
+            assertThat(result).containsExactly(10L, 9L, 8L);
+            verify(allPostRankingRepository).findRankedPostIds(0, 10, today);
+        }
+
+        @Test
+        @DisplayName("랭킹 데이터가 없으면 빈 목록을 반환한다")
+        void findDailyRankedPostIds_emptyRanking_returnsEmpty() {
+            LocalDate today = LocalDate.now();
+            when(allPostRankingRepository.findRankedPostIds(0, 10, today)).thenReturn(List.of());
+
+            List<Long> result = postService.findDailyRankedPostIds(today);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("addAllPostRankingScore는 AllPostRankingRepository.addScore가 올바른 인자로 호출된다")
+        void addAllPostRankingScore_delegatesToRepository() {
+            LocalDate today = LocalDate.now();
+            postService.addAllPostRankingScore(100L, 0.5, today);
+
+            verify(allPostRankingRepository).addScore(100L, 0.5, today);
         }
     }
 }

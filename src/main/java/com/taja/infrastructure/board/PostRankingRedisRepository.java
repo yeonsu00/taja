@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class PostRankingRedisRepository implements PostRankingRepository {
 
-    private static final String KEY_PREFIX = "ranking:";
+    private static final String KEY_PREFIX = "ranking:station:";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.BASIC_ISO_DATE;
     private static final long TTL_SECONDS = 2 * 24 * 60 * 60;
     private static final double CARRY_OVER_WEIGHT = 0.1;
@@ -63,8 +63,9 @@ public class PostRankingRedisRepository implements PostRankingRepository {
                 continue;
             }
             String toKey = key(stationId, tomorrow);
-            zSetOps.unionAndStore(fromKey, Collections.emptyList(), toKey,
-                    Aggregate.SUM, Weights.of(CARRY_OVER_WEIGHT));
+            List<String> otherKeys = Collections.singletonList(toKey);
+            zSetOps.unionAndStore(fromKey, otherKeys, toKey,
+                    Aggregate.SUM, Weights.of(CARRY_OVER_WEIGHT, 0));
             redisTemplate.expire(toKey, Duration.ofSeconds(TTL_SECONDS));
         }
         log.info("랭킹 carry-over 완료: fromDate={}, toDate={}, keys={}", today, tomorrow, todayKeys.size());

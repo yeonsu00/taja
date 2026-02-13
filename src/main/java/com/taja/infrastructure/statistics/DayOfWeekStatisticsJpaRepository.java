@@ -9,12 +9,13 @@ import org.springframework.data.repository.query.Param;
 
 public interface DayOfWeekStatisticsJpaRepository extends JpaRepository<DayOfWeekStatistics, Long> {
 
+    List<DayOfWeekStatistics> findByStationId(Long stationId);
+
     @Query("SELECT d FROM DayOfWeekStatistics d WHERE d.stationId IN :stationIds AND d.dayOfWeek = :dayOfWeek")
     List<DayOfWeekStatistics> findAllByStationIdsAndDayOfWeek(
             @Param("stationIds") List<Long> stationIds,
             @Param("dayOfWeek") DayOfWeek dayOfWeek
     );
-
 }
 
 

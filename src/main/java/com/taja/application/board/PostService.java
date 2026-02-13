@@ -1,9 +1,11 @@
 package com.taja.application.board;
 
+import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.Post;
 import com.taja.global.exception.PostNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +13,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PostService {
 
+    private static final int DAILY_RANK_LIMIT = 10;
+
     private final PostRepository postRepository;
     private final PostRankingRepository postRankingRepository;
+    private final AllPostRankingRepository allPostRankingRepository;
 
     public Post createPost(Long memberId, Long stationId, String content) {
         Post post = Post.of(stationId, memberId, content);
@@ -49,7 +54,7 @@ public class PostService {
         if (rankedPostIds.isEmpty()) {
             return BoardInfo.PostItems.from(List.of(), null);
         }
-        List<BoardInfo.PostItem> fetchedPostItems = postRepository.findPostItemsByPostIds(stationId, rankedPostIds);
+        List<BoardInfo.PostItem> fetchedPostItems = postRepository.findPostItemsByStationIdAndPostIds(stationId, rankedPostIds);
 
         List<BoardInfo.PostItem> pagedPostItems = fetchedPostItems;
         String nextCursor = null;
@@ -101,12 +106,33 @@ public class PostService {
             throw new PostNotFoundException("존재하지 않는 게시글입니다.");
         }
     }
-    
+
     public void addRankingScore(long stationId, long postId, double weightDelta, LocalDate today) {
         postRankingRepository.addScore(stationId, postId, weightDelta, today);
     }
 
+    public void addAllPostRankingScore(long postId, double weightDelta, LocalDate today) {
+        allPostRankingRepository.addScore(postId, weightDelta, today);
+    }
+
+    public List<Long> findDailyRankedPostIds(LocalDate today) {
+        return allPostRankingRepository.findRankedPostIds(0, DAILY_RANK_LIMIT, today);
+    }
+
+    public List<PostItem> findPostItemsByPostIds(List<Long> postIds) {
+        return postRepository.findPostItemsByStationIdAndPostIds(postIds);
+    }
+
     public void updateTomorrowRankingScores(LocalDate today) {
         postRankingRepository.carryOverTodayToTomorrow(today);
+        allPostRankingRepository.carryOverTodayToTomorrow(today);
+    }
+
+    public List<PostItem> findRecentPosts(Long stationId, int recentPostsSize) {
+        return postRepository.findRecentPosts(stationId, recentPostsSize);
+    }
+
+    public Optional<String> findLatestPostContentByStationId(Long stationId) {
+        return postRepository.findLatestPostContentByStationId(stationId);
     }
 }

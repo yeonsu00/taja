@@ -2,13 +2,12 @@ package com.taja.infrastructure.cache;
 
 import com.taja.application.cache.StationInfo;
 import com.taja.domain.station.Station;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
@@ -43,7 +42,8 @@ public class StationGeoRepository {
         });
     }
 
-    public List<StationInfo.StationGeoInfo> findNearbyStations(double centerLat, double centerLon, double height, double width) {
+    public List<StationInfo.StationGeoInfo> findStationsWithinBox(double centerLat, double centerLon, double height,
+                                                                  double width) {
         Point center = new Point(centerLon, centerLat);
         GeoShape shape = GeoShape.byBox(width, height, DistanceUnit.KILOMETERS);
 
@@ -56,10 +56,37 @@ public class StationGeoRepository {
 
         log.info("레디스 GEO 조회: {}개", results != null ? results.getContent().size() : 0);
 
-        if (results == null) return List.of();
+        if (results == null) {
+            return List.of();
+        }
 
         return results.getContent().stream()
                 .map(this::toStationGeoInfo)
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
+    }
+
+    public List<StationInfo.NearbyStationGeoInfo> findStationsWithinRadius(double centerLat, double centerLon,
+                                                                           double radiusKm) {
+        Point center = new Point(centerLon, centerLat);
+        Distance distance = new Distance(radiusKm, DistanceUnit.KILOMETERS);
+        GeoShape shape = GeoShape.byRadius(distance);
+
+        GeoResults<GeoLocation<Object>> results = redisTemplate.opsForGeo().search(
+                GEO_KEY,
+                GeoReference.fromCoordinate(center),
+                shape,
+                GeoSearchCommandArgs.newGeoSearchArgs().includeCoordinates().includeDistance().sortAscending()
+        );
+
+        log.info("레디스 GEO 반경 조회: {}개 (반경 {}km)", results != null ? results.getContent().size() : 0, radiusKm);
+
+        if (results == null) {
+            return List.of();
+        }
+
+        return results.getContent().stream()
+                .map(this::toNearbyStationGeoInfo)
                 .flatMap(Optional::stream)
                 .collect(Collectors.toList());
     }
@@ -69,6 +96,17 @@ public class StationGeoRepository {
             String member = result.getContent().getName().toString();
             Point point = result.getContent().getPoint();
             return Optional.of(new StationInfo.StationGeoInfo(Integer.parseInt(member), point.getY(), point.getX()));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<StationInfo.NearbyStationGeoInfo> toNearbyStationGeoInfo(GeoResult<GeoLocation<Object>> result) {
+        try {
+            String member = result.getContent().getName().toString();
+            Point point = result.getContent().getPoint();
+            double distanceMeters = result.getDistance().getValue() * 1000;
+            return Optional.of(StationInfo.NearbyStationGeoInfo.from(Integer.parseInt(member), point.getY(), point.getX(), distanceMeters));
         } catch (Exception e) {
             return Optional.empty();
         }

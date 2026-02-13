@@ -24,6 +24,7 @@ public class PostRankingEventListener {
         try {
             double scoreWithRecency = PostRankingWeights.registrationScoreWithRecency(event.postId());
             postService.addRankingScore(event.stationId(), event.postId(), scoreWithRecency, LocalDate.now());
+            postService.addAllPostRankingScore(event.postId(), scoreWithRecency, LocalDate.now());
         } catch (Exception e) {
             log.warn("랭킹 점수 갱신 실패 (Created): stationId={}, postId={}, error={}",
                     event.stationId(), event.postId(), e.getMessage());
@@ -35,6 +36,7 @@ public class PostRankingEventListener {
     public void handleLiked(PostRankingEvent.Liked event) {
         try {
             postService.addRankingScore(event.stationId(), event.postId(), PostRankingWeights.LIKE, LocalDate.now());
+            postService.addAllPostRankingScore(event.postId(), PostRankingWeights.LIKE, LocalDate.now());
         } catch (Exception e) {
             log.warn("랭킹 점수 갱신 실패 (Liked): stationId={}, postId={}, error={}",
                     event.stationId(), event.postId(), e.getMessage());
@@ -46,6 +48,7 @@ public class PostRankingEventListener {
     public void handleUnliked(PostRankingEvent.Unliked event) {
         try {
             postService.addRankingScore(event.stationId(), event.postId(), -PostRankingWeights.LIKE, LocalDate.now());
+            postService.addAllPostRankingScore(event.postId(), -PostRankingWeights.LIKE, LocalDate.now());
         } catch (Exception e) {
             log.warn("랭킹 점수 갱신 실패 (Unliked): stationId={}, postId={}, error={}",
                     event.stationId(), event.postId(), e.getMessage());
@@ -57,6 +60,7 @@ public class PostRankingEventListener {
     public void handleViewed(PostRankingEvent.Viewed event) {
         try {
             postService.addRankingScore(event.stationId(), event.postId(), PostRankingWeights.VIEW, LocalDate.now());
+            postService.addAllPostRankingScore(event.postId(), PostRankingWeights.VIEW, LocalDate.now());
         } catch (Exception e) {
             log.warn("랭킹 점수 갱신 실패 (Viewed): stationId={}, postId={}, error={}",
                     event.stationId(), event.postId(), e.getMessage());
@@ -68,6 +72,7 @@ public class PostRankingEventListener {
     public void handleCommentCreated(PostRankingEvent.CommentCreated event) {
         try {
             postService.addRankingScore(event.stationId(), event.postId(), PostRankingWeights.COMMENT, LocalDate.now());
+            postService.addAllPostRankingScore(event.postId(), PostRankingWeights.COMMENT, LocalDate.now());
         } catch (Exception e) {
             log.warn("랭킹 점수 갱신 실패 (CommentCreated): stationId={}, postId={}, error={}",
                     event.stationId(), event.postId(), e.getMessage());
@@ -79,6 +84,7 @@ public class PostRankingEventListener {
     public void handleCommentDeleted(PostRankingEvent.CommentDeleted event) {
         try {
             postService.addRankingScore(event.stationId(), event.postId(), -PostRankingWeights.COMMENT, LocalDate.now());
+            postService.addAllPostRankingScore(event.postId(), -PostRankingWeights.COMMENT, LocalDate.now());
         } catch (Exception e) {
             log.warn("랭킹 점수 갱신 실패 (CommentDeleted): stationId={}, postId={}, error={}",
                     event.stationId(), event.postId(), e.getMessage());

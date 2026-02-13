@@ -7,6 +7,7 @@ import com.taja.infrastructure.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,11 +33,26 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        // Swagger
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/auth/login",
+                                "/auth/email/send",
+                                "/auth/email/verify",
+                                "/auth/name/duplicate-check",
+                                "/auth/signup"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/stations/map/nearby",
+                                "/stations/map/search",
+                                "/stations/status/*",
+                                "/stations/*",
+                                "/stations/*/posts",
+                                "/posts/rank/daily"
                         ).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handler -> handler

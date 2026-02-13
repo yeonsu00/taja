@@ -94,7 +94,7 @@ class StationCacheEventListenerTest {
                 createTestStationStatus(201, 5),
                 createTestStationStatus(202, 10)
         );
-        StationEvent.StationStatusesUpdated event = new StationEvent.StationStatusesUpdated(stationStatuses);
+        StationEvent.StationStatusesUpdated event = new StationEvent.StationStatusesUpdated(stationStatuses, 1, 500);
 
         // when
         stationCacheEventListener.handleStationStatusesUpdated(event);
@@ -109,7 +109,7 @@ class StationCacheEventListenerTest {
     void handleStationStatusesUpdated_handlesException() {
         // given
         List<StationStatus> stationStatuses = List.of(createTestStationStatus(203, 3));
-        StationEvent.StationStatusesUpdated event = new StationEvent.StationStatusesUpdated(stationStatuses);
+        StationEvent.StationStatusesUpdated event = new StationEvent.StationStatusesUpdated(stationStatuses, 1, 500);
 
         doThrow(new RuntimeException("Redis 연결 실패"))
                 .when(stationCacheService).updateBikeCountAndRequestedAt(anyList());
@@ -191,7 +191,7 @@ class StationCacheEventListenerTest {
     void handleStationStatusesUpdated_withEmptyList() {
         // given
         List<StationStatus> emptyStatuses = List.of();
-        StationEvent.StationStatusesUpdated event = new StationEvent.StationStatusesUpdated(emptyStatuses);
+        StationEvent.StationStatusesUpdated event = new StationEvent.StationStatusesUpdated(emptyStatuses, 1, 500);
 
         // when
         stationCacheEventListener.handleStationStatusesUpdated(event);
@@ -213,7 +213,7 @@ class StationCacheEventListenerTest {
                 .thenReturn(dbStations);
 
         List<StationStatus> statuses = List.of(createTestStationStatus(301, 5));
-        StationEvent.StationStatusesUpdated updatedEvent = new StationEvent.StationStatusesUpdated(statuses);
+        StationEvent.StationStatusesUpdated updatedEvent = new StationEvent.StationStatusesUpdated(statuses, 1, 500);
 
         // when
         stationCacheEventListener.handleStationsSaved(savedEvent);

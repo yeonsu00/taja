@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import com.taja.application.cache.StationInfo;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
+import com.taja.global.exception.StationNotFoundException;
 import com.taja.infrastructure.station.StationJpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,22 +40,16 @@ class StationRedisRepositoryImplCacheTest {
         double lat = 37.5665;
         double lon = 126.9780;
 
-        // 캐시에 데이터 없음
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
-                .thenReturn(Optional.empty());
+        StationInfo.StationHashInfo cachedHashInfo = new StationInfo.StationHashInfo(
+                stationNumber, 1L, "테스트 대여소 101", 0, LocalDateTime.now()
+        );
+        when(stationHashRepository.fetchAllFields(stationNumber))
+                .thenReturn(Optional.empty())  // 첫 번째: 캐시 미스
+                .thenReturn(Optional.of(cachedHashInfo));  // 두 번째: 캐시 저장 후
 
-        // DB에서 조회
         Station station = createTestStation(stationNumber, lat, lon);
         when(stationJpaRepository.findByNumber(stationNumber))
                 .thenReturn(Optional.of(station));
-
-        // 캐시 저장 후 조회 결과
-        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(
-                1L, stationNumber, lat, lon, 0, LocalDateTime.now()
-        );
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
-                .thenReturn(Optional.empty())  // 첫 번째: 캐시 미스
-                .thenReturn(Optional.of(cachedInfo));  // 두 번째: 캐시 저장 후
 
         // when
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
@@ -67,7 +62,7 @@ class StationRedisRepositoryImplCacheTest {
         assertThat(results.getFirst().number()).isEqualTo(stationNumber);
         verify(stationJpaRepository).findByNumber(stationNumber);
         verify(stationHashRepository).saveStationInfosWithPipeline(anyList(), any(LocalDateTime.class));
-        verify(stationHashRepository, times(2)).fetchFullInfo(stationNumber, lat, lon);
+        verify(stationHashRepository, times(2)).fetchAllFields(stationNumber);
     }
 
     @DisplayName("캐시 히트 시 즉시 반환하고 DB 조회하지 않는다")
@@ -78,11 +73,11 @@ class StationRedisRepositoryImplCacheTest {
         double lat = 37.5665;
         double lon = 126.9780;
 
-        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(
-                1L, stationNumber, lat, lon, 5, LocalDateTime.now()
+        StationInfo.StationHashInfo hashInfo = new StationInfo.StationHashInfo(
+                stationNumber, 1L, "테스트 대여소 102", 5, LocalDateTime.now()
         );
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
-                .thenReturn(Optional.of(cachedInfo));
+        when(stationHashRepository.fetchAllFields(stationNumber))
+                .thenReturn(Optional.of(hashInfo));
         when(stationHashRepository.isThresholdReached(stationNumber))
                 .thenReturn(false);  // TTL 충분
 
@@ -108,11 +103,11 @@ class StationRedisRepositoryImplCacheTest {
         double lat = 37.5665;
         double lon = 126.9780;
 
-        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(
-                1L, stationNumber, lat, lon, 3, LocalDateTime.now()
+        StationInfo.StationHashInfo hashInfo = new StationInfo.StationHashInfo(
+                stationNumber, 1L, "테스트 대여소 103", 3, LocalDateTime.now()
         );
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
-                .thenReturn(Optional.of(cachedInfo));
+        when(stationHashRepository.fetchAllFields(stationNumber))
+                .thenReturn(Optional.of(hashInfo));
         when(stationHashRepository.isThresholdReached(stationNumber))
                 .thenReturn(true);  // TTL 임계값 도달
 
@@ -139,11 +134,11 @@ class StationRedisRepositoryImplCacheTest {
         double lat = 37.5665;
         double lon = 126.9780;
 
-        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(
-                1L, stationNumber, lat, lon, 2, LocalDateTime.now()
+        StationInfo.StationHashInfo hashInfo = new StationInfo.StationHashInfo(
+                stationNumber, 1L, "테스트 대여소 104", 2, LocalDateTime.now()
         );
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
-                .thenReturn(Optional.of(cachedInfo));
+        when(stationHashRepository.fetchAllFields(stationNumber))
+                .thenReturn(Optional.of(hashInfo));
         when(stationHashRepository.isThresholdReached(stationNumber))
                 .thenReturn(true);
         when(stationHashRepository.acquireLock(stationNumber))
@@ -171,11 +166,11 @@ class StationRedisRepositoryImplCacheTest {
         double lat = 37.5665;
         double lon = 126.9780;
 
-        StationInfo.StationFullInfo cachedInfo = new StationInfo.StationFullInfo(
-                1L, stationNumber, lat, lon, 1, LocalDateTime.now()
+        StationInfo.StationHashInfo hashInfo = new StationInfo.StationHashInfo(
+                stationNumber, 1L, "테스트 대여소 105", 1, LocalDateTime.now()
         );
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
-                .thenReturn(Optional.of(cachedInfo));
+        when(stationHashRepository.fetchAllFields(stationNumber))
+                .thenReturn(Optional.of(hashInfo));
         when(stationHashRepository.isThresholdReached(stationNumber))
                 .thenReturn(true);
         when(stationHashRepository.acquireLock(stationNumber))
@@ -200,27 +195,27 @@ class StationRedisRepositoryImplCacheTest {
         verify(stationHashRepository).releaseLock(stationNumber);
     }
 
-    @DisplayName("DB에 대여소가 없으면 빈 Optional을 반환한다")
+    @DisplayName("DB에 대여소가 없으면 예외가 발생한다")
     @Test
-    void getOrRefresh_whenStationNotFoundInDb_returnsEmpty() {
+    void getOrRefresh_whenStationNotFoundInDb_throwsException() {
         // given
         Integer stationNumber = 999;
         double lat = 37.5665;
         double lon = 126.9780;
 
-        when(stationHashRepository.fetchFullInfo(stationNumber, lat, lon))
+        when(stationHashRepository.fetchAllFields(stationNumber))
                 .thenReturn(Optional.empty());
         when(stationJpaRepository.findByNumber(stationNumber))
                 .thenReturn(Optional.empty());
 
-        // when
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(stationNumber, lat, lon)
         );
-        List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
 
-        // then
-        assertThat(results).isEmpty();
+        // when & then
+        assertThatThrownBy(() -> stationRedisRepository.findStationInfos(geoInfos))
+                .isInstanceOf(StationNotFoundException.class)
+                .hasMessageContaining("999 번 대여소를 찾을 수 없습니다");
         verify(stationJpaRepository).findByNumber(stationNumber);
         verify(stationHashRepository, never()).saveStationInfosWithPipeline(anyList(), any());
     }
@@ -233,16 +228,21 @@ class StationRedisRepositoryImplCacheTest {
         StationInfo.StationGeoInfo geo2 = new StationInfo.StationGeoInfo(202, 37.5670, 126.9785);
 
         // 첫 번째: 캐시 히트
-        StationInfo.StationFullInfo info1 = new StationInfo.StationFullInfo(1L, 201, 37.5665, 126.9780, 5, LocalDateTime.now());
-        when(stationHashRepository.fetchFullInfo(201, 37.5665, 126.9780))
-                .thenReturn(Optional.of(info1));
+        StationInfo.StationHashInfo hashInfo1 = new StationInfo.StationHashInfo(
+                201, 1L, "테스트 대여소 201", 5, LocalDateTime.now()
+        );
+        when(stationHashRepository.fetchAllFields(201))
+                .thenReturn(Optional.of(hashInfo1));
         when(stationHashRepository.isThresholdReached(201))
                 .thenReturn(false);
 
         // 두 번째: 캐시 미스
-        when(stationHashRepository.fetchFullInfo(202, 37.5670, 126.9785))
+        StationInfo.StationHashInfo hashInfo2 = new StationInfo.StationHashInfo(
+                202, 2L, "테스트 대여소 202", 0, null
+        );
+        when(stationHashRepository.fetchAllFields(202))
                 .thenReturn(Optional.empty())
-                .thenReturn(Optional.of(new StationInfo.StationFullInfo(2L, 202, 37.5670, 126.9785, 0, null)));
+                .thenReturn(Optional.of(hashInfo2));
 
         Station station2 = createTestStation(202, 37.5670, 126.9785);
         when(stationJpaRepository.findByNumber(202))

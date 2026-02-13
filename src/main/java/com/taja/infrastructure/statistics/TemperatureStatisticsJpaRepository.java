@@ -8,12 +8,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface TemperatureStatisticsJpaRepository extends JpaRepository<TemperatureStatistics, Long> {
 
-    @Query("SELECT t FROM TemperatureStatistics t WHERE t.stationId = :stationId AND t.temperatureRange = :temperatureRange")
-    TemperatureStatistics findByStationIdAndTemperatureRange(@Param("stationId") Long stationId, @Param("temperatureRange") Double temperatureRange);
-
     @Query("SELECT t FROM TemperatureStatistics t WHERE t.stationId IN :stationIds")
     List<TemperatureStatistics> findAllByStationIdIn(@Param("stationIds") List<Long> stationIds);
 
+    List<TemperatureStatistics> findByStationId(Long stationId);
 }
 
 
