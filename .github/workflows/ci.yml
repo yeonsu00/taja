@@ -31,6 +31,6 @@ jobs:
           restore-keys: |
             gradle-
 
-      # 4. 의존성 다운로드 및 빌드 (테스트 제외)
-      - name: Build with Gradle (no test)
-        run: ./gradlew clean build -x test --stacktrace
+      # 4. 의존성 다운로드, 테스트 및 빌드
+      - name: Build and test with Gradle
+        run: ./gradlew clean build --stacktrace
