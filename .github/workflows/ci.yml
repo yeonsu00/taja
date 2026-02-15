@@ -8,6 +8,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       # 1. 코드 체크아웃
       - name: Checkout code
@@ -31,6 +42,6 @@ jobs:
           restore-keys: |
             gradle-
 
-      # 4. 의존성 다운로드 및 빌드 (테스트 제외)
-      - name: Build with Gradle (no test)
-        run: ./gradlew clean build -x test --stacktrace
+      # 4. 의존성 다운로드, 테스트 및 빌드
+      - name: Build and test with Gradle
+        run: ./gradlew clean build --stacktrace

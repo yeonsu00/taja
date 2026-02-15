@@ -20,6 +20,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      timeout: 5s
+      connect-timeout: 5s
 
   mail:
     host: smtp.gmail.com
@@ -38,19 +40,36 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 10000
+
 api:
-  key: ${API_KEY}
-  base-url: ${API_BASE_URL}
-  status:
-    path: ${STATUS_API_PATH}
-  station:
-    path: ${STATION_API_PATH}
+  bike:
+    key: ${BIKE_API_KEY}
+    base-url: ${BIKE_API_BASE_URL}
+    status:
+      path: ${BIKE_STATUS_API_PATH}
+    station:
+      path: ${BIKE_STATION_API_PATH}
+  weather:
+    key: ${WEATHER_API_KEY}
+    base-url: ${WEATHER_API_BASE_URL}
 
 jwt:
   secret: ${JWT_SECRET}
   expiration:
     access-token: 1800000   # 30분
     refresh-token: 604800000 # 7일
+
+cache:
+  station:
+    ttl-sec: 3600
+    refresh-threshold-sec: 10
 
 springdoc:
   api-docs:
@@ -61,3 +80,17 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
     display-request-duration: true
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1s
+        ignoreExceptions:
+          - com.taja.global.exception.NoRetryApiException
+    instances:
+      stationApi:
+        baseConfig: default
+      weatherApi:
+        baseConfig: default

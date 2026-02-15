@@ -38,3 +38,4 @@ out/
 /dev.env
 /dump.rdb
 /src/main/generated/
+/.cursor/mcp.json
