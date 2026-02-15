@@ -1,5 +1,6 @@
 services:
   app:
+    image: ${DOCKER_IMAGE:-taja-app}
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,6 +9,10 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       mysql:
         condition: service_healthy
