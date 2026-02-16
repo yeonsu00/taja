@@ -5,6 +5,12 @@ import java.util.List;
 
 public class BoardInfo {
 
+    private static final String UNKNOWN_MEMBER = "(알수없음)";
+
+    private static String writerName(String writer) {
+        return writer != null ? writer : UNKNOWN_MEMBER;
+    }
+
     public record PostItem(
             Long stationId,
             Long postId,
@@ -15,6 +21,10 @@ public class BoardInfo {
             int likeCount,
             boolean liked
     ) {
+        public PostItem {
+            writer = writerName(writer);
+        }
+
         public static PostItem from(PostItem item, boolean liked) {
             return new PostItem(
                     item.stationId(),
@@ -44,6 +54,9 @@ public class BoardInfo {
             String content,
             LocalDateTime createdAt
     ) {
+        public CommentItem {
+            writer = writerName(writer);
+        }
     }
 
     public record PostDetailPart(
@@ -55,6 +68,9 @@ public class BoardInfo {
             int likeCount,
             int commentCount
     ) {
+        public PostDetailPart {
+            writer = writerName(writer);
+        }
     }
 
     public record PostDetail(

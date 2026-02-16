@@ -7,11 +7,15 @@ import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.interfaces.api.member.response.JoinedBoardsResponse;
 import com.taja.interfaces.api.member.response.MemberInfoResponse;
+import com.taja.interfaces.api.member.request.WithdrawRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,5 +44,15 @@ public class MemberController {
         String email = customUserDetails.getUsername();
         JoinedBoardsResponse response = JoinedBoardsResponse.from(boardFacade.findJoinedBoards(email));
         return CommonApiResponse.success(response, "참여한 게시판 목록 조회에 성공했습니다.");
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "비밀번호를 확인한 후 회원을 탈퇴합니다.")
+    @DeleteMapping
+    public CommonApiResponse<String> withdraw(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody @Valid WithdrawRequest request) {
+        String email = customUserDetails.getUsername();
+        authService.withdraw(email, request.password());
+        return CommonApiResponse.success("회원 탈퇴에 성공했습니다.");
     }
 }

@@ -13,4 +13,6 @@ public interface FavoriteStationRepository {
     boolean existsByMemberAndStation(Member member, Station station);
 
     List<Station> findFavoriteStationsByMemberEmail(String email);
+
+    void deleteByMember(Member member);
 }

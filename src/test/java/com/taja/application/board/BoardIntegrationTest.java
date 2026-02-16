@@ -6,6 +6,8 @@ import com.taja.application.member.AuthService;
 import com.taja.application.station.StationRepository;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
+import com.taja.application.favorite.FavoriteStationRepository;
+import com.taja.application.member.RefreshTokenRepository;
 import com.taja.global.exception.AlreadyLikedException;
 import com.taja.global.exception.LikeNotFoundException;
 import com.taja.global.exception.PostNotFoundException;
@@ -41,6 +43,12 @@ class BoardIntegrationTest {
 
     @MockitoBean
     private PostRankingRepository postRankingRepository;
+
+    @MockitoBean
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @MockitoBean
+    private FavoriteStationRepository favoriteStationRepository;
 
     private Long stationId;
 
@@ -192,6 +200,49 @@ class BoardIntegrationTest {
 
             assertThatThrownBy(() -> boardFacade.unlikePost(EMAIL, postId))
                     .isInstanceOf(LikeNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("회원 탈퇴 후 댓글 조회")
+    class WithdrawAndComment {
+
+        @Test
+        @DisplayName("탈퇴한 사용자의 댓글 작성자 이름은 (알수없음)으로 조회된다")
+        void withdrawnMemberComment_showsUnknownWriter() {
+            String withdrawEmail = "withdraw@test.com";
+            String withdrawPassword = "password12!!";
+            authService.signup("탈퇴유저", withdrawEmail, withdrawPassword);
+
+            boardFacade.createPost(EMAIL, stationId, "글");
+            BoardInfo.PostItems items = boardFacade.findLatestPosts(EMAIL, stationId, null, 10);
+            Long postId = items.items().getFirst().postId();
+
+            boardFacade.createComment(withdrawEmail, postId, "탈퇴할 유저의 댓글");
+
+            authService.withdraw(withdrawEmail, withdrawPassword);
+
+            BoardInfo.PostDetail detail = boardFacade.findPostDetail(EMAIL, postId);
+            assertThat(detail.comments()).hasSize(1);
+            assertThat(detail.comments().getFirst().writer()).isEqualTo("(알수없음)");
+            assertThat(detail.comments().getFirst().content()).isEqualTo("탈퇴할 유저의 댓글");
+        }
+
+        @Test
+        @DisplayName("탈퇴한 사용자의 게시글 작성자 이름은 (알수없음)으로 조회된다")
+        void withdrawnMemberPost_showsUnknownWriter() {
+            String withdrawEmail = "withdraw2@test.com";
+            String withdrawPassword = "password12!!";
+            authService.signup("탈퇴유저2", withdrawEmail, withdrawPassword);
+
+            boardFacade.createPost(withdrawEmail, stationId, "탈퇴할 유저의 게시글");
+
+            authService.withdraw(withdrawEmail, withdrawPassword);
+
+            BoardInfo.PostItems items = boardFacade.findLatestPosts(EMAIL, stationId, null, 10);
+            assertThat(items.items()).hasSize(1);
+            assertThat(items.items().getFirst().writer()).isEqualTo("(알수없음)");
+            assertThat(items.items().getFirst().content()).isEqualTo("탈퇴할 유저의 게시글");
         }
     }
 

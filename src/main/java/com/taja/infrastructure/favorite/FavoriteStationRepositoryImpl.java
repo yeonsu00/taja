@@ -46,4 +46,9 @@ public class FavoriteStationRepositoryImpl implements FavoriteStationRepository 
     public List<Station> findFavoriteStationsByMemberEmail(String email) {
         return favoriteStationQueryRepository.findFavoriteStationsByMemberEmail(email);
     }
+
+    @Override
+    public void deleteByMember(Member member) {
+        favoriteStationJpaRepository.deleteByMember(member);
+    }
 }
