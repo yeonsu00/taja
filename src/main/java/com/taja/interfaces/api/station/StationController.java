@@ -15,6 +15,7 @@ import com.taja.interfaces.api.station.request.NearbyStationRequest;
 import com.taja.interfaces.api.station.request.SearchStationRequest;
 import com.taja.interfaces.api.station.response.IsFavoriteStationResponse;
 import com.taja.interfaces.api.station.response.MapStationResponse;
+import com.taja.interfaces.api.station.response.NearbyStationsResponse;
 import com.taja.interfaces.api.station.response.StationStatusResponse;
 import com.taja.interfaces.api.station.response.PostItemResponse;
 import com.taja.interfaces.api.station.response.PostListResponse;
@@ -64,16 +65,16 @@ public class StationController {
 
     @Operation(summary = "지도 화면 영역 내 대여소 조회", description = "지도 중심 좌표와 화면에 보이는 영역의 위도, 경도 차이를 이용해 근처 대여소를 조회합니다.")
     @GetMapping("/map/nearby")
-    public CommonApiResponse<List<MapStationResponse>> findStationsInBounds(
+    public CommonApiResponse<NearbyStationsResponse> findStationsInBounds(
             @Valid @ModelAttribute NearbyStationRequest nearbyStationRequest) {
-        List<MapStationResponse> stationsInBounds = stationFacade.findStationsInBounds(
+        NearbyStationsResponse response = stationFacade.findStationsInBounds(
                 nearbyStationRequest.latitude(),
                 nearbyStationRequest.longitude(),
                 nearbyStationRequest.latDelta(),
                 nearbyStationRequest.lngDelta()
         );
 
-        return CommonApiResponse.success(stationsInBounds, "근처 대여소 조회에 성공했습니다.");
+        return CommonApiResponse.success(response, "근처 대여소 조회에 성공했습니다.");
     }
 
     @Operation(summary = "대여소 검색", description = "키워드와 지도 중심 좌표를 이용해 대여소를 검색합니다.")

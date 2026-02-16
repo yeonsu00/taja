@@ -13,11 +13,16 @@ import com.taja.domain.statistics.DayOfWeekStatistics;
 import com.taja.domain.statistics.HourlyStatistics;
 import com.taja.domain.statistics.TemperatureStatistics;
 import com.taja.interfaces.api.station.response.MapStationResponse;
+import com.taja.interfaces.api.station.response.NearbyStationsResponse;
+import com.taja.interfaces.api.station.response.StationClusterResponse;
 import com.taja.interfaces.api.station.response.detail.RecentPostResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
 import com.taja.interfaces.api.station.response.detail.TodayAvailableBikeResponse;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class StationFacade {
 
     private static final int RECENT_POSTS_SIZE = 3;
+    private static final double CLUSTER_THRESHOLD = 0.03;
+    private static final int GRID_SIZE = 10;
 
     private final StationService stationService;
     private final StationCacheService stationCacheService;
@@ -45,15 +52,55 @@ public class StationFacade {
     }
 
     @Transactional(readOnly = true)
-    public List<MapStationResponse> findStationsInBounds(double centerLat, double centerLon,
-                                                         double latDelta, double lonDelta) {
+    public NearbyStationsResponse findStationsInBounds(double centerLat, double centerLon,
+                                                       double latDelta, double lonDelta) {
         double height = (latDelta * 2) * 111.0;
         double width = (lonDelta * 2) * 88.8;
 
         List<StationInfo.StationGeoInfo> geoInfos = stationCacheService.findStationsInBounds(centerLat, centerLon, height, width);
-        List<StationInfo.StationFullInfo> stationInfos = stationCacheService.findStationInfos(geoInfos);
 
-        return StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
+        if (latDelta >= CLUSTER_THRESHOLD || lonDelta >= CLUSTER_THRESHOLD) {
+            List<StationClusterResponse> clusters = clusterStations(geoInfos, centerLat, centerLon, latDelta, lonDelta);
+            return NearbyStationsResponse.ofClusters(clusters);
+        }
+
+        List<StationInfo.StationFullInfo> stationInfos = stationCacheService.findStationInfos(geoInfos);
+        List<MapStationResponse> responses = StationInfo.StationFullInfo.toMapStationResponses(stationInfos);
+        return NearbyStationsResponse.ofStations(responses);
+    }
+
+    private List<StationClusterResponse> clusterStations(List<StationInfo.StationGeoInfo> geoInfos,
+                                                          double centerLat, double centerLon,
+                                                          double latDelta, double lonDelta) {
+        double minLat = centerLat - latDelta;
+        double maxLat = centerLat + latDelta;
+        double minLon = centerLon - lonDelta;
+        double maxLon = centerLon + lonDelta;
+
+        double cellLatSize = (maxLat - minLat) / GRID_SIZE;
+        double cellLonSize = (maxLon - minLon) / GRID_SIZE;
+
+        Map<Long, Integer> cellCounts = new HashMap<>();
+
+        for (StationInfo.StationGeoInfo geo : geoInfos) {
+            int row = Math.min((int) ((geo.latitude() - minLat) / cellLatSize), GRID_SIZE - 1);
+            int col = Math.min((int) ((geo.longitude() - minLon) / cellLonSize), GRID_SIZE - 1);
+            row = Math.max(row, 0);
+            col = Math.max(col, 0);
+            long cellKey = (long) row * GRID_SIZE + col;
+            cellCounts.merge(cellKey, 1, Integer::sum);
+        }
+
+        List<StationClusterResponse> clusters = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : cellCounts.entrySet()) {
+            int row = (int) (entry.getKey() / GRID_SIZE);
+            int col = (int) (entry.getKey() % GRID_SIZE);
+            double clusterLat = minLat + (row + 0.5) * cellLatSize;
+            double clusterLon = minLon + (col + 0.5) * cellLonSize;
+            clusters.add(new StationClusterResponse(clusterLat, clusterLon, entry.getValue()));
+        }
+
+        return clusters;
     }
 
     @Transactional(readOnly = true)

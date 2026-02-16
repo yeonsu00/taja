@@ -6,13 +6,18 @@ import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.taja.application.board.BoardInfo;
 import com.taja.application.board.PostService;
 import com.taja.application.cache.StationCacheService;
+import com.taja.application.cache.StationInfo;
 import com.taja.application.status.StationStatusFacade;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
+import com.taja.interfaces.api.station.response.NearbyStationsResponse;
+import com.taja.interfaces.api.station.response.StationClusterResponse;
 import com.taja.interfaces.api.station.response.detail.StationDetailResponse;
 import com.taja.interfaces.api.station.response.detail.TodayAvailableBikeResponse;
 import java.time.LocalDateTime;
@@ -87,5 +92,140 @@ class StationFacadeIntegrationTest {
         assertThat(response.hourlyAvailable()).isNotNull();
         assertThat(response.dailyAvailable()).isNotNull();
         assertThat(response.temperatureAvailable()).isNotNull();
+    }
+
+    @DisplayName("좁은 영역(delta < 0.03) 조회 시 viewType이 stations이고 개별 대여소 정보를 반환한다.")
+    @Test
+    void findStationsInBounds_narrowArea_returnsStations() {
+        // given
+        double centerLat = 37.5;
+        double centerLon = 127.0;
+        double latDelta = 0.01;
+        double lonDelta = 0.01;
+
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(101, 37.501, 127.001),
+                new StationInfo.StationGeoInfo(102, 37.502, 127.002)
+        );
+
+        LocalDateTime now = LocalDateTime.now();
+        List<StationInfo.StationFullInfo> fullInfos = List.of(
+                new StationInfo.StationFullInfo(1L, 101, 37.501, 127.001, 5, now),
+                new StationInfo.StationFullInfo(2L, 102, 37.502, 127.002, 3, now)
+        );
+
+        given(stationCacheService.findStationsInBounds(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+                .willReturn(geoInfos);
+        given(stationCacheService.findStationInfos(geoInfos))
+                .willReturn(fullInfos);
+
+        // when
+        NearbyStationsResponse response = stationFacade.findStationsInBounds(centerLat, centerLon, latDelta, lonDelta);
+
+        // then
+        assertThat(response.viewType()).isEqualTo("stations");
+        assertThat(response.stations()).hasSize(2);
+        assertThat(response.clusters()).isNull();
+        verify(stationCacheService).findStationInfos(geoInfos);
+    }
+
+    @DisplayName("넓은 영역(delta >= 0.03) 조회 시 viewType이 clusters이고 Redis Hash 조회를 하지 않는다.")
+    @Test
+    void findStationsInBounds_wideArea_returnsClustersWithoutHashLookup() {
+        // given
+        double centerLat = 37.5;
+        double centerLon = 127.0;
+        double latDelta = 0.05;
+        double lonDelta = 0.05;
+
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(101, 37.51, 127.01),
+                new StationInfo.StationGeoInfo(102, 37.52, 127.02),
+                new StationInfo.StationGeoInfo(103, 37.51, 127.01)
+        );
+
+        given(stationCacheService.findStationsInBounds(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+                .willReturn(geoInfos);
+
+        // when
+        NearbyStationsResponse response = stationFacade.findStationsInBounds(centerLat, centerLon, latDelta, lonDelta);
+
+        // then
+        assertThat(response.viewType()).isEqualTo("clusters");
+        assertThat(response.clusters()).isNotEmpty();
+        assertThat(response.stations()).isNull();
+        verify(stationCacheService, never()).findStationInfos(any());
+    }
+
+    @DisplayName("같은 셀에 속하는 대여소들은 하나의 클러스터로 묶인다.")
+    @Test
+    void findStationsInBounds_stationsInSameCell_groupedIntoOneCluster() {
+        // given
+        double centerLat = 37.5;
+        double centerLon = 127.0;
+        double latDelta = 0.05;
+        double lonDelta = 0.05;
+
+        // 같은 셀에 속하도록 아주 가까운 좌표 3개
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(101, 37.501, 127.001),
+                new StationInfo.StationGeoInfo(102, 37.502, 127.002),
+                new StationInfo.StationGeoInfo(103, 37.501, 127.001)
+        );
+
+        given(stationCacheService.findStationsInBounds(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+                .willReturn(geoInfos);
+
+        // when
+        NearbyStationsResponse response = stationFacade.findStationsInBounds(centerLat, centerLon, latDelta, lonDelta);
+
+        // then
+        assertThat(response.clusters()).hasSize(1);
+        StationClusterResponse cluster = response.clusters().getFirst();
+        assertThat(cluster.stationCount()).isEqualTo(3);
+    }
+
+    @DisplayName("서로 다른 셀에 속하는 대여소들은 별도의 클러스터로 분리된다.")
+    @Test
+    void findStationsInBounds_stationsInDifferentCells_separateClusters() {
+        // given
+        double centerLat = 37.5;
+        double centerLon = 127.0;
+        double latDelta = 0.05;
+        double lonDelta = 0.05;
+
+        // 서로 다른 셀에 속하도록 멀리 떨어진 좌표
+        List<StationInfo.StationGeoInfo> geoInfos = List.of(
+                new StationInfo.StationGeoInfo(101, 37.46, 126.96),
+                new StationInfo.StationGeoInfo(102, 37.54, 127.04)
+        );
+
+        given(stationCacheService.findStationsInBounds(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+                .willReturn(geoInfos);
+
+        // when
+        NearbyStationsResponse response = stationFacade.findStationsInBounds(centerLat, centerLon, latDelta, lonDelta);
+
+        // then
+        assertThat(response.clusters()).hasSize(2);
+        assertThat(response.clusters())
+                .extracting(StationClusterResponse::stationCount)
+                .containsExactlyInAnyOrder(1, 1);
+    }
+
+    @DisplayName("대여소가 없는 넓은 영역 조회 시 빈 클러스터 목록을 반환한다.")
+    @Test
+    void findStationsInBounds_wideAreaNoStations_returnsEmptyClusters() {
+        // given
+        given(stationCacheService.findStationsInBounds(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+                .willReturn(Collections.emptyList());
+
+        // when
+        NearbyStationsResponse response = stationFacade.findStationsInBounds(37.5, 127.0, 0.05, 0.05);
+
+        // then
+        assertThat(response.viewType()).isEqualTo("clusters");
+        assertThat(response.clusters()).isEmpty();
+        assertThat(response.stations()).isNull();
     }
 }
