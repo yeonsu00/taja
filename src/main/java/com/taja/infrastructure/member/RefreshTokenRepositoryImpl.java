@@ -36,4 +36,9 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             throw new TokenException("삭제할 리프레시 토큰을 찾을 수 없습니다.");
         }
     }
+
+    @Override
+    public void deleteByKey(String key) {
+        refreshTokenJpaRepository.deleteByKey(key);
+    }
 }

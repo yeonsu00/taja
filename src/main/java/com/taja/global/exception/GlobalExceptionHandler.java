@@ -144,4 +144,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ResponseCode.LIKE_NOT_FOUND.getHttpStatus()).body(body);
     }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<CommonApiResponse<?>> handleInvalidPasswordException(InvalidPasswordException ex) {
+        CommonApiResponse<?> body = CommonApiResponse.failure(ResponseCode.INVALID_PASSWORD, ex.getMessage());
+
+        return ResponseEntity.status(ResponseCode.INVALID_PASSWORD.getHttpStatus()).body(body);
+    }
 }

@@ -50,14 +50,7 @@ else
   EMAIL_ARG="--email $EMAIL"
 fi
 
-docker compose run --rm certbot certonly \
-  --webroot \
-  --webroot-path=/var/www/certbot \
-  $EMAIL_ARG \
-  --agree-tos \
-  --no-eff-email \
-  --force-renewal \
-  -d $DOMAIN
+docker compose run --rm --entrypoint "certbot" certbot certonly --webroot --webroot-path=/var/www/certbot $EMAIL_ARG --agree-tos --no-eff-email --force-renewal -d $DOMAIN
 
 if [ $? -ne 0 ]; then
   echo ">>> 인증서 발급 실패! 80 포트 접근 및 DNS 설정을 확인하세요."

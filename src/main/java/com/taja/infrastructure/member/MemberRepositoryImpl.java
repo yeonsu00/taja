@@ -33,4 +33,9 @@ public class MemberRepositoryImpl implements MemberRepository {
     public boolean existsByName(String name) {
         return memberJpaRepository.existsByName(name);
     }
+
+    @Override
+    public void deleteByEmail(String email) {
+        memberJpaRepository.deleteByEmail(email);
+    }
 }

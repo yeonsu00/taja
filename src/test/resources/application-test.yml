@@ -39,6 +39,9 @@ api:
     key: test-key
     base-url: http://localhost:8080
 
+cors:
+  allowed-origins: http://localhost:3000
+
 jwt:
   secret: dGVzdC1kdW1teS1zZWNyZXQta2V5LWZvci10ZXN0LW9ubHktMzJieXRlcyE=
   expiration:
