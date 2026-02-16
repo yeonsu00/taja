@@ -42,13 +42,7 @@ else
   EMAIL_ARG="--email $EMAIL"
 fi
 
-docker compose run --rm certbot certonly \
-  --webroot \
-  --webroot-path=/var/www/certbot \
-  $EMAIL_ARG \
-  --agree-tos \
-  --no-eff-email \
-  -d $DOMAIN
+docker compose run --rm --entrypoint "certbot" certbot certonly --webroot --webroot-path=/var/www/certbot $EMAIL_ARG --agree-tos --no-eff-email --force-renewal -d $DOMAIN
 
 # 6. nginx 재시작 (실제 인증서 적용)
 echo ">>> nginx 재시작..."
