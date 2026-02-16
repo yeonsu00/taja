@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.RPI_USER }}
           key: ${{ secrets.RPI_SSH_KEY }}
           port: ${{ secrets.RPI_SSH_PORT }}
-          source: "docker-compose.yml,nginx/default.conf,init-letsencrypt.sh"
+          source: "docker-compose.yml"
           target: "~/taja"
 
       # 5. 라즈베리파이에 배포
@@ -83,7 +83,6 @@ jobs:
             EMAIL_USER_NAME=${{ secrets.EMAIL_USER_NAME }}
             EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-            CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
             EOF
 
             # 2) 기존 단독 컨테이너 정리 (최초 1회)
