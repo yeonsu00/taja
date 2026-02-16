@@ -27,7 +27,8 @@ public enum ResponseCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT_NOT_FOUND"),
     NOT_COMMENT_WRITER(HttpStatus.FORBIDDEN, "NOT_COMMENT_WRITER"),
     ALREADY_LIKED(HttpStatus.CONFLICT, "ALREADY_LIKED"),
-    LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "LIKE_NOT_FOUND")
+    LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "LIKE_NOT_FOUND"),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD")
     ;
 
     private final HttpStatus httpStatus;

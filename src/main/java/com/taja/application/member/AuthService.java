@@ -1,6 +1,8 @@
 package com.taja.application.member;
 
+import com.taja.application.favorite.FavoriteStationRepository;
 import com.taja.global.exception.EmailException;
+import com.taja.global.exception.InvalidPasswordException;
 import com.taja.infrastructure.jwt.JwtTokenProvider;
 import com.taja.domain.member.EmailCode;
 import com.taja.domain.member.EmailForm;
@@ -31,6 +33,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final FavoriteStationRepository favoriteStationRepository;
     private final EmailService emailService;
     private final EmailCodeRepository emailCodeRepository;
 
@@ -120,5 +123,18 @@ public class AuthService {
 
     public Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email);
+    }
+
+    @Transactional
+    public void withdraw(String email, String password) {
+        Member member = memberRepository.findByEmail(email);
+
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
+        }
+
+        favoriteStationRepository.deleteByMember(member);
+        refreshTokenRepository.deleteByKey(email);
+        memberRepository.deleteByEmail(email);
     }
 }

@@ -8,4 +8,6 @@ public interface MemberRepository {
     void save(Member member);
 
     boolean existsByName(String name);
+
+    void deleteByEmail(String email);
 }

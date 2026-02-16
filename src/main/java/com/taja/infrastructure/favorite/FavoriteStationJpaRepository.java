@@ -9,4 +9,6 @@ public interface FavoriteStationJpaRepository extends JpaRepository<FavoriteStat
     long deleteByMemberAndStation(Member member, Station station);
 
     boolean existsByMemberAndStation(Member member, Station station);
+
+    void deleteByMember(Member member);
 }

@@ -42,7 +42,7 @@ public class PostQueryRepository {
                         )
                 )
                 .from(post)
-                .join(member).on(post.writerId.eq(member.memberId))
+                .leftJoin(member).on(post.writerId.eq(member.memberId))
                 .where(
                         post.stationId.eq(stationId),
                         post.isDeleted.isFalse()
@@ -67,7 +67,7 @@ public class PostQueryRepository {
                         )
                 )
                 .from(post)
-                .join(member).on(post.writerId.eq(member.memberId))
+                .leftJoin(member).on(post.writerId.eq(member.memberId))
                 .where(
                         post.stationId.eq(stationId),
                         post.isDeleted.isFalse(),
@@ -107,7 +107,7 @@ public class PostQueryRepository {
                         )
                 )
                 .from(post)
-                .join(member).on(post.writerId.eq(member.memberId))
+                .leftJoin(member).on(post.writerId.eq(member.memberId))
                 .where(
                         post.postId.eq(postId),
                         post.isDeleted.isFalse()
@@ -127,7 +127,7 @@ public class PostQueryRepository {
                         )
                 )
                 .from(comment)
-                .join(member).on(comment.writerId.eq(member.memberId))
+                .leftJoin(member).on(comment.writerId.eq(member.memberId))
                 .where(
                         comment.postId.eq(postId),
                         comment.isDeleted.isFalse()
@@ -154,7 +154,7 @@ public class PostQueryRepository {
                         )
                 )
                 .from(post)
-                .join(member).on(post.writerId.eq(member.memberId))
+                .leftJoin(member).on(post.writerId.eq(member.memberId))
                 .where(
                         post.stationId.eq(stationId),
                         post.isDeleted.isFalse(),
@@ -182,7 +182,7 @@ public class PostQueryRepository {
                         )
                 )
                 .from(post)
-                .join(member).on(post.writerId.eq(member.memberId))
+                .leftJoin(member).on(post.writerId.eq(member.memberId))
                 .where(
                         post.isDeleted.isFalse(),
                         post.postId.in(postIds)
