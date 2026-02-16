@@ -60,6 +60,9 @@ api:
     key: ${WEATHER_API_KEY}
     base-url: ${WEATHER_API_BASE_URL}
 
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
 jwt:
   secret: ${JWT_SECRET}
   expiration:
