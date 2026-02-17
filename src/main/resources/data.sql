@@ -1,0 +1,31 @@
+INSERT INTO district_point (district_name, x_point, y_point, created_at, updated_at)
+VALUES
+    ('종로구', 60, 127, NOW(), NOW()),
+    ('중구', 60, 127, NOW(), NOW()),
+    ('용산구', 60, 126, NOW(), NOW()),
+    ('성동구', 61, 127, NOW(), NOW()),
+    ('광진구', 62, 126, NOW(), NOW()),
+    ('동대문구', 61, 127, NOW(), NOW()),
+    ('중랑구', 62, 128, NOW(), NOW()),
+    ('성북구', 61, 127, NOW(), NOW()),
+    ('강북구', 61, 128, NOW(), NOW()),
+    ('도봉구', 61, 129, NOW(), NOW()),
+    ('노원구', 61, 129, NOW(), NOW()),
+    ('은평구', 59, 127, NOW(), NOW()),
+    ('서대문구', 59, 127, NOW(), NOW()),
+    ('마포구', 59, 127, NOW(), NOW()),
+    ('양천구', 58, 126, NOW(), NOW()),
+    ('강서구', 58, 126, NOW(), NOW()),
+    ('구로구', 58, 125, NOW(), NOW()),
+    ('금천구', 59, 124, NOW(), NOW()),
+    ('영등포구', 58, 126, NOW(), NOW()),
+    ('동작구', 59, 125, NOW(), NOW()),
+    ('관악구', 59, 125, NOW(), NOW()),
+    ('서초구', 61, 125, NOW(), NOW()),
+    ('강남구', 61, 126, NOW(), NOW()),
+    ('송파구', 62, 126, NOW(), NOW()),
+    ('강동구', 62, 126, NOW(), NOW()) AS new_data
+ON DUPLICATE KEY UPDATE
+    x_point = new_data.x_point,
+    y_point = new_data.y_point,
+    updated_at = NOW();
