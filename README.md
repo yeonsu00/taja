@@ -24,9 +24,9 @@
 
 #### 3. 데이터 수집 및 배치
 - **대여소 정보**: 서울시 공공자전거 API를 통해 대여소 목록·위치 등 기본 정보를 수집하며, 주기적으로 갱신
-- **대여소 실시간 상태**: 각 대여소의 실시간 자전거 대기 수를 10분마다 수집하여 Redis 캐시에 반영하여, 실시간 조회가 가능하도록 하는 기능
+- **대여소 실시간 상태**: 각 대여소의 실시간 자전거 대기 수를 10분마다 수집하여 Redis 캐시에 반영하여, 실시간 조회 제공
 - **날씨**: 자치구별 초단기실황 날씨를 1시간 단위로 수집
-- **통계 집계**: 전일 수집된 실시간 상태·날씨 데이터를 바탕으로 시간대별, 요일별, 기온별 통계를 계산해 집계 테이블에 반영하는 기능
+- **통계 집계**: 전일 수집된 실시간 상태·날씨 데이터를 바탕으로 시간대별, 요일별, 기온별 통계를 계산해 집계 테이블에 반영
 
 #### 4. 지금 뜨는 게시물 (전체 게시물 랭킹)
 - **전체 게시글**을 대상으로, **오늘 하루** 좋아요 수, 댓글 수, 조회 수 등 가중치를 기반으로 반영한 인기순 **Top 10** 제공
@@ -38,15 +38,13 @@
 |------|------------|
 | Language | Java 21 |
 | Framework | Spring Boot 3.4.3 |
-| Build Tool | Gradle |
-| Database | MySQL, Redis |
-| Infra / DevOps | Docker, GitHub Actions (CI/CD) |
+| Database | MySQL, Redis, JPA, QueryDSL |
+| Infra / DevOps | Docker, Docker Compose, Nginx, GitHub Actions (CI/CD) |
 | API 문서 | Springdoc OpenAPI (Swagger UI) |
-| 기타 | Querydsl, JWT, Spring Security, WebFlux, OpenFeign, Resilience4j(Retry/CircuitBreaker), AOP, Apache POI, Spring Mail |
+| 기타 | JWT, Resilience4j, AOP, Swagger  |
 
 
 ---
 ### 🔗 링크
 - Frontend Repository: [taja-client](https://github.com/cyberpotato2077/taja-client)
 - Backend Repository: [taja](https://github.com/yeonsu00/taja)
-- 배포 URL:
