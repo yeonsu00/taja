@@ -62,7 +62,7 @@ public class SecurityConfig {
                                 "/stations/status/*",
                                 "/stations/*",
                                 "/stations/*/posts",
-                                "/stations/*/posts/*",
+                                "/posts/*",
                                 "/posts/rank/daily"
                         ).permitAll()
                         .anyRequest().authenticated())
