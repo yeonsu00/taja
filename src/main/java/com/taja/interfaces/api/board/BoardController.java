@@ -45,7 +45,7 @@ public class BoardController {
     public CommonApiResponse<PostDetailResponse> getPostDetail(
             @PathVariable("postId") Long postId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        String email = customUserDetails.getUsername();
+        String email = customUserDetails != null ? customUserDetails.getUsername() : null;
         PostDetailResponse response = PostDetailResponse.from(boardFacade.findPostDetail(email, postId));
         return CommonApiResponse.success(response, "게시글 상세 조회에 성공했습니다.");
     }

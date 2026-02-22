@@ -105,13 +105,16 @@ public class BoardFacade {
 
     @Transactional(readOnly = true)
     public BoardInfo.PostDetail findPostDetail(String email, Long postId) {
-        Member member = authService.findMemberByEmail(email);
-
         BoardInfo.PostDetailPart postDetailPart = postService.findPostDetailPart(postId);
         BoardInfo.PostDetail detail = postService.enrichWithComments(postDetailPart);
-        boolean liked = postLikeService.hasLiked(postId, member.getMemberId());
-        BoardInfo.PostDetail detailWithLiked = BoardInfo.PostDetail.from(detail, liked);
 
+        boolean liked = false;
+        if (isLoggedIn(email)) {
+            Member member = authService.findMemberByEmail(email);
+            liked = postLikeService.hasLiked(postId, member.getMemberId());
+        }
+
+        BoardInfo.PostDetail detailWithLiked = BoardInfo.PostDetail.from(detail, liked);
         eventPublisher.publishEvent(PostRankingEvent.Viewed.from(postDetailPart.stationId(), postDetailPart.postId()));
         return detailWithLiked;
     }
