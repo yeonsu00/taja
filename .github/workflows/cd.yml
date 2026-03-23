@@ -85,6 +85,7 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
             CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            GRAFANA_PASSWORD=${{ secrets.GRAFANA_PASSWORD }}
             EOF
 
             # 2) 기존 단독 컨테이너 정리 (최초 1회)
