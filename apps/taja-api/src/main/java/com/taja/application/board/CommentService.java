@@ -4,6 +4,8 @@ import com.taja.domain.board.Comment;
 import com.taja.global.exception.CommentNotFoundException;
 import com.taja.global.exception.InvalidContentException;
 import com.taja.global.exception.NotCommentWriterException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final MeterRegistry meterRegistry;
 
     public void createComment(Long memberId, Long postId, String content) {
         if (content == null || content.isBlank()) {
@@ -21,6 +24,7 @@ public class CommentService {
 
         Comment comment = Comment.of(postId, memberId, content);
         commentRepository.saveComment(comment);
+        Counter.builder("comment.created.total").register(meterRegistry).increment();
     }
 
     public void softDeleteComments(Long postId) {

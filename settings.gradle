@@ -1,1 +1,3 @@
 rootProject.name = 'taja'
+include 'apps:taja-api'
+include 'apps:taja-simulator'

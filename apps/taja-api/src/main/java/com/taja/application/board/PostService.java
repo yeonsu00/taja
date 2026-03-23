@@ -3,6 +3,8 @@ package com.taja.application.board;
 import com.taja.application.board.BoardInfo.PostItem;
 import com.taja.domain.board.Post;
 import com.taja.global.exception.PostNotFoundException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +20,12 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostRankingRepository postRankingRepository;
     private final AllPostRankingRepository allPostRankingRepository;
+    private final MeterRegistry meterRegistry;
 
     public Post createPost(Long memberId, Long stationId, String content) {
         Post post = Post.of(stationId, memberId, content);
         postRepository.savePost(post);
+        Counter.builder("post.created.total").register(meterRegistry).increment();
         return post;
     }
 

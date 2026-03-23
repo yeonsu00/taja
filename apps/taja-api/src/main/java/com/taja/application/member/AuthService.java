@@ -9,6 +9,8 @@ import com.taja.domain.member.EmailForm;
 import com.taja.domain.member.RefreshToken;
 import com.taja.domain.member.Member;
 import com.taja.interfaces.api.member.response.TokenResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -36,11 +38,13 @@ public class AuthService {
     private final FavoriteStationRepository favoriteStationRepository;
     private final EmailService emailService;
     private final EmailCodeRepository emailCodeRepository;
+    private final MeterRegistry meterRegistry;
 
     @Transactional
     public void signup(String name, String email, String password) {
         Member member = Member.of(name, email, passwordEncoder.encode(password));
         memberRepository.save(member);
+        Counter.builder("auth.signup.total").register(meterRegistry).increment();
     }
 
     @Transactional
@@ -53,6 +57,7 @@ public class AuthService {
         RefreshToken refreshTokenDomain = RefreshToken.of(authentication.getName(), tokenDto.refreshToken());
         refreshTokenRepository.save(refreshTokenDomain);
 
+        Counter.builder("auth.login.total").register(meterRegistry).increment();
         return tokenDto;
     }
 

@@ -89,6 +89,15 @@ springdoc:
     operations-sorter: alpha
     display-request-duration: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+
 resilience4j:
   retry:
     configs:
