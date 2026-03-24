@@ -50,12 +50,11 @@ public class SimulationService {
     }
 
     public void start(SimulationRequest request) {
-        if (running.get()) {
+        if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException("시뮬레이션이 이미 실행 중입니다.");
         }
 
         resetCounters(request.users().size());
-        running.set(true);
 
         long deadline = System.currentTimeMillis() + (long) request.durationSeconds() * 1000;
 
@@ -97,6 +96,10 @@ public class SimulationService {
     public void stop() {
         running.set(false);
         futures.forEach(f -> f.cancel(true));
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } catch (Exception ignored) {
+        }
         futures.clear();
         broadcastLog("[시스템] 시뮬레이션 중지됨");
     }
