@@ -25,7 +25,6 @@ export interface UserConfig {
 }
 
 export interface SimulationRequest {
-  durationSeconds: number
   delayMinMs: number
   delayMaxMs: number
   useAiContent: boolean

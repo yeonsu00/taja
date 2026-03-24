@@ -20,7 +20,6 @@ public class UserSimulationWorker implements Runnable {
     private final boolean useAiContent;
     private final long delayMinMs;
     private final long delayMaxMs;
-    private final long deadline;
     private final AtomicBoolean running;
     private final Consumer<String> logger;
     private final Runnable onSuccess;
@@ -35,7 +34,6 @@ public class UserSimulationWorker implements Runnable {
             boolean useAiContent,
             long delayMinMs,
             long delayMaxMs,
-            long deadline,
             AtomicBoolean running,
             Consumer<String> logger,
             Runnable onSuccess,
@@ -49,7 +47,6 @@ public class UserSimulationWorker implements Runnable {
         this.useAiContent = useAiContent;
         this.delayMinMs = delayMinMs;
         this.delayMaxMs = delayMaxMs;
-        this.deadline = deadline;
         this.running = running;
         this.logger = logger;
         this.onSuccess = onSuccess;
@@ -59,20 +56,20 @@ public class UserSimulationWorker implements Runnable {
 
     @Override
     public void run() {
-        int actionIndex = 0;
         try {
-            while (running.get() && System.currentTimeMillis() < deadline) {
-                ActionType action = actions.get(actionIndex % actions.size());
-                actionIndex++;
+            for (int i = 0; i < actions.size(); i++) {
+                if (!running.get()) break;
 
+                ActionType action = actions.get(i);
                 boolean success = executeAction(action);
                 if (success) onSuccess.run();
                 else onFailure.run();
 
-                if (!running.get() || System.currentTimeMillis() >= deadline) break;
-
-                long delay = delayMinMs + (long) (Math.random() * (delayMaxMs - delayMinMs));
-                Thread.sleep(delay);
+                if (i < actions.size() - 1) {
+                    if (!running.get()) break;
+                    long delay = delayMinMs + (long) (Math.random() * (delayMaxMs - delayMinMs));
+                    Thread.sleep(delay);
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -215,7 +212,10 @@ public class UserSimulationWorker implements Runnable {
     }
 
     private void log(String format, Object... args) {
-        String message = format.formatted(args);
+        String message = format;
+        for (Object arg : args) {
+            message = message.replaceFirst("\\{}", String.valueOf(arg));
+        }
         logger.accept(message);
     }
 }

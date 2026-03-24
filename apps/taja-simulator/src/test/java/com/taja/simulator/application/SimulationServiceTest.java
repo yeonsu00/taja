@@ -34,9 +34,10 @@ class SimulationServiceTest {
     private SimulationService service;
 
     // signup()은 mock 기본값(false)을 사용 — 스텁 불필요
+    // 2개 액션 + 1000ms 딜레이 → 두 번째 start() 호출 시 워커가 딜레이 중으로 running=true 유지
     private static final SimulationRequest ONE_USER_REQUEST =
-            new SimulationRequest(60, 1000, 1000, false,
-                    List.of(new SimulationRequest.UserConfig("테스트", "설명", List.of("SIGNUP"))));
+            new SimulationRequest(1000, 1000, false,
+                    List.of(new SimulationRequest.UserConfig("테스트", "설명", List.of("SIGNUP", "SEARCH_STATION"))));
 
     @BeforeEach
     void setUp() {

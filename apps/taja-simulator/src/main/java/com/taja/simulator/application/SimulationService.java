@@ -56,8 +56,6 @@ public class SimulationService {
 
         resetCounters(request.users().size());
 
-        long deadline = System.currentTimeMillis() + (long) request.durationSeconds() * 1000;
-
         for (SimulationRequest.UserConfig userConfig : request.users()) {
             UserContext context = new UserContext(userConfig.personaName(), userConfig.personaDescription());
             List<ActionType> actions = userConfig.actions().stream()
@@ -72,7 +70,6 @@ public class SimulationService {
                     request.useAiContent(),
                     request.delayMinMs(),
                     request.delayMaxMs(),
-                    deadline,
                     running,
                     this::broadcastLog,
                     () -> { successCount.incrementAndGet(); completedActions.incrementAndGet(); },

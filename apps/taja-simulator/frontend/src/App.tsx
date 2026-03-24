@@ -21,7 +21,6 @@ const DEFAULT_STATUS: SimulationStatus = {
 }
 
 export default function App() {
-  const [durationSeconds, setDurationSeconds] = useState(300)
   const [delayMinMs, setDelayMinMs] = useState(1000)
   const [delayMaxMs, setDelayMaxMs] = useState(5000)
   const [useAiContent, setUseAiContent] = useState(false)
@@ -57,7 +56,6 @@ export default function App() {
   }, [])
 
   function handleSettingChange(field: string, value: number | boolean) {
-    if (field === 'durationSeconds') setDurationSeconds(value as number)
     if (field === 'delayMinMs') setDelayMinMs(value as number)
     if (field === 'delayMaxMs') setDelayMaxMs(value as number)
     if (field === 'useAiContent') setUseAiContent(value as boolean)
@@ -79,7 +77,7 @@ export default function App() {
     setError(null)
     setLogs([])
     try {
-      await startSimulation({ durationSeconds, delayMinMs, delayMaxMs, useAiContent, users })
+      await startSimulation({ delayMinMs, delayMaxMs, useAiContent, users })
       const s = await fetchStatus()
       setStatus(s)
     } catch (e) {
@@ -103,7 +101,6 @@ export default function App() {
       <main className="app-body">
         <div className="left-panel">
           <GlobalSettings
-            durationSeconds={durationSeconds}
             delayMinMs={delayMinMs}
             delayMaxMs={delayMaxMs}
             useAiContent={useAiContent}

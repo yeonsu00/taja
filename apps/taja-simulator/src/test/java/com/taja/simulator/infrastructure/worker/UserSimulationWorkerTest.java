@@ -41,7 +41,6 @@ class UserSimulationWorkerTest {
     private UserSimulationWorker workerWith(
             List<ActionType> actions,
             AtomicBoolean running,
-            long deadlineOffsetMs,
             Runnable onSuccess,
             Runnable onFailure,
             Runnable onComplete
@@ -49,7 +48,6 @@ class UserSimulationWorkerTest {
         return new UserSimulationWorker(
                 context, actions, apiClient, aiContentAgent,
                 false, 0, 0,
-                System.currentTimeMillis() + deadlineOffsetMs,
                 running,
                 msg -> {},
                 onSuccess, onFailure, onComplete
@@ -57,8 +55,8 @@ class UserSimulationWorkerTest {
     }
 
     @Nested
-    @DisplayName("루프 종료 조건")
-    class LoopTermination {
+    @DisplayName("실행 종료 조건")
+    class Termination {
 
         @Test
         @DisplayName("running=false이면 행동을 실행하지 않고 onComplete만 호출된다")
@@ -67,7 +65,7 @@ class UserSimulationWorkerTest {
             AtomicInteger completeCount = new AtomicInteger(0);
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.SIGNUP), running, 5000,
+                    List.of(ActionType.SIGNUP), running,
                     () -> {}, () -> {}, completeCount::incrementAndGet
             );
             worker.run();
@@ -77,23 +75,27 @@ class UserSimulationWorkerTest {
         }
 
         @Test
-        @DisplayName("deadline이 지났으면 행동을 실행하지 않고 onComplete만 호출된다")
-        void deadline_passed_no_action_executed() {
+        @DisplayName("행동 시퀀스를 모두 실행하면 자동으로 종료된다")
+        void completes_after_all_actions() {
             AtomicBoolean running = new AtomicBoolean(true);
+            AtomicInteger successCount = new AtomicInteger(0);
             AtomicInteger completeCount = new AtomicInteger(0);
 
+            when(apiClient.signup(any(), any())).thenReturn(false);
+            when(apiClient.searchStations()).thenReturn(List.of());
+
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.SIGNUP), running, -1000,
-                    () -> {}, () -> {}, completeCount::incrementAndGet
+                    List.of(ActionType.SIGNUP, ActionType.SEARCH_STATION), running,
+                    () -> {}, successCount::incrementAndGet, completeCount::incrementAndGet
             );
             worker.run();
 
             assertThat(completeCount.get()).isEqualTo(1);
-            verifyNoInteractions(apiClient);
+            assertThat(running.get()).isTrue(); // 외부 running 플래그는 변경하지 않음
         }
 
         @Test
-        @DisplayName("onComplete는 루프가 어떻게 종료되든 항상 호출된다")
+        @DisplayName("onComplete는 항상 호출된다")
         void onComplete_always_called() {
             AtomicBoolean running = new AtomicBoolean(true);
             AtomicInteger completeCount = new AtomicInteger(0);
@@ -102,8 +104,8 @@ class UserSimulationWorkerTest {
             when(apiClient.login(any())).thenReturn(Optional.of("token"));
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.SIGNUP), running, 200,
-                    () -> running.set(false), () -> {}, completeCount::incrementAndGet
+                    List.of(ActionType.SIGNUP), running,
+                    () -> {}, () -> {}, completeCount::incrementAndGet
             );
             worker.run();
 
@@ -125,10 +127,8 @@ class UserSimulationWorkerTest {
             when(apiClient.login(any())).thenReturn(Optional.of("token"));
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.SIGNUP), running, 5000,
-                    () -> { successCount.incrementAndGet(); running.set(false); },
-                    () -> {},
-                    () -> {}
+                    List.of(ActionType.SIGNUP), running,
+                    successCount::incrementAndGet, () -> {}, () -> {}
             );
             worker.run();
 
@@ -144,10 +144,8 @@ class UserSimulationWorkerTest {
             when(apiClient.signup(any(), any())).thenReturn(false);
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.SIGNUP), running, 5000,
-                    () -> {},
-                    () -> { failureCount.incrementAndGet(); running.set(false); },
-                    () -> {}
+                    List.of(ActionType.SIGNUP), running,
+                    () -> {}, failureCount::incrementAndGet, () -> {}
             );
             worker.run();
 
@@ -166,10 +164,8 @@ class UserSimulationWorkerTest {
             AtomicInteger failureCount = new AtomicInteger(0);
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.JOIN_BOARD), running, 5000,
-                    () -> {},
-                    () -> { failureCount.incrementAndGet(); running.set(false); },
-                    () -> {}
+                    List.of(ActionType.JOIN_BOARD), running,
+                    () -> {}, failureCount::incrementAndGet, () -> {}
             );
             worker.run();
 
@@ -183,13 +179,11 @@ class UserSimulationWorkerTest {
             AtomicBoolean running = new AtomicBoolean(true);
             AtomicInteger failureCount = new AtomicInteger(0);
 
-            context.setAccessToken("token");  // 로그인 상태
+            context.setAccessToken("token");
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.CREATE_POST), running, 5000,
-                    () -> {},
-                    () -> { failureCount.incrementAndGet(); running.set(false); },
-                    () -> {}
+                    List.of(ActionType.CREATE_POST), running,
+                    () -> {}, failureCount::incrementAndGet, () -> {}
             );
             worker.run();
 
@@ -204,10 +198,8 @@ class UserSimulationWorkerTest {
             AtomicInteger failureCount = new AtomicInteger(0);
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.CREATE_COMMENT), running, 5000,
-                    () -> {},
-                    () -> { failureCount.incrementAndGet(); running.set(false); },
-                    () -> {}
+                    List.of(ActionType.CREATE_COMMENT), running,
+                    () -> {}, failureCount::incrementAndGet, () -> {}
             );
             worker.run();
 
@@ -217,27 +209,23 @@ class UserSimulationWorkerTest {
     }
 
     @Nested
-    @DisplayName("행동 순환")
-    class ActionCycle {
+    @DisplayName("행동 시퀀스")
+    class ActionSequence {
 
         @Test
-        @DisplayName("actions 목록을 순서대로 순환하며 실행한다")
-        void actions_executed_in_order() {
+        @DisplayName("actions 목록을 순서대로 1번씩 실행한다")
+        void actions_executed_in_order_once() {
             AtomicBoolean running = new AtomicBoolean(true);
-            AtomicInteger actionCount = new AtomicInteger(0);
 
             when(apiClient.signup(any(), any())).thenReturn(false);
             when(apiClient.searchStations()).thenReturn(List.of());
 
             UserSimulationWorker worker = workerWith(
-                    List.of(ActionType.SIGNUP, ActionType.SEARCH_STATION), running, 5000,
-                    () -> {},
-                    () -> { if (actionCount.incrementAndGet() >= 2) running.set(false); },
-                    () -> {}
+                    List.of(ActionType.SIGNUP, ActionType.SEARCH_STATION), running,
+                    () -> {}, () -> {}, () -> {}
             );
             worker.run();
 
-            // 두 action이 각각 1번씩 호출됨
             verify(apiClient, times(1)).signup(any(), any());
             verify(apiClient, times(1)).searchStations();
         }

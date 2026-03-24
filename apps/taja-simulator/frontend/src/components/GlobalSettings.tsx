@@ -1,5 +1,4 @@
 interface Props {
-  durationSeconds: number
   delayMinMs: number
   delayMaxMs: number
   useAiContent: boolean
@@ -8,21 +7,12 @@ interface Props {
 }
 
 export default function GlobalSettings({
-  durationSeconds, delayMinMs, delayMaxMs, useAiContent, onChange, disabled
+  delayMinMs, delayMaxMs, useAiContent, onChange, disabled
 }: Props) {
   return (
     <section className="card">
       <h2 className="card-title">글로벌 설정</h2>
       <div className="form-grid">
-        <label>
-          <span>시뮬레이션 시간 (초)</span>
-          <input
-            type="number" min={10} max={3600}
-            value={durationSeconds}
-            disabled={disabled}
-            onChange={e => onChange('durationSeconds', Number(e.target.value))}
-          />
-        </label>
         <label>
           <span>최소 딜레이 (ms)</span>
           <input
