@@ -9,6 +9,7 @@ import com.taja.domain.board.Comment;
 import com.taja.domain.board.Post;
 import com.taja.domain.member.Member;
 import com.taja.domain.station.Station;
+import com.taja.interfaces.api.station.response.PostCreatedResponse;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -62,11 +63,12 @@ public class BoardFacade {
     }
 
     @Transactional
-    public void createPost(String email, Long stationId, String content) {
+    public PostCreatedResponse createPost(String email, Long stationId, String content) {
         Member member = authService.findMemberByEmail(email);
         Station station = stationService.findStationByStationId(stationId);
         Post post = postService.createPost(member.getMemberId(), station.getStationId(), content);
         eventPublisher.publishEvent(PostRankingEvent.Created.from(post.getStationId(), post.getPostId()));
+        return new PostCreatedResponse(post.getPostId());
     }
 
     @Transactional(readOnly = true)

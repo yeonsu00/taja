@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.taja.application.member.AuthService;
+import com.taja.interfaces.api.station.response.PostCreatedResponse;
 import com.taja.application.station.StationService;
 import com.taja.domain.board.BoardMember;
 import com.taja.domain.board.Post;
@@ -87,8 +88,9 @@ class BoardFacadeTest {
         when(saved.getStationId()).thenReturn(STATION_ID);
         when(postService.createPost(MEMBER_ID, STATION_ID, "content")).thenReturn(saved);
 
-        boardFacade.createPost(EMAIL, STATION_ID, "content");
+        PostCreatedResponse postCreatedResponse = boardFacade.createPost(EMAIL, STATION_ID, "content");
 
+        assertThat(postCreatedResponse.postId()).isEqualTo(POST_ID);
         ArgumentCaptor<PostRankingEvent.Created> captor = ArgumentCaptor.forClass(PostRankingEvent.Created.class);
         verify(eventPublisher).publishEvent(captor.capture());
         assertThat(captor.getValue().stationId()).isEqualTo(STATION_ID);

@@ -7,6 +7,7 @@ import com.taja.simulator.infrastructure.client.TajaApiClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -139,14 +140,15 @@ public class UserSimulationWorker implements Runnable {
                 ? aiContentAgent.generatePostContent(context.getPersonaName(), context.getPersonaDescription(), "역" + stationId)
                 : context.getPersonaName() + "입니다. 따릉이 이용 좋았어요!";
 
-        boolean ok = apiClient.createPost(stationId, content, context.getAccessToken());
-        if (ok) {
-            apiClient.getLatestPostId(stationId).ifPresent(context::setLastCreatedPostId);
+        Optional<Long> postId = apiClient.createPost(stationId, content, context.getAccessToken());
+        if (postId.isPresent()) {
+            context.setLastCreatedPostId(postId.get());
             log("[{}] 게시글 작성 성공 (stationId: {})", context.getPersonaName(), stationId);
+            return true;
         } else {
             log("[{}] 게시글 작성 실패", context.getPersonaName());
+            return false;
         }
-        return ok;
     }
 
     private boolean handleCreateComment() {

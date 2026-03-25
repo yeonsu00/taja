@@ -107,9 +107,9 @@ public class TajaApiClient {
         }
     }
 
-    public boolean createPost(Long stationId, String content, String accessToken) {
+    public Optional<Long> createPost(Long stationId, String content, String accessToken) {
         try {
-            webClient.post()
+            Map<?, ?> response = webClient.post()
                     .uri("/stations/{stationId}/posts", stationId)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -117,10 +117,16 @@ public class TajaApiClient {
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
-            return true;
+
+            if (response != null
+                    && response.get("data") instanceof Map<?, ?> data
+                    && data.get("postId") instanceof Number postId) {
+                return Optional.of(postId.longValue());
+            }
+            return Optional.empty();
         } catch (Exception e) {
             log.debug("게시글 작성 실패 (stationId: {}): {}", stationId, e.getMessage());
-            return false;
+            return Optional.empty();
         }
     }
 

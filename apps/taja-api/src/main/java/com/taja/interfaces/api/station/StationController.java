@@ -14,6 +14,7 @@ import com.taja.interfaces.api.station.request.CreatePostRequest;
 import com.taja.interfaces.api.station.request.NearbyStationRequest;
 import com.taja.interfaces.api.station.request.SearchStationRequest;
 import com.taja.interfaces.api.station.response.IsFavoriteStationResponse;
+import com.taja.interfaces.api.station.response.PostCreatedResponse;
 import com.taja.interfaces.api.station.response.MapStationResponse;
 import com.taja.interfaces.api.station.response.NearbyStationsResponse;
 import com.taja.interfaces.api.station.response.StationStatusResponse;
@@ -143,12 +144,12 @@ public class StationController {
 
     @Operation(summary = "게시글 작성", description = "대여소 ID로 해당 게시판에 게시글을 작성합니다.")
     @PostMapping("/{stationId}/posts")
-    public CommonApiResponse<String> createPost(@PathVariable("stationId") Long stationId,
-                                                 @Valid @RequestBody CreatePostRequest request,
-                                                 @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public CommonApiResponse<PostCreatedResponse> createPost(@PathVariable("stationId") Long stationId,
+                                               @Valid @RequestBody CreatePostRequest request,
+                                               @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         String email = customUserDetails.getUsername();
-        boardFacade.createPost(email, stationId, request.content());
-        return CommonApiResponse.success("게시글 작성에 성공했습니다.");
+        PostCreatedResponse response = boardFacade.createPost(email, stationId, request.content());
+        return CommonApiResponse.success(response, "게시글 작성에 성공했습니다.");
     }
 
     @Operation(summary = "즐겨찾기 등록", description = "대여소 ID를 이용해 해당 대여소를 즐겨찾기에 등록합니다.")
