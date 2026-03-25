@@ -156,9 +156,9 @@ public class TajaApiClient {
         }
     }
 
-    public boolean createComment(Long postId, String content, String accessToken) {
+    public Optional<Long> createComment(Long postId, String content, String accessToken) {
         try {
-            webClient.post()
+            Map<?, ?> response = webClient.post()
                     .uri("/posts/{postId}/comments", postId)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -166,9 +166,45 @@ public class TajaApiClient {
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
-            return true;
+
+            if (response != null
+                    && response.get("data") instanceof Map<?, ?> data
+                    && data.get("commentId") instanceof Number commentId) {
+                return Optional.of(commentId.longValue());
+            }
+            return Optional.empty();
         } catch (Exception e) {
             log.debug("댓글 작성 실패 (postId: {}): {}", postId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public boolean deleteComment(Long commentId, String accessToken) {
+        try {
+            webClient.delete()
+                    .uri("/posts/comments/{commentId}", commentId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+            return true;
+        } catch (Exception e) {
+            log.debug("댓글 삭제 실패 (commentId: {}): {}", commentId, e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean unlikePost(Long postId, String accessToken) {
+        try {
+            webClient.delete()
+                    .uri("/posts/{postId}/like", postId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+            return true;
+        } catch (Exception e) {
+            log.debug("좋아요 취소 실패 (postId: {}): {}", postId, e.getMessage());
             return false;
         }
     }

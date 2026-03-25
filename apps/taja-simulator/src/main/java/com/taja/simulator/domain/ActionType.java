@@ -6,7 +6,9 @@ public enum ActionType {
     JOIN_BOARD,
     CREATE_POST,
     CREATE_COMMENT,
+    DELETE_COMMENT,
     LIKE_POST,
+    UNLIKE_POST,
     ADD_FAVORITE,
     VIEW_MAP
 }

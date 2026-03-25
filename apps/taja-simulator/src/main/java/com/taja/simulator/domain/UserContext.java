@@ -19,6 +19,8 @@ public class UserContext {
     private List<Long> knownStationIds = new ArrayList<>();
     private Long lastJoinedStationId;
     private Long lastCreatedPostId;
+    private Long lastCreatedCommentId;
+    private Long lastLikedPostId;
 
     public UserContext(String personaName, String personaDescription) {
         this.personaName = personaName;

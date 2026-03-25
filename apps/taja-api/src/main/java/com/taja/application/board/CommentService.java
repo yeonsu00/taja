@@ -17,7 +17,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final MeterRegistry meterRegistry;
 
-    public void createComment(Long memberId, Long postId, String content) {
+    public Long createComment(Long memberId, Long postId, String content) {
         if (content == null || content.isBlank()) {
             throw new InvalidContentException("댓글 내용이 비어있습니다.");
         }
@@ -25,6 +25,7 @@ public class CommentService {
         Comment comment = Comment.of(postId, memberId, content);
         commentRepository.saveComment(comment);
         Counter.builder("comment.created.total").register(meterRegistry).increment();
+        return comment.getCommentId();
     }
 
     public void softDeleteComments(Long postId) {

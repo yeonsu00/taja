@@ -12,7 +12,9 @@ export const ACTION_LABELS: Record<string, string> = {
   JOIN_BOARD: '게시판 참여',
   CREATE_POST: '게시글 작성',
   CREATE_COMMENT: '댓글 작성',
+  DELETE_COMMENT: '댓글 삭제',
   LIKE_POST: '좋아요',
+  UNLIKE_POST: '좋아요 취소',
   ADD_FAVORITE: '즐겨찾기 추가',
 }
 

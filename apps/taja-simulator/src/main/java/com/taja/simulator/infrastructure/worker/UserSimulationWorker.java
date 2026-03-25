@@ -86,7 +86,9 @@ public class UserSimulationWorker implements Runnable {
             case JOIN_BOARD -> handleJoinBoard();
             case CREATE_POST -> handleCreatePost();
             case CREATE_COMMENT -> handleCreateComment();
+            case DELETE_COMMENT -> handleDeleteComment();
             case LIKE_POST -> handleLikePost();
+            case UNLIKE_POST -> handleUnlikePost();
             case ADD_FAVORITE -> handleAddFavorite();
             case VIEW_MAP -> handleViewMap();
         };
@@ -165,8 +167,30 @@ public class UserSimulationWorker implements Runnable {
                 ? aiContentAgent.generateCommentContent(context.getPersonaName(), context.getPersonaDescription())
                 : "유용한 정보 감사합니다!";
 
-        boolean ok = apiClient.createComment(postId, content, context.getAccessToken());
-        log("[{}] 댓글 작성 {} (postId: {})", context.getPersonaName(), ok ? "성공" : "실패", postId);
+        Optional<Long> commentId = apiClient.createComment(postId, content, context.getAccessToken());
+        if (commentId.isPresent()) {
+            context.setLastCreatedCommentId(commentId.get());
+            log("[{}] 댓글 작성 성공 (postId: {})", context.getPersonaName(), postId);
+            return true;
+        } else {
+            log("[{}] 댓글 작성 실패 (postId: {})", context.getPersonaName(), postId);
+            return false;
+        }
+    }
+
+    private boolean handleDeleteComment() {
+        if (!context.isLoggedIn()) {
+            log("[{}] 댓글 삭제 스킵 (로그인 없음)", context.getPersonaName());
+            return false;
+        }
+        Long commentId = context.getLastCreatedCommentId();
+        if (commentId == null) {
+            log("[{}] 댓글 삭제 스킵 (삭제할 댓글 없음)", context.getPersonaName());
+            return false;
+        }
+        boolean ok = apiClient.deleteComment(commentId, context.getAccessToken());
+        if (ok) context.setLastCreatedCommentId(null);
+        log("[{}] 댓글 삭제 {} (commentId: {})", context.getPersonaName(), ok ? "성공" : "실패", commentId);
         return ok;
     }
 
@@ -181,7 +205,24 @@ public class UserSimulationWorker implements Runnable {
             return false;
         }
         boolean ok = apiClient.likePost(postId, context.getAccessToken());
+        if (ok) context.setLastLikedPostId(postId);
         log("[{}] 좋아요 {} (postId: {})", context.getPersonaName(), ok ? "성공" : "실패", postId);
+        return ok;
+    }
+
+    private boolean handleUnlikePost() {
+        if (!context.isLoggedIn()) {
+            log("[{}] 좋아요 취소 스킵 (로그인 없음)", context.getPersonaName());
+            return false;
+        }
+        Long postId = context.getLastLikedPostId();
+        if (postId == null) {
+            log("[{}] 좋아요 취소 스킵 (좋아요한 게시글 없음)", context.getPersonaName());
+            return false;
+        }
+        boolean ok = apiClient.unlikePost(postId, context.getAccessToken());
+        if (ok) context.setLastLikedPostId(null);
+        log("[{}] 좋아요 취소 {} (postId: {})", context.getPersonaName(), ok ? "성공" : "실패", postId);
         return ok;
     }
 

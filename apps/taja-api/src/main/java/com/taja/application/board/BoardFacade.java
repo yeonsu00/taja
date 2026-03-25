@@ -133,15 +133,16 @@ public class BoardFacade {
     }
 
     @Transactional
-    public void createComment(String email, Long postId, String content) {
+    public Long createComment(String email, Long postId, String content) {
         Member member = authService.findMemberByEmail(email);
 
         Post post = postService.findPostByPostId(postId);
 
-        commentService.createComment(member.getMemberId(), post.getPostId(), content);
+        Long commentId = commentService.createComment(member.getMemberId(), post.getPostId(), content);
         postService.incrementCommentCount(postId);
 
         eventPublisher.publishEvent(PostRankingEvent.CommentCreated.from(post.getStationId(), post.getPostId()));
+        return commentId;
     }
 
     @Transactional

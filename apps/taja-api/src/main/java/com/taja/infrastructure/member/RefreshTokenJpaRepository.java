@@ -17,7 +17,7 @@ public interface RefreshTokenJpaRepository extends JpaRepository<RefreshToken, L
 
     void deleteByKey(String key);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM RefreshToken rt WHERE rt.key IN :keys")
     void deleteByKeyIn(@Param("keys") List<String> keys);
 }

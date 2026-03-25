@@ -13,7 +13,7 @@ public interface BoardMemberJpaRepository extends JpaRepository<BoardMember, Lon
 
     List<BoardMember> findByMemberIdOrderByBoardMemberIdDesc(Long memberId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM BoardMember bm WHERE bm.memberId IN :memberIds")
     void deleteByMemberIdIn(@Param("memberIds") List<Long> memberIds);
 }

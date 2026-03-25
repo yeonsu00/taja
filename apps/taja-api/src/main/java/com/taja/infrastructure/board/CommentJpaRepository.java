@@ -16,11 +16,11 @@ public interface CommentJpaRepository extends JpaRepository<Comment, Long> {
 
     Optional<Comment> findByCommentIdAndWriterIdAndIsDeletedFalse(Long commentId, Long writerId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM Comment c WHERE c.postId IN :postIds")
     void deleteByPostIdIn(@Param("postIds") List<Long> postIds);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM Comment c WHERE c.writerId IN :writerIds")
     void deleteByWriterIdIn(@Param("writerIds") List<Long> writerIds);
 }

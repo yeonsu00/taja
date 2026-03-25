@@ -5,6 +5,7 @@ import com.taja.application.board.BoardInfo;
 import com.taja.global.response.CommonApiResponse;
 import com.taja.infrastructure.jwt.CustomUserDetails;
 import com.taja.interfaces.api.board.request.CreateCommentRequest;
+import com.taja.interfaces.api.board.response.CommentCreatedResponse;
 import com.taja.interfaces.api.board.response.DailyRankPostResponse;
 import com.taja.interfaces.api.station.response.PostDetailResponse;
 import com.taja.interfaces.api.station.response.PostLikeResponse;
@@ -62,13 +63,13 @@ public class BoardController {
 
     @Operation(summary = "댓글 작성", description = "게시글 ID로 댓글을 작성합니다.")
     @PostMapping("/{postId}/comments")
-    public CommonApiResponse<String> createComment(
+    public CommonApiResponse<CommentCreatedResponse> createComment(
             @PathVariable("postId") Long postId,
             @RequestBody @Valid CreateCommentRequest request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         String email = customUserDetails.getUsername();
-        boardFacade.createComment(email, postId, request.content());
-        return CommonApiResponse.success("댓글을 작성했습니다.");
+        Long commentId = boardFacade.createComment(email, postId, request.content());
+        return CommonApiResponse.success(new CommentCreatedResponse(commentId), "댓글을 작성했습니다.");
     }
 
     @Operation(summary = "댓글 삭제", description = "댓글 ID로 댓글을 삭제합니다.")

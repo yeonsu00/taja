@@ -16,7 +16,7 @@ public interface FavoriteStationJpaRepository extends JpaRepository<FavoriteStat
 
     void deleteByMember(Member member);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM FavoriteStation fs WHERE fs.member.memberId IN :memberIds")
     void deleteByMemberMemberIdIn(@Param("memberIds") List<Long> memberIds);
 }

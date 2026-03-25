@@ -14,26 +14,26 @@ public interface PostJpaRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findByPostIdAndWriterIdAndIsDeletedFalse(Long postId, Long writerId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1 WHERE p.postId = :postId AND p.isDeleted = false")
     int increaseLikeCount(@Param("postId") Long postId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Post p SET p.likeCount = p.likeCount - 1 WHERE p.postId = :postId AND p.likeCount > 0 AND p.isDeleted = false")
     int decreaseLikeCount(@Param("postId") Long postId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.postId = :postId AND p.isDeleted = false")
     int increaseCommentCount(@Param("postId") Long postId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("UPDATE Post p SET p.commentCount = p.commentCount - 1 WHERE p.postId = :postId AND p.commentCount > 0 AND p.isDeleted = false")
     int decreaseCommentCount(@Param("postId") Long postId);
 
     @Query("SELECT p.postId FROM Post p WHERE p.writerId IN :writerIds")
     List<Long> findPostIdsByWriterIdIn(@Param("writerIds") List<Long> writerIds);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM Post p WHERE p.writerId IN :writerIds")
     void deleteByWriterIdIn(@Param("writerIds") List<Long> writerIds);
 }
