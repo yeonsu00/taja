@@ -47,4 +47,12 @@ public class CommentService {
         comment.markAsDeleted();
         commentRepository.saveComment(comment);
     }
+
+    public void deleteByPostIdIn(List<Long> postIds) {
+        commentRepository.deleteByPostIdIn(postIds);
+    }
+
+    public void deleteByWriterIdIn(List<Long> writerIds) {
+        commentRepository.deleteByWriterIdIn(writerIds);
+    }
 }

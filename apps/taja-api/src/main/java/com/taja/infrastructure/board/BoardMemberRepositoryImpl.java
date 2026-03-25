@@ -32,4 +32,9 @@ public class BoardMemberRepositoryImpl implements BoardMemberRepository {
     public List<BoardMember> findByMemberId(Long memberId) {
         return boardMemberJpaRepository.findByMemberIdOrderByBoardMemberIdDesc(memberId);
     }
+
+    @Override
+    public void deleteByMemberIdIn(List<Long> memberIds) {
+        boardMemberJpaRepository.deleteByMemberIdIn(memberIds);
+    }
 }

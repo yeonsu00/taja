@@ -188,6 +188,20 @@ public class TajaApiClient {
         }
     }
 
+    public boolean deleteSimulationData() {
+        try {
+            webClient.delete()
+                    .uri("/api/admin/simulation/data")
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+            return true;
+        } catch (Exception e) {
+            log.debug("시뮬레이션 데이터 삭제 실패: {}", e.getMessage());
+            return false;
+        }
+    }
+
     public boolean addFavorite(Long stationId, String accessToken) {
         try {
             webClient.post()

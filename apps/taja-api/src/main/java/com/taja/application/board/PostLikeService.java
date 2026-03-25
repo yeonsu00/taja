@@ -43,4 +43,12 @@ public class PostLikeService {
         List<PostLike> postLikes = postLikeRepository.findByPostIdAndIsDeletedFalse(postId);
         postLikes.forEach(PostLike::markAsDeleted);
     }
+
+    public void deleteByPostIdIn(List<Long> postIds) {
+        postLikeRepository.deleteByPostIdIn(postIds);
+    }
+
+    public void deleteByMemberIdIn(List<Long> memberIds) {
+        postLikeRepository.deleteByMemberIdIn(memberIds);
+    }
 }

@@ -417,6 +417,31 @@ select:disabled {
   cursor: not-allowed;
 }
 
+
+.btn-cleanup {
+  width: 100%;
+  padding: 10px;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-cleanup:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+
+.btn-cleanup:disabled {
+  color: #fca5a5;
+  border-color: #fee2e2;
+  cursor: not-allowed;
+}
+
 .error-msg {
   background: #fee2e2;
   color: #dc2626;

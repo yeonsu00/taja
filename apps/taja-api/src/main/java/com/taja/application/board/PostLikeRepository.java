@@ -16,4 +16,8 @@ public interface PostLikeRepository {
     Optional<PostLike> findByPostIdAndMemberIdAndIsDeletedFalse(Long postId, Long memberId);
 
     void savePostLike(PostLike postLike);
+
+    void deleteByPostIdIn(List<Long> postIds);
+
+    void deleteByMemberIdIn(List<Long> memberIds);
 }

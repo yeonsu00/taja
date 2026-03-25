@@ -1,6 +1,7 @@
 package com.taja.infrastructure.board;
 
 import com.taja.domain.board.Post;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,4 +29,11 @@ public interface PostJpaRepository extends JpaRepository<Post, Long> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.commentCount = p.commentCount - 1 WHERE p.postId = :postId AND p.commentCount > 0 AND p.isDeleted = false")
     int decreaseCommentCount(@Param("postId") Long postId);
+
+    @Query("SELECT p.postId FROM Post p WHERE p.writerId IN :writerIds")
+    List<Long> findPostIdsByWriterIdIn(@Param("writerIds") List<Long> writerIds);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Post p WHERE p.writerId IN :writerIds")
+    void deleteByWriterIdIn(@Param("writerIds") List<Long> writerIds);
 }

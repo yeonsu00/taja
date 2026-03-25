@@ -84,4 +84,14 @@ public class PostRepositoryImpl implements PostRepository {
     public int decreaseCommentCount(Long postId) {
         return postJpaRepository.decreaseCommentCount(postId);
     }
+
+    @Override
+    public List<Long> findPostIdsByWriterIdIn(List<Long> writerIds) {
+        return postJpaRepository.findPostIdsByWriterIdIn(writerIds);
+    }
+
+    @Override
+    public void deleteByWriterIdIn(List<Long> writerIds) {
+        postJpaRepository.deleteByWriterIdIn(writerIds);
+    }
 }

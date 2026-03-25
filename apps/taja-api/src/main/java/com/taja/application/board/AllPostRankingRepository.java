@@ -10,4 +10,6 @@ public interface AllPostRankingRepository {
     List<Long> findRankedPostIds(long offset, int limit, LocalDate today);
 
     void carryOverTodayToTomorrow(LocalDate today);
+
+    void removePostIds(List<Long> postIds);
 }

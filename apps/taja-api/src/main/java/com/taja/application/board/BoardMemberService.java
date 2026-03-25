@@ -23,4 +23,8 @@ public class BoardMemberService {
     public List<BoardMember> findByMemberId(Long memberId) {
         return boardMemberRepository.findByMemberId(memberId);
     }
+
+    public void deleteByMemberIdIn(List<Long> memberIds) {
+        boardMemberRepository.deleteByMemberIdIn(memberIds);
+    }
 }

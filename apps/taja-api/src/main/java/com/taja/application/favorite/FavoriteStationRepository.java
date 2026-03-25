@@ -15,4 +15,6 @@ public interface FavoriteStationRepository {
     List<Station> findFavoriteStationsByMemberEmail(String email);
 
     void deleteByMember(Member member);
+
+    void deleteByMemberIdIn(List<Long> memberIds);
 }

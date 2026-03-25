@@ -75,6 +75,16 @@ public class PostRankingRedisRepository implements PostRankingRepository {
         return KEY_PREFIX + stationId + ":" + date.format(DATE_FORMAT);
     }
 
+    @Override
+    public void removePostIdsFromAllRankings(List<Long> postIds) {
+        Set<String> keys = redisTemplate.keys(KEY_PREFIX + "*");
+        if (keys.isEmpty() || postIds.isEmpty()) return;
+        Object[] members = postIds.stream().map(String::valueOf).toArray();
+        for (String key : keys) {
+            redisTemplate.opsForZSet().remove(key, members);
+        }
+    }
+
     private Long parseStationId(String key) {
         if (key == null || !key.startsWith(KEY_PREFIX)) {
             return null;

@@ -11,4 +11,8 @@ public interface CommentRepository {
     void saveComment(Comment comment);
 
     Optional<Comment> findByCommentIdAndIsDeletedFalse(Long commentId);
+
+    void deleteByPostIdIn(List<Long> postIds);
+
+    void deleteByWriterIdIn(List<Long> writerIds);
 }

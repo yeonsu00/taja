@@ -127,11 +127,15 @@ public class SimulationService {
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(SseEmitter.event().data(message));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 dead.add(emitter);
             }
         }
         emitters.removeAll(dead);
+    }
+
+    public boolean cleanupSimulationData() {
+        return apiClient.deleteSimulationData();
     }
 
     private void resetCounters(int userCount) {

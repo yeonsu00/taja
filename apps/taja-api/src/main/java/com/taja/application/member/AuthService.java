@@ -15,6 +15,7 @@ import jakarta.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -141,5 +142,19 @@ public class AuthService {
         favoriteStationRepository.deleteByMember(member);
         refreshTokenRepository.deleteByKey(email);
         memberRepository.deleteByEmail(email);
+    }
+
+    public List<Member> findMembersByEmailPrefix(String prefix) {
+        return memberRepository.findByEmailStartingWith(prefix);
+    }
+
+    @Transactional
+    public void deleteAllMembersById(List<Long> memberIds) {
+        memberRepository.deleteAllByIdIn(memberIds);
+    }
+
+    @Transactional
+    public void deleteRefreshTokensByKeys(List<String> keys) {
+        refreshTokenRepository.deleteByKeyIn(keys);
     }
 }

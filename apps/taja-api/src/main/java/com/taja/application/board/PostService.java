@@ -139,4 +139,17 @@ public class PostService {
     public Optional<String> findLatestPostContentByStationId(Long stationId) {
         return postRepository.findLatestPostContentByStationId(stationId);
     }
+
+    public List<Long> findPostIdsByWriterIds(List<Long> writerIds) {
+        return postRepository.findPostIdsByWriterIdIn(writerIds);
+    }
+
+    public void deletePostsByWriterIds(List<Long> writerIds) {
+        postRepository.deleteByWriterIdIn(writerIds);
+    }
+
+    public void removePostIdsFromRankings(List<Long> postIds) {
+        postRankingRepository.removePostIdsFromAllRankings(postIds);
+        allPostRankingRepository.removePostIds(postIds);
+    }
 }

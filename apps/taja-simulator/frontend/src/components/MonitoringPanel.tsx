@@ -5,10 +5,12 @@ interface Props {
   logs: string[]
   onStart: () => void
   onStop: () => void
+  onCleanup: () => void
+  cleanupLoading: boolean
   error: string | null
 }
 
-export default function MonitoringPanel({ status, logs, onStart, onStop, error }: Props) {
+export default function MonitoringPanel({ status, logs, onStart, onStop, onCleanup, cleanupLoading, error }: Props) {
   const successRate = status.completedActions > 0
     ? Math.round((status.successCount / status.completedActions) * 100)
     : 0
@@ -79,6 +81,14 @@ export default function MonitoringPanel({ status, logs, onStart, onStop, error }
           }
         </div>
       </div>
+
+      <button
+        className="btn-cleanup"
+        onClick={onCleanup}
+        disabled={status.running || cleanupLoading}
+      >
+        {cleanupLoading ? '삭제 중...' : '데이터 초기화'}
+      </button>
     </section>
   )
 }

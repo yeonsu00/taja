@@ -26,3 +26,11 @@ export async function fetchStatus(): Promise<SimulationStatus> {
 export function createLogEventSource(): EventSource {
   return new EventSource(`${BASE_URL}/logs`)
 }
+
+export async function deleteSimulationData(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/data`, { method: 'DELETE' })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || '데이터 삭제 실패')
+  }
+}

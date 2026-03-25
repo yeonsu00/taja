@@ -46,4 +46,8 @@ public class FavoriteStationService {
     public List<Station> findFavoriteStationsByMemberEmail(String email) {
         return favoriteStationRepository.findFavoriteStationsByMemberEmail(email);
     }
+
+    public void deleteByMemberIdIn(List<Long> memberIds) {
+        favoriteStationRepository.deleteByMemberIdIn(memberIds);
+    }
 }

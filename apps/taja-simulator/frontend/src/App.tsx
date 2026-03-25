@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { UserConfig, SimulationStatus, PERSONA_PRESETS } from './types'
-import { startSimulation, stopSimulation, fetchStatus, createLogEventSource } from './api'
+import { startSimulation, stopSimulation, fetchStatus, createLogEventSource, deleteSimulationData } from './api'
 import GlobalSettings from './components/GlobalSettings'
 import UserSlot from './components/UserSlot'
 import MonitoringPanel from './components/MonitoringPanel'
@@ -28,6 +28,7 @@ export default function App() {
   const [status, setStatus] = useState<SimulationStatus>(DEFAULT_STATUS)
   const [logs, setLogs] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [cleanupLoading, setCleanupLoading] = useState(false)
 
   const esRef = useRef<EventSource | null>(null)
 
@@ -51,7 +52,9 @@ export default function App() {
     es.onmessage = (e) => {
       setLogs(prev => [...prev.slice(-199), e.data])
     }
-    es.onerror = () => es.close()
+    es.onerror = () => {
+      if (es.readyState === EventSource.CLOSED) es.close()
+    }
     return () => es.close()
   }, [])
 
@@ -89,6 +92,20 @@ export default function App() {
     await stopSimulation()
     const s = await fetchStatus()
     setStatus(s)
+  }
+
+  async function handleCleanup() {
+    if (!window.confirm('sim_ 사용자가 생성한 모든 데이터(게시글, 댓글, 좋아요 등)가 삭제됩니다.\n정말 초기화하시겠습니까?')) return
+    setCleanupLoading(true)
+    setError(null)
+    try {
+      await deleteSimulationData()
+      setLogs(prev => [...prev, '[시스템] 시뮬레이션 데이터 초기화 완료'])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '데이터 초기화 실패')
+    } finally {
+      setCleanupLoading(false)
+    }
   }
 
   return (
@@ -137,6 +154,7 @@ export default function App() {
               ))}
             </div>
           </section>
+
         </div>
 
         <div className="right-panel">
@@ -145,6 +163,8 @@ export default function App() {
             logs={logs}
             onStart={handleStart}
             onStop={handleStop}
+            onCleanup={handleCleanup}
+            cleanupLoading={cleanupLoading}
             error={error}
           />
         </div>

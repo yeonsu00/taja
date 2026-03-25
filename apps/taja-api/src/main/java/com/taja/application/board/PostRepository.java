@@ -6,6 +6,10 @@ import java.util.Optional;
 
 public interface PostRepository {
 
+    List<Long> findPostIdsByWriterIdIn(List<Long> writerIds);
+
+    void deleteByWriterIdIn(List<Long> writerIds);
+
     void savePost(Post post);
 
     List<BoardInfo.PostItem> findLatestPosts(Long stationId, long cursor, int size);

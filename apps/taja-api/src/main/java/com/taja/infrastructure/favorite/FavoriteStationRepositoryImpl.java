@@ -51,4 +51,9 @@ public class FavoriteStationRepositoryImpl implements FavoriteStationRepository 
     public void deleteByMember(Member member) {
         favoriteStationJpaRepository.deleteByMember(member);
     }
+
+    @Override
+    public void deleteByMemberIdIn(List<Long> memberIds) {
+        favoriteStationJpaRepository.deleteByMemberMemberIdIn(memberIds);
+    }
 }

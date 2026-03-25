@@ -1,6 +1,7 @@
 package com.taja.application.member;
 
 import com.taja.domain.member.RefreshToken;
+import java.util.List;
 
 public interface RefreshTokenRepository {
     void save(RefreshToken refreshToken);
@@ -10,4 +11,6 @@ public interface RefreshTokenRepository {
     void deleteByValue(String value);
 
     void deleteByKey(String key);
+
+    void deleteByKeyIn(List<String> keys);
 }

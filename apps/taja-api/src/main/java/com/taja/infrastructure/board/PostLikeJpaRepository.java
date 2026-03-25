@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,4 +19,12 @@ public interface PostLikeJpaRepository extends JpaRepository<PostLike, Long> {
 
     @Query("SELECT pl.postId FROM PostLike pl WHERE pl.memberId = :memberId AND pl.postId IN :postIds AND pl.isDeleted = false")
     Set<Long> findPostIdsByMemberIdAndPostIdInAndIsDeletedFalse(@Param("memberId") Long memberId, @Param("postIds") List<Long> postIds);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM PostLike pl WHERE pl.postId IN :postIds")
+    void deleteByPostIdIn(@Param("postIds") List<Long> postIds);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM PostLike pl WHERE pl.memberId IN :memberIds")
+    void deleteByMemberIdIn(@Param("memberIds") List<Long> memberIds);
 }

@@ -33,8 +33,16 @@ public class SimulationController {
         return ResponseEntity.ok(simulationService.getStatus());
     }
 
+    @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
     @GetMapping(value = "/logs", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamLogs() {
         return simulationService.registerLogEmitter();
+    }
+
+    @DeleteMapping("/data")
+    public ResponseEntity<String> cleanupData() {
+        boolean ok = simulationService.cleanupSimulationData();
+        if (ok) return ResponseEntity.ok("시뮬레이션 데이터가 삭제되었습니다.");
+        return ResponseEntity.internalServerError().body("시뮬레이션 데이터 삭제 실패");
     }
 }

@@ -27,4 +27,14 @@ public class CommentRepositoryImpl implements CommentRepository {
     public Optional<Comment> findByCommentIdAndIsDeletedFalse(Long commentId) {
         return commentJpaRepository.findByCommentIdAndIsDeletedFalse(commentId);
     }
+
+    @Override
+    public void deleteByPostIdIn(List<Long> postIds) {
+        commentJpaRepository.deleteByPostIdIn(postIds);
+    }
+
+    @Override
+    public void deleteByWriterIdIn(List<Long> writerIds) {
+        commentJpaRepository.deleteByWriterIdIn(writerIds);
+    }
 }

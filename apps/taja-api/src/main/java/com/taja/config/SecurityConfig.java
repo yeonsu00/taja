@@ -65,6 +65,9 @@ public class SecurityConfig {
                                 "/posts/*",
                                 "/posts/rank/daily"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/admin/simulation/data"
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(customAuthenticationEntryPoint))

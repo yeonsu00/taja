@@ -10,4 +10,6 @@ public interface BoardMemberRepository {
     void saveBoardMember(BoardMember boardMember);
 
     List<BoardMember> findByMemberId(Long memberId);
+
+    void deleteByMemberIdIn(List<Long> memberIds);
 }

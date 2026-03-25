@@ -1,6 +1,7 @@
 package com.taja.infrastructure.member;
 
 import com.taja.domain.member.Member;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -10,4 +11,6 @@ public interface MemberJpaRepository extends JpaRepository<Member, Long> {
     boolean existsByName(String name);
 
     void deleteByEmail(String email);
+
+    List<Member> findByEmailStartingWith(String prefix);
 }

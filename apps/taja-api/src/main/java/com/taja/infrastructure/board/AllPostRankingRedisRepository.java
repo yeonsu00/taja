@@ -63,6 +63,16 @@ public class AllPostRankingRedisRepository implements AllPostRankingRepository {
         log.info("랭킹 carry-over(전체) 완료: fromDate={}, toDate={}", today, tomorrow);
     }
 
+    @Override
+    public void removePostIds(List<Long> postIds) {
+        Set<String> keys = redisTemplate.keys(KEY_PREFIX + "*");
+        if (keys.isEmpty() || postIds.isEmpty()) return;
+        Object[] members = postIds.stream().map(String::valueOf).toArray();
+        for (String key : keys) {
+            redisTemplate.opsForZSet().remove(key, members);
+        }
+    }
+
     private String key(LocalDate date) {
         return KEY_PREFIX + date.format(DATE_FORMAT);
     }

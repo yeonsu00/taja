@@ -47,4 +47,14 @@ public class PostLikeRepositoryImpl implements PostLikeRepository {
             throw new AlreadyLikedException("이미 좋아요를 누른 게시글입니다.");
         }
     }
+
+    @Override
+    public void deleteByPostIdIn(List<Long> postIds) {
+        postLikeJpaRepository.deleteByPostIdIn(postIds);
+    }
+
+    @Override
+    public void deleteByMemberIdIn(List<Long> memberIds) {
+        postLikeJpaRepository.deleteByMemberIdIn(memberIds);
+    }
 }

@@ -3,6 +3,7 @@ package com.taja.infrastructure.member;
 import com.taja.global.exception.TokenException;
 import com.taja.application.member.RefreshTokenRepository;
 import com.taja.domain.member.RefreshToken;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -40,5 +41,10 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
     @Override
     public void deleteByKey(String key) {
         refreshTokenJpaRepository.deleteByKey(key);
+    }
+
+    @Override
+    public void deleteByKeyIn(List<String> keys) {
+        refreshTokenJpaRepository.deleteByKeyIn(keys);
     }
 }

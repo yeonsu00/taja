@@ -4,6 +4,7 @@ import com.taja.global.exception.DuplicateMemberException;
 import com.taja.global.exception.MemberException;
 import com.taja.application.member.MemberRepository;
 import com.taja.domain.member.Member;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
@@ -37,5 +38,15 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public void deleteByEmail(String email) {
         memberJpaRepository.deleteByEmail(email);
+    }
+
+    @Override
+    public List<Member> findByEmailStartingWith(String prefix) {
+        return memberJpaRepository.findByEmailStartingWith(prefix);
+    }
+
+    @Override
+    public void deleteAllByIdIn(List<Long> memberIds) {
+        memberJpaRepository.deleteAllById(memberIds);
     }
 }
