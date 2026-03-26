@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,6 +71,7 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(long now) {
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setExpiration(new Date(now + refreshTokenExpireTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
