@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.RPI_USER }}
           key: ${{ secrets.RPI_SSH_KEY }}
           port: ${{ secrets.RPI_SSH_PORT }}
-          source: "docker-compose.yml,nginx/default.conf,init-letsencrypt.sh"
+          source: "docker-compose.yml,nginx/default.conf,init-letsencrypt.sh,monitoring/prometheus.yml"
           target: "~/taja"
 
       # 5. 라즈베리파이에 배포
