@@ -39,3 +39,8 @@ out/
 /dump.rdb
 /src/main/generated/
 /.cursor/mcp.json
+
+### Frontend ###
+node_modules/
+apps/taja-simulator/frontend/dist/
+/.omc/
