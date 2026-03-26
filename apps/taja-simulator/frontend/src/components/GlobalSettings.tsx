@@ -41,7 +41,7 @@ export default function GlobalSettings({
               onChange={e => onChange('useAiContent', e.target.checked)}
             />
             <span className="toggle-hint">
-              {useAiContent ? 'Claude API 사용 (비용 발생)' : '고정 템플릿 사용 (무료)'}
+              {useAiContent ? 'Gemini API 사용 (비용 발생)' : '고정 템플릿 사용 (무료)'}
             </span>
           </div>
         </label>

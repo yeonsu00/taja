@@ -2,10 +2,10 @@ server:
   port: 8081
 
 simulator:
-  base-url: ${SIMULATOR_BASE_URL:https://taja.myvnc.com}
+  base-url: ${SIMULATOR_BASE_URL:http://localhost:8080}
 
-anthropic:
-  api-key: ${ANTHROPIC_API_KEY:}
+gemini:
+  api-key: ${GEMINI_API_KEY:}
 
 spring:
   application:

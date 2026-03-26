@@ -43,3 +43,4 @@ out/
 ### Frontend ###
 node_modules/
 apps/taja-simulator/frontend/dist/
+/.omc/

@@ -18,8 +18,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // Claude API (Anthropic Java SDK)
-    implementation 'com.anthropic:anthropic-java:2.2.0'
+    // Gemini API (Google GenAI SDK)
+    implementation 'com.google.genai:google-genai:1.5.0'
 }
 
 tasks.named('test') {
