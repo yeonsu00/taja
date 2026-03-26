@@ -20,6 +20,20 @@ export const ACTION_LABELS: Record<string, string> = {
 
 export const ALL_ACTIONS = Object.keys(ACTION_LABELS)
 
+// 각 행동 실행에 필요한 선행 행동 목록
+export const ACTION_PREREQUISITES: Record<string, string[]> = {
+  SIGNUP: [],
+  SEARCH_STATION: [],
+  VIEW_MAP: [],
+  JOIN_BOARD: ['SIGNUP', 'SEARCH_STATION'],
+  ADD_FAVORITE: ['SIGNUP', 'SEARCH_STATION'],
+  CREATE_POST: ['SIGNUP', 'SEARCH_STATION', 'JOIN_BOARD'],
+  CREATE_COMMENT: ['SIGNUP', 'SEARCH_STATION', 'JOIN_BOARD', 'CREATE_POST'],
+  LIKE_POST: ['SIGNUP', 'SEARCH_STATION', 'JOIN_BOARD'],
+  DELETE_COMMENT: ['SIGNUP', 'SEARCH_STATION', 'JOIN_BOARD', 'CREATE_POST', 'CREATE_COMMENT'],
+  UNLIKE_POST: ['SIGNUP', 'SEARCH_STATION', 'JOIN_BOARD', 'LIKE_POST'],
+}
+
 export interface UserConfig {
   personaName: string
   personaDescription: string

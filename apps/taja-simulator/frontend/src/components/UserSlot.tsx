@@ -1,4 +1,4 @@
-import { UserConfig, PERSONA_PRESETS, ACTION_LABELS, ALL_ACTIONS } from '../types'
+import { UserConfig, PERSONA_PRESETS, ACTION_LABELS, ALL_ACTIONS, ACTION_PREREQUISITES } from '../types'
 
 interface Props {
   index: number
@@ -21,7 +21,21 @@ export default function UserSlot({ index, user, onChange, onRemove, disabled }: 
   }
 
   function addAction(action: string) {
-    onChange({ ...user, actions: [...user.actions, action] })
+    const required = ACTION_PREREQUISITES[action] ?? []
+    const current = user.actions
+    const toAdd: string[] = []
+
+    for (const prereq of required) {
+      const accumulated = [...current, ...toAdd]
+      const alreadyPresent = accumulated.includes(prereq)
+      // SEARCH_STATION은 VIEW_MAP으로 대체 가능
+      const stationSatisfied = prereq === 'SEARCH_STATION' && accumulated.includes('VIEW_MAP')
+      if (!alreadyPresent && !stationSatisfied) {
+        toAdd.push(prereq)
+      }
+    }
+
+    onChange({ ...user, actions: [...current, ...toAdd, action] })
   }
 
   function removeAction(idx: number) {
