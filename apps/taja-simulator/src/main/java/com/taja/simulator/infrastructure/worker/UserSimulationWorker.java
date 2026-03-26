@@ -96,13 +96,17 @@ public class UserSimulationWorker implements Runnable {
 
     private boolean handleSignup() {
         boolean ok = apiClient.signup(context.getName(), context.getEmail());
-        if (ok) {
-            apiClient.login(context.getEmail()).ifPresent(context::setAccessToken);
-            log("[{}] 회원가입 성공 ({})", context.getPersonaName(), context.getName());
-        } else {
+        if (!ok) {
             log("[{}] 회원가입 실패", context.getPersonaName());
+            return false;
         }
-        return ok && context.isLoggedIn();
+        apiClient.login(context.getEmail()).ifPresent(context::setAccessToken);
+        if (context.isLoggedIn()) {
+            log("[{}] 회원가입 및 로그인 성공 ({})", context.getPersonaName(), context.getName());
+        } else {
+            log("[{}] 회원가입 성공 but 로그인 실패 ({})", context.getPersonaName(), context.getName());
+        }
+        return context.isLoggedIn();
     }
 
     private boolean handleSearchStation() {
