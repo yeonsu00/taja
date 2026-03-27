@@ -9,6 +9,7 @@ const DEFAULT_USER: UserConfig = {
   personaName: PERSONA_PRESETS[0].name,
   personaDescription: PERSONA_PRESETS[0].description,
   actions: ['SIGNUP', 'SEARCH_STATION', 'JOIN_BOARD', 'CREATE_POST'],
+  count: 1,
 }
 
 const DEFAULT_STATUS: SimulationStatus = {
@@ -166,6 +167,7 @@ export default function App() {
             onCleanup={handleCleanup}
             cleanupLoading={cleanupLoading}
             error={error}
+            configuredTotal={users.reduce((sum, u) => sum + (u.count > 0 ? u.count : 1), 0)}
           />
         </div>
       </main>

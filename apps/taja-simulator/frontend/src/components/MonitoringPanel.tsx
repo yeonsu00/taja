@@ -8,9 +8,10 @@ interface Props {
   onCleanup: () => void
   cleanupLoading: boolean
   error: string | null
+  configuredTotal: number
 }
 
-export default function MonitoringPanel({ status, logs, onStart, onStop, onCleanup, cleanupLoading, error }: Props) {
+export default function MonitoringPanel({ status, logs, onStart, onStop, onCleanup, cleanupLoading, error, configuredTotal }: Props) {
   const successRate = status.completedActions > 0
     ? Math.round((status.successCount / status.completedActions) * 100)
     : 0
@@ -28,7 +29,9 @@ export default function MonitoringPanel({ status, logs, onStart, onStop, onClean
         </div>
         <div className="status-item">
           <span className="status-label">활성 사용자</span>
-          <span className="status-value">{status.activeUsers} / {status.totalUsers}</span>
+          <span className="status-value">
+            {status.running ? `${status.activeUsers} / ${status.totalUsers}` : `0 / ${configuredTotal}`}
+          </span>
         </div>
         <div className="status-item">
           <span className="status-label">완료된 행동</span>

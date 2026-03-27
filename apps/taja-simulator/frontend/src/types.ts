@@ -7,7 +7,7 @@ export const PERSONA_PRESETS = [
 
 export const ACTION_LABELS: Record<string, string> = {
   SIGNUP: '회원가입',
-  SEARCH_STATION: '역 검색',
+  SEARCH_STATION: '대여소 검색',
   VIEW_MAP: '지도 조회',
   JOIN_BOARD: '게시판 참여',
   CREATE_POST: '게시글 작성',
@@ -38,6 +38,7 @@ export interface UserConfig {
   personaName: string
   personaDescription: string
   actions: string[]
+  count: number
 }
 
 export interface SimulationRequest {
