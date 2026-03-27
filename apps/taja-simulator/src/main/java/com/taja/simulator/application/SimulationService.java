@@ -54,32 +54,23 @@ public class SimulationService {
             throw new IllegalStateException("시뮬레이션이 이미 실행 중입니다.");
         }
 
-        resetCounters(request.users().size());
+        int totalCount = request.users().stream()
+                .mapToInt(u -> u.count() > 0 ? u.count() : 1)
+                .sum();
+        resetCounters(totalCount);
 
         for (SimulationRequest.UserConfig userConfig : request.users()) {
-            UserContext context = new UserContext(userConfig.personaName(), userConfig.personaDescription());
             List<ActionType> actions = userConfig.actions().stream()
                     .map(ActionType::valueOf)
                     .toList();
+            int count = userConfig.count() > 0 ? userConfig.count() : 1;
 
-            UserSimulationWorker worker = new UserSimulationWorker(
-                    context,
-                    actions,
-                    apiClient,
-                    aiContentAgent,
-                    request.useAiContent(),
-                    request.delayMinMs(),
-                    request.delayMaxMs(),
-                    running,
-                    this::broadcastLog,
-                    () -> { successCount.incrementAndGet(); completedActions.incrementAndGet(); },
-                    () -> { failureCount.incrementAndGet(); completedActions.incrementAndGet(); },
-                    activeUsers::decrementAndGet
-            );
-
-            CompletableFuture<Void> future = CompletableFuture.runAsync(worker, simulatorExecutor);
-            futures.add(future);
-            activeUsers.incrementAndGet();
+            for (int i = 0; i < count; i++) {
+                UserSimulationWorker worker = createWorker(userConfig, actions, request);
+                CompletableFuture<Void> future = CompletableFuture.runAsync(worker, simulatorExecutor);
+                futures.add(future);
+                activeUsers.incrementAndGet();
+            }
         }
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
@@ -88,6 +79,24 @@ public class SimulationService {
                     broadcastLog("[시스템] 시뮬레이션 완료");
                     log.info("Simulation completed. success={}, failure={}", successCount.get(), failureCount.get());
                 });
+    }
+
+    private UserSimulationWorker createWorker(SimulationRequest.UserConfig userConfig, List<ActionType> actions, SimulationRequest request) {
+        UserContext context = new UserContext(userConfig.personaName(), userConfig.personaDescription());
+        return new UserSimulationWorker(
+                context,
+                actions,
+                apiClient,
+                aiContentAgent,
+                request.useAiContent(),
+                request.delayMinMs(),
+                request.delayMaxMs(),
+                running,
+                this::broadcastLog,
+                () -> { successCount.incrementAndGet(); completedActions.incrementAndGet(); },
+                () -> { failureCount.incrementAndGet(); completedActions.incrementAndGet(); },
+                activeUsers::decrementAndGet
+        );
     }
 
     public void stop() {

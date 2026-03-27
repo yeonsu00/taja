@@ -113,16 +113,16 @@ public class UserSimulationWorker implements Runnable {
         List<Long> stationIds = apiClient.searchStations();
         if (!stationIds.isEmpty()) {
             context.setKnownStationIds(stationIds);
-            log("[{}] 역 검색 성공 → {}개 역 발견", context.getPersonaName(), stationIds.size());
+            log("[{}] 대여소 검색 성공 → {}개 대여소 발견", context.getPersonaName(), stationIds.size());
             return true;
         }
-        log("[{}] 역 검색 실패", context.getPersonaName());
+        log("[{}] 대여소 검색 실패", context.getPersonaName());
         return false;
     }
 
     private boolean handleJoinBoard() {
         if (!context.isLoggedIn() || context.getKnownStationIds().isEmpty()) {
-            log("[{}] 게시판 참여 스킵 (로그인 또는 역 정보 없음)", context.getPersonaName());
+            log("[{}] 게시판 참여 스킵 (로그인 또는 대여소 정보 없음)", context.getPersonaName());
             return false;
         }
         Long stationId = context.getKnownStationIds().get(0);
@@ -232,7 +232,7 @@ public class UserSimulationWorker implements Runnable {
 
     private boolean handleAddFavorite() {
         if (!context.isLoggedIn() || context.getKnownStationIds().isEmpty()) {
-            log("[{}] 즐겨찾기 스킵 (로그인 또는 역 정보 없음)", context.getPersonaName());
+            log("[{}] 즐겨찾기 스킵 (로그인 또는 대여소 정보 없음)", context.getPersonaName());
             return false;
         }
         Long stationId = context.getKnownStationIds().get(0);
@@ -246,7 +246,7 @@ public class UserSimulationWorker implements Runnable {
         if (!stationIds.isEmpty() && context.getKnownStationIds().isEmpty()) {
             context.setKnownStationIds(stationIds);
         }
-        log("[{}] 지도 조회 {} ({}개 역)", context.getPersonaName(), stationIds.isEmpty() ? "실패" : "성공", stationIds.size());
+        log("[{}] 지도 조회 {} ({}개 대여소)", context.getPersonaName(), stationIds.isEmpty() ? "실패" : "성공", stationIds.size());
         return !stationIds.isEmpty();
     }
 

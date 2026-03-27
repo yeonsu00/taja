@@ -11,6 +11,7 @@ public record SimulationRequest(
     public record UserConfig(
             String personaName,
             String personaDescription,
-            List<String> actions
+            List<String> actions,
+            int count
     ) {}
 }

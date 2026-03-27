@@ -93,6 +93,16 @@ export default function UserSlot({ index, user, onChange, onRemove, disabled }: 
           <p className="persona-desc">{user.personaDescription}</p>
         )}
 
+        <label>
+          <span>사용자 수</span>
+          <input
+            type="number" min={1} max={100} step={1}
+            value={user.count}
+            disabled={disabled}
+            onChange={e => onChange({ ...user, count: Number(e.target.value) })}
+          />
+        </label>
+
         <div className="action-section">
           <span>행동 시퀀스</span>
           <div className="action-sequence">
