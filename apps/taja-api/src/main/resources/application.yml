@@ -97,6 +97,9 @@ management:
   endpoint:
     prometheus:
       enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 resilience4j:
   retry:
