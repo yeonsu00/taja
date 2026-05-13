@@ -35,6 +35,17 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
     @Override
     public void updateBikeCountAndRequestedAtWithPipeline(List<StationStatus> statuses) {
+        List<Integer> numbers = statuses.stream()
+                .map(StationStatus::getStationNumber)
+                .toList();
+        List<Integer> missingNumbers = stationHashRepository.findMissingNumbers(numbers);
+
+        if (!missingNumbers.isEmpty()) {
+            List<Station> stations = stationJpaRepository.findAllByNumberIn(missingNumbers);
+            stationHashRepository.saveStationInfosWithPipeline(stations, LocalDateTime.now());
+            log.info("캐시 누락 자가복구: {}개 대여소 정적 정보 재적재", stations.size());
+        }
+
         stationHashRepository.updateBikeCountAndRequestedAtWithPipeline(statuses);
     }
 

@@ -5,6 +5,7 @@ import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,31 @@ public class StationHashRepository {
             log.warn("Redis 데이터 파싱 실패: number={}, error={}", number, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    public List<Integer> findMissingNumbers(List<Integer> numbers) {
+        if (numbers.isEmpty()) {
+            return List.of();
+        }
+
+        List<Object> existsResults = redisTemplate.executePipelined(new SessionCallback<Object>() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+                for (Integer number : numbers) {
+                    operations.hasKey((K) (STATION_KEY_PREFIX + number));
+                }
+                return null;
+            }
+        });
+
+        List<Integer> missing = new ArrayList<>();
+        for (int i = 0; i < numbers.size(); i++) {
+            if (!Boolean.TRUE.equals(existsResults.get(i))) {
+                missing.add(numbers.get(i));
+            }
+        }
+        return missing;
     }
 
     public boolean isThresholdReached(Integer number) {
