@@ -7,9 +7,12 @@ import static org.mockito.Mockito.*;
 import com.taja.application.cache.StationInfo;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
+import com.taja.domain.status.StationStatus;
 import com.taja.global.exception.StationNotFoundException;
 import com.taja.infrastructure.station.StationJpaRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -256,6 +259,62 @@ class StationRedisRepositoryImplCacheTest {
         assertThat(results.get(0).number()).isEqualTo(201);
         assertThat(results.get(1).number()).isEqualTo(202);
         verify(stationJpaRepository, times(1)).findByNumber(202);  // 두 번째만 DB 조회
+    }
+
+    @DisplayName("update 시 캐시 누락된 대여소가 있으면 DB에서 정적 정보를 조회해 재적재한 뒤 갱신한다")
+    @Test
+    void updateBikeCountAndRequestedAt_whenSomeKeysMissing_refillsStaticFieldsThenUpdates() {
+        // given
+        StationStatus status1 = createTestStatus(301, 5);
+        StationStatus status2 = createTestStatus(302, 8);
+        List<StationStatus> statuses = List.of(status1, status2);
+
+        // 302번만 캐시 누락 상태
+        when(stationHashRepository.findMissingNumbers(List.of(301, 302)))
+                .thenReturn(List.of(302));
+
+        Station station302 = createTestStation(302, 37.5670, 126.9785);
+        when(stationJpaRepository.findAllByNumberIn(List.of(302)))
+                .thenReturn(List.of(station302));
+
+        // when
+        stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(statuses);
+
+        // then
+        verify(stationHashRepository).findMissingNumbers(List.of(301, 302));
+        verify(stationJpaRepository).findAllByNumberIn(List.of(302));
+        verify(stationHashRepository).saveStationInfosWithPipeline(eq(List.of(station302)), any(LocalDateTime.class));
+        verify(stationHashRepository).updateBikeCountAndRequestedAtWithPipeline(statuses);
+    }
+
+    @DisplayName("update 시 모든 캐시가 존재하면 DB 조회 없이 갱신만 수행한다")
+    @Test
+    void updateBikeCountAndRequestedAt_whenAllKeysPresent_skipsDbLookup() {
+        // given
+        StationStatus status1 = createTestStatus(401, 3);
+        StationStatus status2 = createTestStatus(402, 7);
+        List<StationStatus> statuses = List.of(status1, status2);
+
+        when(stationHashRepository.findMissingNumbers(List.of(401, 402)))
+                .thenReturn(List.of());
+
+        // when
+        stationRedisRepository.updateBikeCountAndRequestedAtWithPipeline(statuses);
+
+        // then
+        verify(stationHashRepository).findMissingNumbers(List.of(401, 402));
+        verify(stationJpaRepository, never()).findAllByNumberIn(anyList());
+        verify(stationHashRepository, never()).saveStationInfosWithPipeline(anyList(), any());
+        verify(stationHashRepository).updateBikeCountAndRequestedAtWithPipeline(statuses);
+    }
+
+    private StationStatus createTestStatus(Integer stationNumber, Integer bikeCount) {
+        return StationStatus.builder()
+                .stationNumber(stationNumber)
+                .parkingBikeCount(bikeCount)
+                .requestedDate(LocalDate.now())
+                .requestedTime(LocalTime.now())
+                .build();
     }
 
     private Station createTestStation(Integer number, double lat, double lon) {
