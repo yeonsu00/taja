@@ -1,0 +1,13 @@
+# ============================================================
+# 부하 측정(조건 A) 오버라이드 — 앱을 Docker로 실행
+#   - SPRING_PROFILES_ACTIVE=loadtest : 10분 주기 status cron off (부팅 1회 수집은 유지)
+#   - 8080 을 호스트로 공개 : k6(localhost:8080) + Prometheus(host.docker.internal:8080) 접근용
+#
+#   실행: docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d --build app
+# ============================================================
+services:
+  app:
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: loadtest
