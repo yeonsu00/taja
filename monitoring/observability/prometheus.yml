@@ -1,0 +1,13 @@
+# 부하 측정 관측용 Prometheus 설정 (docker-compose.observability.yml 전용)
+#  - 앱(host에서 실행)을 host.docker.internal 로 scrape
+#  - k6 remote-write 수신은 compose 의 --web.enable-remote-write-receiver 로 활성화
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: taja
+    scrape_interval: 5s
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8080']
