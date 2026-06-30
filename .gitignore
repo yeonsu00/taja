@@ -50,3 +50,4 @@ node_modules/
 apps/taja-simulator/frontend/dist/
 /.omc/
 /apps/taja-api/src/main/java/com/taja/.omc/state/
+/k6/log/
