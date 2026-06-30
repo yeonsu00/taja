@@ -36,6 +36,7 @@ public class StationHashRepository {
 
     public static final String STATION_KEY_PREFIX = "stations:";
     public static final String LOCK_PREFIX = "lock:station:";
+    public static final String BULK_LOAD_LOCK_KEY = "lock:station:bulk-load";
 
     @Value("${cache.station.ttl-sec:3600}")
     private long cacheTtlSec;
@@ -167,6 +168,15 @@ public class StationHashRepository {
 
     public void releaseLock(Integer number) {
         redisTemplateMaster.delete(LOCK_PREFIX + number);
+    }
+
+    public boolean acquireBulkLoadLock() {
+        return Boolean.TRUE.equals(
+                redisTemplateMaster.opsForValue().setIfAbsent(BULK_LOAD_LOCK_KEY, "locked", Duration.ofSeconds(5)));
+    }
+
+    public void releaseBulkLoadLock() {
+        redisTemplateMaster.delete(BULK_LOAD_LOCK_KEY);
     }
 
 }

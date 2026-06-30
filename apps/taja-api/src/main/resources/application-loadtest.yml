@@ -1,0 +1,13 @@
+# ============================================================
+# 부하 측정용 프로파일 (조건 A: 실시간 상태 수집기 off)
+#   실행: --spring.profiles.active=loadtest
+#
+#   - "-" 는 Spring @Scheduled 의 cron 비활성화 특수값(Scheduled.CRON_DISABLED).
+#     10분 주기 실시간 상태 수집 cron만 끈다.
+#   - 부팅 시 StationInitializationScheduler 가 직접 호출하는
+#     status 1회 수집과 대여소 위치(geo) 적재는 그대로 유지된다.
+# ============================================================
+taja:
+  scheduler:
+    status-collection:
+      cron: "-"

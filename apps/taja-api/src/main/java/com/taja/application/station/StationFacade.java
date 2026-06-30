@@ -51,7 +51,6 @@ public class StationFacade {
         return savedStations.size();
     }
 
-    @Transactional(readOnly = true)
     public NearbyStationsResponse findStationsInBounds(double centerLat, double centerLon,
                                                        double latDelta, double lonDelta) {
         double height = (latDelta * 2) * 111.0;

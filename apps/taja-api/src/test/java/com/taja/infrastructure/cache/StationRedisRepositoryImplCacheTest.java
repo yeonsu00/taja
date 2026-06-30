@@ -8,7 +8,6 @@ import com.taja.application.cache.StationInfo;
 import com.taja.domain.station.OperationMode;
 import com.taja.domain.station.Station;
 import com.taja.domain.status.StationStatus;
-import com.taja.global.exception.StationNotFoundException;
 import com.taja.infrastructure.station.StationJpaRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,24 +34,27 @@ class StationRedisRepositoryImplCacheTest {
     @InjectMocks
     private StationRedisRepositoryImpl stationRedisRepository;
 
-    @DisplayName("캐시 미스 시 DB에서 조회 후 캐시에 저장하고 반환한다")
+    @DisplayName("캐시 미스 시 DB에서 배치 조회 후 캐시에 저장하고 반환한다")
     @Test
-    void getOrRefresh_whenCacheMiss_loadsFromDbAndSavesToCache() {
+    void findStationInfos_whenCacheMiss_loadsFromDbInBatchAndSavesToCache() {
         // given
         Integer stationNumber = 101;
         double lat = 37.5665;
         double lon = 126.9780;
 
+        when(stationHashRepository.findMissingNumbers(List.of(stationNumber)))
+                .thenReturn(List.of(stationNumber));
+        when(stationHashRepository.acquireBulkLoadLock()).thenReturn(true);
+
+        Station station = createTestStation(stationNumber, lat, lon);
+        when(stationJpaRepository.findAllByNumberIn(List.of(stationNumber)))
+                .thenReturn(List.of(station));
+
         StationInfo.StationHashInfo cachedHashInfo = new StationInfo.StationHashInfo(
                 stationNumber, 1L, "테스트 대여소 101", 0, LocalDateTime.now()
         );
         when(stationHashRepository.fetchAllFields(stationNumber))
-                .thenReturn(Optional.empty())  // 첫 번째: 캐시 미스
-                .thenReturn(Optional.of(cachedHashInfo));  // 두 번째: 캐시 저장 후
-
-        Station station = createTestStation(stationNumber, lat, lon);
-        when(stationJpaRepository.findByNumber(stationNumber))
-                .thenReturn(Optional.of(station));
+                .thenReturn(Optional.of(cachedHashInfo));
 
         // when
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
@@ -63,9 +65,8 @@ class StationRedisRepositoryImplCacheTest {
         // then
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().number()).isEqualTo(stationNumber);
-        verify(stationJpaRepository).findByNumber(stationNumber);
+        verify(stationJpaRepository).findAllByNumberIn(List.of(stationNumber));
         verify(stationHashRepository).saveStationInfosWithPipeline(anyList(), any(LocalDateTime.class));
-        verify(stationHashRepository, times(2)).fetchAllFields(stationNumber);
     }
 
     @DisplayName("캐시 히트 시 즉시 반환하고 DB 조회하지 않는다")
@@ -198,58 +199,60 @@ class StationRedisRepositoryImplCacheTest {
         verify(stationHashRepository).releaseLock(stationNumber);
     }
 
-    @DisplayName("DB에 대여소가 없으면 예외가 발생한다")
+    @DisplayName("DB에도 대여소가 없으면 해당 대여소를 결과에서 제외한다")
     @Test
-    void getOrRefresh_whenStationNotFoundInDb_throwsException() {
+    void findStationInfos_whenStationNotFoundInDb_excludesStation() {
         // given
         Integer stationNumber = 999;
         double lat = 37.5665;
         double lon = 126.9780;
 
+        when(stationHashRepository.findMissingNumbers(List.of(stationNumber)))
+                .thenReturn(List.of(stationNumber));
+        when(stationHashRepository.acquireBulkLoadLock()).thenReturn(true);
+        when(stationJpaRepository.findAllByNumberIn(List.of(stationNumber)))
+                .thenReturn(List.of());  // DB에도 없음
         when(stationHashRepository.fetchAllFields(stationNumber))
-                .thenReturn(Optional.empty());
-        when(stationJpaRepository.findByNumber(stationNumber))
                 .thenReturn(Optional.empty());
 
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(stationNumber, lat, lon)
         );
 
-        // when & then
-        assertThatThrownBy(() -> stationRedisRepository.findStationInfos(geoInfos))
-                .isInstanceOf(StationNotFoundException.class)
-                .hasMessageContaining("999 번 대여소를 찾을 수 없습니다");
-        verify(stationJpaRepository).findByNumber(stationNumber);
-        verify(stationHashRepository, never()).saveStationInfosWithPipeline(anyList(), any());
+        // when
+        List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
+
+        // then
+        assertThat(results).isEmpty();
+        verify(stationJpaRepository).findAllByNumberIn(List.of(stationNumber));
     }
 
-    @DisplayName("여러 대여소 조회 시 각각 캐시 상태에 따라 처리한다")
+    @DisplayName("여러 대여소 조회 시 캐시 미스된 것만 DB에서 배치 조회한다")
     @Test
-    void findStationInfos_whenMultipleStations_processesEachIndependently() {
+    void findStationInfos_whenMultipleStations_loadsOnlyMissingFromDb() {
         // given
         StationInfo.StationGeoInfo geo1 = new StationInfo.StationGeoInfo(201, 37.5665, 126.9780);
         StationInfo.StationGeoInfo geo2 = new StationInfo.StationGeoInfo(202, 37.5670, 126.9785);
 
-        // 첫 번째: 캐시 히트
+        // 202번만 캐시 미스
+        when(stationHashRepository.findMissingNumbers(List.of(201, 202)))
+                .thenReturn(List.of(202));
+        when(stationHashRepository.findMissingNumbers(List.of(202)))
+                .thenReturn(List.of(202));
+        when(stationHashRepository.acquireBulkLoadLock()).thenReturn(true);
+
+        Station station2 = createTestStation(202, 37.5670, 126.9785);
+        when(stationJpaRepository.findAllByNumberIn(List.of(202)))
+                .thenReturn(List.of(station2));
+
         StationInfo.StationHashInfo hashInfo1 = new StationInfo.StationHashInfo(
                 201, 1L, "테스트 대여소 201", 5, LocalDateTime.now()
         );
-        when(stationHashRepository.fetchAllFields(201))
-                .thenReturn(Optional.of(hashInfo1));
-        when(stationHashRepository.isThresholdReached(201))
-                .thenReturn(false);
-
-        // 두 번째: 캐시 미스
         StationInfo.StationHashInfo hashInfo2 = new StationInfo.StationHashInfo(
                 202, 2L, "테스트 대여소 202", 0, null
         );
-        when(stationHashRepository.fetchAllFields(202))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.of(hashInfo2));
-
-        Station station2 = createTestStation(202, 37.5670, 126.9785);
-        when(stationJpaRepository.findByNumber(202))
-                .thenReturn(Optional.of(station2));
+        when(stationHashRepository.fetchAllFields(201)).thenReturn(Optional.of(hashInfo1));
+        when(stationHashRepository.fetchAllFields(202)).thenReturn(Optional.of(hashInfo2));
 
         // when
         List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(List.of(geo1, geo2));
@@ -258,7 +261,7 @@ class StationRedisRepositoryImplCacheTest {
         assertThat(results).hasSize(2);
         assertThat(results.get(0).number()).isEqualTo(201);
         assertThat(results.get(1).number()).isEqualTo(202);
-        verify(stationJpaRepository, times(1)).findByNumber(202);  // 두 번째만 DB 조회
+        verify(stationJpaRepository).findAllByNumberIn(List.of(202));  // 미스된 것만 배치 조회
     }
 
     @DisplayName("update 시 캐시 누락된 대여소가 있으면 DB에서 정적 정보를 조회해 재적재한 뒤 갱신한다")

@@ -79,8 +79,23 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
 
     @Override
     public List<StationInfo.StationFullInfo> findStationInfos(List<StationInfo.StationGeoInfo> geoInfos) {
+        List<Integer> numbers = geoInfos.stream()
+                .map(StationInfo.StationGeoInfo::number)
+                .toList();
+
+        List<Integer> missingNumbers = stationHashRepository.findMissingNumbers(numbers);
+        if (!missingNumbers.isEmpty()) {
+            loadMissingWithSingleFlight(missingNumbers);
+        }
+
         return geoInfos.stream()
-                .map(geo -> getOrRefresh(geo.number(), geo.latitude(), geo.longitude()))
+                .map(geo -> {
+                    Optional<StationInfo.StationHashInfo> hashInfoOpt = stationHashRepository.fetchAllFields(geo.number());
+                    if (hashInfoOpt.isPresent() && stationHashRepository.isThresholdReached(geo.number())) {
+                        CompletableFuture.runAsync(() -> refreshCacheWithLock(geo.number()));
+                    }
+                    return StationInfo.StationFullInfo.from(hashInfoOpt.orElse(null), geo.latitude(), geo.longitude());
+                })
                 .flatMap(Optional::stream)
                 .collect(Collectors.toList());
     }
@@ -106,6 +121,42 @@ public class StationRedisRepositoryImpl implements StationRedisRepository {
                                 status.getParkingBikeCount(),
                                 LocalDateTime.of(status.getRequestedDate(), status.getRequestedTime())))
                         .orElse(new BikeCountInfo(stationId, 0, LocalDateTime.now())));
+    }
+
+    private static final long SINGLE_FLIGHT_WAIT_MS = 50;
+    private static final int SINGLE_FLIGHT_MAX_ATTEMPTS = 20;
+
+    private void loadMissingWithSingleFlight(List<Integer> missingNumbers) {
+        for (int attempt = 0; attempt < SINGLE_FLIGHT_MAX_ATTEMPTS; attempt++) {
+            if (stationHashRepository.acquireBulkLoadLock()) {
+                try {
+                    List<Integer> stillMissing = stationHashRepository.findMissingNumbers(missingNumbers);
+                    if (!stillMissing.isEmpty()) {
+                        List<Station> stations = stationJpaRepository.findAllByNumberIn(stillMissing);
+                        stationHashRepository.saveStationInfosWithPipeline(stations, LocalDateTime.now());
+                    }
+                    return;
+                } finally {
+                    stationHashRepository.releaseBulkLoadLock();
+                }
+            }
+
+            try {
+                Thread.sleep(SINGLE_FLIGHT_WAIT_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+            missingNumbers = stationHashRepository.findMissingNumbers(missingNumbers);
+            if (missingNumbers.isEmpty()) {
+                return;
+            }
+        }
+
+        if (!missingNumbers.isEmpty()) {
+            List<Station> stations = stationJpaRepository.findAllByNumberIn(missingNumbers);
+            stationHashRepository.saveStationInfosWithPipeline(stations, LocalDateTime.now());
+        }
     }
 
     private Optional<StationInfo.StationFullInfo> getOrRefresh(Integer number, double lat, double lon) {
