@@ -127,13 +127,11 @@ class StationRedisRepositoryImplTest {
                 new StationInfo.StationGeoInfo(201, 37.6, 127.1)
         );
 
-        // 캐시에 데이터가 없음 → 저장 후 재조회
-        StationInfo.StationHashInfo cachedHashInfo = new StationInfo.StationHashInfo(201, 1L, "테스트 대여소", 0, null);
-        when(stationHashRepository.fetchAllFields(201))
-                .thenReturn(Optional.empty())  // 첫 번째 호출: 캐시 미스
-                .thenReturn(Optional.of(cachedHashInfo));  // 두 번째 호출: 캐시 저장 후 조회
+        // 캐시에 데이터가 없음 → 배치 조회 후 저장, 재조회
+        when(stationHashRepository.findMissingNumbers(List.of(201)))
+                .thenReturn(List.of(201));
+        when(stationHashRepository.acquireBulkLoadLock()).thenReturn(true);
 
-        // DB에서 조회
         Station station = Station.builder()
                 .stationId(1L)
                 .number(201)
@@ -144,8 +142,12 @@ class StationRedisRepositoryImplTest {
                 .longitude(127.1)
                 .operationMode(OperationMode.LCD_QR)
                 .build();
-        when(stationJpaRepository.findByNumber(201))
-                .thenReturn(Optional.of(station));
+        when(stationJpaRepository.findAllByNumberIn(List.of(201)))
+                .thenReturn(List.of(station));
+
+        StationInfo.StationHashInfo cachedHashInfo = new StationInfo.StationHashInfo(201, 1L, "테스트 대여소", 0, null);
+        when(stationHashRepository.fetchAllFields(201))
+                .thenReturn(Optional.of(cachedHashInfo));
 
         // when
         List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
@@ -155,6 +157,7 @@ class StationRedisRepositoryImplTest {
         StationInfo.StationFullInfo result = results.getFirst();
         assertThat(result.number()).isEqualTo(201);
         assertThat(result.stationId()).isEqualTo(1L);
+        verify(stationJpaRepository).findAllByNumberIn(List.of(201));
         verify(stationHashRepository).saveStationInfosWithPipeline(anyList(), any(LocalDateTime.class));
     }
 
@@ -177,26 +180,28 @@ class StationRedisRepositoryImplTest {
         assertThat(results.getFirst().number()).isEqualTo(101);
     }
 
-    @DisplayName("날짜 형식이 잘못되었을 때, 예외가 발생한다.")
+    @DisplayName("캐시와 DB 모두에 대여소가 없으면 해당 대여소를 결과에서 제외한다.")
     @Test
-    void findStationInfos_whenDateFormatIsInvalid_throwsException() {
+    void findStationInfos_whenStationMissingInCacheAndDb_excludesStation() {
         // given
         List<StationInfo.StationGeoInfo> geoInfos = List.of(
                 new StationInfo.StationGeoInfo(102, 37.503, 127.003)
         );
 
-        // StationHashRepository에서 파싱 실패로 Optional.empty() 반환
+        when(stationHashRepository.findMissingNumbers(List.of(102)))
+                .thenReturn(List.of(102));
+        when(stationHashRepository.acquireBulkLoadLock()).thenReturn(true);
+        when(stationJpaRepository.findAllByNumberIn(List.of(102)))
+                .thenReturn(List.of());  // DB에도 없음
         when(stationHashRepository.fetchAllFields(102))
                 .thenReturn(Optional.empty());
-        when(stationJpaRepository.findByNumber(102))
-                .thenReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> stationRedisRepository.findStationInfos(geoInfos))
-                .isInstanceOf(StationNotFoundException.class)
-                .hasMessageContaining("102 번 대여소를 찾을 수 없습니다");
-        verify(stationJpaRepository).findByNumber(102);
-        verify(stationHashRepository, never()).saveStationInfosWithPipeline(anyList(), any());
+        // when
+        List<StationInfo.StationFullInfo> results = stationRedisRepository.findStationInfos(geoInfos);
+
+        // then
+        assertThat(results).isEmpty();
+        verify(stationJpaRepository).findAllByNumberIn(List.of(102));
     }
 
     @DisplayName("getStationStatusByNumber는 Redis에 데이터가 있으면 Redis 값을 반환한다")

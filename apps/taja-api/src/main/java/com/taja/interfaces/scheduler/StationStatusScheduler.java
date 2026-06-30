@@ -15,7 +15,7 @@ public class StationStatusScheduler {
     private final StationStatusService stationStatusService;
     private final StationInitializationHolder stationInitializationHolder;
 
-    @Scheduled(cron = "0 0/10 * * * *")
+    @Scheduled(cron = "${taja.scheduler.status-collection.cron:0 0/10 * * * *}")
     public void scheduleStationStatusCollection() {
         if (!stationInitializationHolder.isInitialized()) {
             log.debug("대여소 정보 초기화 미완료로 대여소 실시간 상태 수집 스킵");
